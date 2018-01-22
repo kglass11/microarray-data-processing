@@ -40,12 +40,6 @@ for(i in 1:length(samples)){
 fore.matrix <- as.matrix(fore.df[,7:ncol(fore.df)])
 back.matrix <- as.matrix(back.df[,7:ncol(back.df)])
 
-#Generate a corrected matrix, with background substracted from foreground
-cor.matrix <- fore.matrix-back.matrix
-
-#Export this for reference
-write.csv(cor.matrix, file="cor.matrix.csv")
-
 ###Assign target names to groups of your array targets to identify their 'type'
 
 targets_blank = c(grep("BLANK", annotation_targets.df$Name))
@@ -57,6 +51,11 @@ targets_allcontrol = c(targets_blank, targets_buffer, targets_ref, targets_std)
 ###Assign sample type names, to idenfy control and test samples
 samples_test <- samples.df$sample_type=="test"
 samples_control <- samples.df$sample_type=="control"
+
+## Background Correction 
+
+
+
 
 ###QUALITY CONTROL###
 
@@ -175,6 +174,8 @@ graphics.off()
 #The only way of identifying if this is true is by looking at the control spots by slide and pad.
 #If the same samples have high controls, the background correction was not enough.
 #Correction against plate buffers may be required...
+
+### *** Need to change this to be looking at LIMMA method of background correction
 
 #To identify which slides, pads, and samples are significantly deviated, we need to calculate the mean and generate an arbitrary cut off 
 #The cut off can be used to flag samples, and tells us whether deviation is universal, or specific to slides, pads, or samples
