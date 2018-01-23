@@ -50,14 +50,9 @@ back.matrix <- as.matrix(back.df[,7:ncol(back.df)])
 
 ### Perform background correction using limma function and normexp method.
 cor.matrix <- backgroundCorrect.matrix(fore.matrix, back.matrix, method = "normexp", offset = 50, normexp.method = "mle")
-cor3.matrix <- as.matrix(as.data.frame(backgroundCorrect(as.matrix(cor.matrix), method = "normexp", offset = 50, normexp.method = "mle")))
-
-cor.matrix == cor3.matrix
-# compared my use of background correct to Will's, they are not the same. the matrix that was corrected before by background subtraction 
-  # should not be used for the background correct method, it should be the background and foreground matrices from my understanding
 
 #Export this for reference
-write.csv(cor.matrix, file="cor.matrix.csv")
+write.csv(cor.matrix, file="corrected.matrix.csv")
 
 ### Log transform the data (base 2)
 log.cor.matrix <- log2(cor.matrix)
