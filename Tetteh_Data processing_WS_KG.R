@@ -48,6 +48,8 @@ for(i in 1:length(samples)){
 fore.matrix <- as.matrix(fore.df[,7:ncol(fore.df)])
 back.matrix <- as.matrix(back.df[,7:ncol(back.df)])
 
+###DATA CORRECTION###
+
 ### Perform background correction using limma function and normexp method.
 cor.matrix <- backgroundCorrect.matrix(fore.matrix, back.matrix, method = "normexp", offset = 50, normexp.method = "mle")
 
@@ -294,40 +296,22 @@ plot(cor_buffer_cov_sample, ylab="CoV corrected buffer MFI", xlab="Sample", ylim
 remove(temp)
 graphics.off()
 
-###DATA CORRECTION###
-
-#Check the number of values below 0 in corrected, un-baseline adjusted data
-length(cor.matrix)
-sum(cor.matrix<=0)
-sum(cor.matrix>0)
-cat("Before baseline adjustment", sum(cor.matrix<=0),"out of", length(cor.matrix), "total targets have MFIs below zero in the corrected matrix")
-
-#1. Simple BLUNT method of baseline adjustment
-cor2.matrix <- cor.matrix
-for (i in 1:ncol(cor2.matrix)) 
-{
-  cor2.matrix[which(cor2.matrix[, i] < 1), i] <- 1
-}
-cat("After BLUNT baseline adjustment", sum(cor2.matrix<=0),"out of", length(cor2.matrix), "total targets have MFIs below zero in the corrected matrix")
-
-#2. Less simple LIMMA method of baseline adjustment
-cor3.matrix <- as.matrix(as.data.frame(backgroundCorrect(as.matrix(cor.matrix), method = "normexp", offset = 50, normexp.method = "mle")))
-cat("After LIMMA baseline adjustment", sum(cor3.matrix<=0),"out of", length(cor3.matrix), "total targets have MFIs below zero in the corrected matrix")
+### Mean values for each target ordered so it could be a heatmap - this is not currently log transformed or normalized data
 
 #Check average corrected values for each target for all individuals
-cor3_target_mean <- rowMeans(cor3.matrix)
+cor_target_mean <- rowMeans(cor.matrix)
 #Mean background target magnitude for block 1, arranged in the order they are printed
-cor3_target_mean_b1 = t(matrix(round(cor3_target_mean[annotation_targets.df$Block==1], digits=2), nrow=max(annotation_targets.df$Column), ncol=max(annotation_targets.df$Row)))
+cor_target_mean_b1 = t(matrix(round(cor_target_mean[annotation_targets.df$Block==1], digits=2), nrow=max(annotation_targets.df$Column), ncol=max(annotation_targets.df$Row)))
 #Mean background target magnitude for block 2, arranged in the order they are printed
-cor3_target_mean_b2 = t(matrix(round(cor3_target_mean[annotation_targets.df$Block==2], digits=2), nrow=max(annotation_targets.df$Column), ncol=max(annotation_targets.df$Row)))
-cor3_target_mean_b1b2 <- rbind(cor3_target_mean_b1, cor3_target_mean_b2)
+cor_target_mean_b2 = t(matrix(round(cor_target_mean[annotation_targets.df$Block==2], digits=2), nrow=max(annotation_targets.df$Column), ncol=max(annotation_targets.df$Row)))
+cor_target_mean_b1b2 <- rbind(cor_target_mean_b1, cor_target_mean_b2)
 #Annotation plate maps
 annotation_target_b1 <- t(matrix(annotation_targets.df$target_id_unique [annotation_targets.df$Block==1], nrow = max(annotation_targets.df$Column), ncol=max(annotation_targets.df$Row)))
 annotation_target_b2 <- t(matrix(annotation_targets.df$target_id_unique [annotation_targets.df$Block==2], nrow = max(annotation_targets.df$Column), ncol=max(annotation_targets.df$Row)))
 annotation_target_b1b2 <- rbind(annotation_target_b1, annotation_target_b2)
 #Write csv, which can be presented as a heatmap
-write.csv(cbind(cor3_target_mean_b1b2, annotation_target_b1b2), file="corrected_target_mean.csv")
-remove(cor3_target_mean, cor3_target_mean_b1, cor3_target_mean_b2,cor3_target_mean_b1b2, annotation_target_b1, annotation_target_b2, annotation_target_b1b2)
+write.csv(cbind(cor_target_mean_b1b2, annotation_target_b1b2), file="corrected_target_mean.csv")
+remove(cor_target_mean, cor_target_mean_b1, cor_target_mean_b2,cor_target_mean_b1b2, annotation_target_b1, annotation_target_b2, annotation_target_b1b2)
 
 ###Remove bad spots from subsequent analysis
 
@@ -341,25 +325,26 @@ high_targets <- c(targets_ref, grep("Std 1", row.names(annotation_targets.df)))
 high_targets_disinclude <- ifelse(high_targets>=180, high_targets-168, high_targets+180)
 high_targets_disinclude<-high_targets_disinclude[which(high_targets_disinclude<=336)] 
 
-###Convert the spots to be disincluded to NAs
-cor4.matrix <- cor3.matrix
-cor4.matrix[high_targets_disinclude, ] <- NA
+###Convert the spots to be disincluded to NAs in log-transformed data
+log.cor.matrix2 <- log.cor.matrix
+log.cor.matrix2[high_targets_disinclude, ] <- NA
+
+### Normalization ###
 
 ###Create new buffer summary based on only good spots
-cor4_buffer_mean <- mean(cor4.matrix[targets_buffer,], na.rm = TRUE)
-cor4_buffer_sd <- sd(cor4.matrix[targets_buffer,], na.rm = TRUE)
-cor4_buffer_cutoff <- cor4_buffer_mean+3*(cor4_buffer_sd)
-norm_buffer_cutoff <- log2(cor4_buffer_mean+3*(cor4_buffer_sd))
+cor2_buffer_mean <- mean(log.cor.matrix2[targets_buffer,], na.rm = TRUE)
+cor2_buffer_sd <- sd(log.cor.matrix2[targets_buffer,], na.rm = TRUE)
+cor2_buffer_cutoff <- cor2_buffer_mean+3*(cor2_buffer_sd)
 
 ###Create sample specific buffer means for normalisation
-cor4_buffer_sample_mean <- colMeans(cor4.matrix[targets_buffer,], na.rm = TRUE)
+cor2_buffer_sample_mean <- colMeans(log.cor.matrix2[targets_buffer,], na.rm = TRUE)
 
-#substract buffer mean from each sample to generate new intensity matrices
+#subtract buffer mean from each sample to generate new intensity matrices
 #remove highly variable samples from analyses
-norm.matrix <- log2(cor4.matrix)
+norm.matrix <- log.cor.matrix2
 for(i in 1:ncol(norm.matrix))
 {
-  norm.matrix[,i] <- norm.matrix[,i]-log2(cor4_buffer_sample_mean[i])
+  norm.matrix[,i] <- norm.matrix[,i]-cor2_buffer_sample_mean[i]
 }
 
 ###DATA ANALYSIS###
