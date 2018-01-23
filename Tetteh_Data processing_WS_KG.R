@@ -347,6 +347,8 @@ for(i in 1:ncol(norm.matrix))
   norm.matrix[,i] <- norm.matrix[,i]-cor2_buffer_sample_mean[i]
 }
 
+# add setting negative values to zero...?
+
 ###DATA ANALYSIS###
 #Before doing any further analysis, we have to get rid of samples or targets that we are no longer interested in
 #E.g. If control individuals are in our analysis, they will affect mixture model based cut-offs
