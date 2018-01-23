@@ -19,7 +19,7 @@ require("gtools")
 
 ### Define variables based on your study that will be used later in the script
   # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-  workdir <- "H:/My Documents/R/Bijagos Screen 2 Files"
+  workdir <- "/Users/Katie/Desktop/R files from work/Bijagos Screen 2 Files"
 
   #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
   sample_file <- "Analysis sample list 2.csv"
@@ -35,7 +35,7 @@ setwd(workdir)
 path=(workdir)
 
 ###Identify all .gpr files in your set path. default path for list.files() is the working directory.
-#For some reason the function did not work with path=path but did work when I did not specify the path.
+#KG - For some reason the function did not work with path=path but did work when I did not specify the path.
 
 slide_ids <- list.files(pattern="*.gpr")
 
@@ -50,7 +50,7 @@ slide_ids <- list.files(pattern="*.gpr")
 slides_list <- list()
 for(i in 1:length(slide_ids)) { 
   
-  ##setwd(path) - getting an error in setwd(path) so have removed this step
+  ##setwd(path) - KG getting an error in setwd(path) so have removed this step
   slides_list[[i]] <- read.table(slide_ids[i],skip=34,sep="\t",header=T)
   slide_no_temp <- substr(slide_ids[[i]],7,nchar(slide_ids[[i]])-4)
   slides_list[[i]][,"slide_no"] <- slide_no_temp
