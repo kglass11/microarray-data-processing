@@ -2,7 +2,15 @@
 ###PROCESSING YOUR MICROARRAY data###
 #####################################
 
-###Install any packages you may need for this script
+###Install any packages you may need for this script. Go to Tools, install packages, or run
+install.packages(c("contrast", "beeswarm", "mixtools", "gplots", "ggplot2", "gcookbook"))
+
+##To install limma
+## try http:// if https:// URLs are not supported
+source("https://bioconductor.org/biocLite.R")
+biocLite("limma")
+
+###Load packages needed for this script
 library(limma)
 library(contrast)
 library(beeswarm)
@@ -13,7 +21,7 @@ library(gcookbook)
 
 ###SELECT RELEVANT DATA###
 
-###Generate specific data frames e.g. median minus background & mean minus background
+###Generate specific data frames e.g. median foreground and background
 #The column identifying the sample_id in slides_all.df id column 42
 #The column identifying the foreground median in slides_all.df is 9
 #The column identifying the background median in slides_all.df is 14
