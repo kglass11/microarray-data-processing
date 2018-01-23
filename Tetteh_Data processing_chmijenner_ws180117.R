@@ -3,12 +3,12 @@
 #####################################
 
 ###Install any packages you may need for this script. Go to Tools, install packages, or run
-install.packages(c("contrast", "beeswarm", "mixtools", "gplots", "ggplot2", "gcookbook"))
+#install.packages(c("contrast", "beeswarm", "mixtools", "gplots", "ggplot2", "gcookbook"))
 
-##To install limma
+##Install limma
 ## try http:// if https:// URLs are not supported
-source("https://bioconductor.org/biocLite.R")
-biocLite("limma")
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("limma")
 
 ###Load packages needed for this script
 library(limma)
