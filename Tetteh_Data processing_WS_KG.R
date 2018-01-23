@@ -57,8 +57,6 @@ write.csv(cor.matrix, file="corrected.matrix.csv")
 ### Log transform the data (base 2)
 log.cor.matrix <- log2(cor.matrix)
 
-
-
 ###Assign target names to groups of your array targets to identify their 'type'
 
 targets_blank = c(grep("BLANK", annotation_targets.df$Name))
@@ -68,6 +66,8 @@ targets_std = c(grep("Std", annotation_targets.df$Name))
 targets_allcontrol = c(targets_blank, targets_buffer, targets_ref, targets_std)
 
 ###Assign sample type names, to idenfy control and test samples
+# KG - this is creating empty vectors right now, the samples aren't previously typed
+# to be test or control
 samples_test <- samples.df$sample_type=="test"
 samples_control <- samples.df$sample_type=="control"
 
@@ -75,12 +75,13 @@ samples_control <- samples.df$sample_type=="control"
 
 ###Check variability of control targets
 #For this, the matrix must be transposed. We do this within the command using 't'
+# KG - don't need transposed matrices for background QC...
 
 ### 1. Background
 #To identify which slides, pads, and samples are significantly deviated, we need to calculate the mean and generate an arbitrary cut off 
 #The cut off can be used to flag samples, and tells us whether deviation is universal, or specific to slides, pads, or samples
 
-#Mean median background MFI for all data points
+#Mean of median background MFI for all data points
 back_mean <- mean(back.matrix)
 #SD median background MFI fro all data points
 back_sd <- sd(back.matrix)
@@ -97,6 +98,7 @@ back_deviant <- which(back_sample_mean>back_cutoff)
 #Generate a table showing which slides, pads, samples have deviant background values
 back_sample_deviant <- samples.df[back_deviant,]
 back_sample_deviant
+write.csv(back_sample_deviant, file = "deviant_sample_background.csv")
 #Coefficient of variation for all background datapoints, and all exlcuding deviant samples
 back_cov_all <- sd(back.matrix)/mean(back.matrix)
 back_cov_normal <- sd(back.matrix[, back_normal])/mean(back.matrix[, back_normal])
