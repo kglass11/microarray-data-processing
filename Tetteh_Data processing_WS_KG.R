@@ -211,6 +211,7 @@ cor_deviant <- which(cor_buffer_sample_mean>cor_cutoff)
 #Generate a table showing which slides, pads, samples have deviant corrected buffer values
 cor_sample_deviant <- samples.df[cor_deviant,]
 cor_sample_deviant
+write.csv(cor_sample_deviant, file = "deviant_sample_corrected.csv")
 #Coefficient of variation for all background datapoints, and all exlcuding deviant samples
 cor_buffer_cov_all <- sd(cor.matrix[targets_buffer,])/mean(cor.matrix[targets_buffer,])
 cor_buffer_cov_all_normal <- sd(cor.matrix[targets_buffer, cor_normal])/mean(cor.matrix[targets_buffer, cor_normal])
