@@ -56,8 +56,7 @@ cor.matrix <- backgroundCorrect.matrix(fore.matrix, back.matrix, method = "norme
 #Export this for reference
 write.csv(cor.matrix, file="corrected.matrix.csv")
 
-### Log transform the data (base 2)
-log.cor.matrix <- log2(cor.matrix)
+
 
 ###Assign target names to groups of your array targets to identify their 'type'
 
@@ -72,6 +71,22 @@ targets_allcontrol = c(targets_blank, targets_buffer, targets_ref, targets_std)
 # to be test or control
 samples_test <- samples.df$sample_type=="test"
 samples_control <- samples.df$sample_type=="control"
+
+###Remove bad spots from subsequent analysis
+
+#First, we need to tell R which spots are the highest spots on the plate
+#the spots printed immediatley after these can be made to have null MFIs
+#This call will create a vector idetifying all ref spots, plus all std spots called "Std 1"
+high_targets <- c(targets_ref, grep("Std 1", row.names(annotation_targets.df)))
+#To identify the spots to disinclude, we need to identify the position of the next spot in the print run.
+#Because block 2 is printed before block 1, we can subtract an entire block, minus 1 row (e.g. 180-12=168)
+#THIS WILL CHANGE DEPENDING ON YOUR EXACT PLATE PLAN - SO ALTER THE FIGURE ACCORDINGLY. 
+high_targets_disinclude <- ifelse(high_targets>=180, high_targets-168, high_targets+180)
+high_targets_disinclude<-high_targets_disinclude[which(high_targets_disinclude<=336)] 
+
+###Convert the spots to be disincluded to NAs in background corrected data
+cor2.matrix <- cor.matrix
+cor2.matrix[high_targets_disinclude, ] <- NA
 
 ###QUALITY CONTROL###
 
@@ -197,16 +212,16 @@ graphics.off()
 #The cut off can be used to flag samples, and tells us whether deviation is universal, or specific to slides, pads, or samples
 
 #Mean median corrected MFI for all data points
-cor_buffer_mean <- mean(cor.matrix[targets_buffer,])
+cor_buffer_mean <- mean(cor2.matrix[targets_buffer,], na.rm = TRUE)
 #SD median corrected MFI for all data points
-cor_buffer_sd <- sd(cor.matrix[targets_buffer,])
+cor_buffer_sd <- sd(cor2.matrix[targets_buffer,], na.rm = TRUE)
 #Cut-off for deviation from mean
 cor_cutoff <- cor_buffer_mean+(3*cor_buffer_sd)
 
 ###Identify deviant samples/slides/pads
 
 #Generate a vector of mean buffer intensity for EACH sample (corrected person magnitude)
-cor_buffer_sample_mean <- colMeans(cor.matrix[targets_buffer,])
+cor_buffer_sample_mean <- colMeans(cor2.matrix[targets_buffer,], na.rm = TRUE)
 #Vectors to identify normal and deviant samples
 cor_normal <- which(cor_buffer_sample_mean<=cor_cutoff)
 cor_deviant <- which(cor_buffer_sample_mean>cor_cutoff)
@@ -215,21 +230,21 @@ cor_sample_deviant <- samples.df[cor_deviant,]
 cor_sample_deviant
 write.csv(cor_sample_deviant, file = "deviant_sample_corrected.csv")
 #Coefficient of variation for all background datapoints, and all exlcuding deviant samples
-cor_buffer_cov_all <- sd(cor.matrix[targets_buffer,])/mean(cor.matrix[targets_buffer,])
-cor_buffer_cov_all_normal <- sd(cor.matrix[targets_buffer, cor_normal])/mean(cor.matrix[targets_buffer, cor_normal])
+cor_buffer_cov_all <- cor_buffer_sd/cor_buffer_mean
+cor_buffer_cov_all_normal <- sd(cor2.matrix[targets_buffer, cor_normal], na.rm = TRUE)/mean(cor2.matrix[targets_buffer, cor_normal], na.rm = TRUE)
 
 #Plots by slide/pad/sample
 png(filename = paste("cor_mfi_samples.tif"), width = 5.5, height = 10, units = "in", res = 600)
 par(mfrow=c(3,1), mar = c(2, 3, 2.25, 0.5), oma = c(11.5, 0, 1, 0), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1.5, cex.axis = 0.6, cex.lab = 0.9, xpd=NA, las=1)
-boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$slide_no, outcex=0.5,
+boxplot(t(cor2.matrix[targets_buffer,]) ~ samples.df$slide_no, outcex=0.5,
         ylab="Corrected MFI", xlab="Slide", add=FALSE)
 abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
 title(main = "Corrected MFI (buffer only) by SLIDE/SUBARRAY/SAMPLE\n", adj=0)
-boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$block_rep_1, outcex=0.5,
+boxplot(t(cor2.matrix[targets_buffer,]) ~ samples.df$block_rep_1, outcex=0.5,
         ylab="Corrected MFI", xlab="Subarrays (1/2, 3/4, etc.)", add=FALSE, las=1)
 abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
-boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$sample_id_unique, outcex=0.5,
+boxplot(t(cor2.matrix[targets_buffer,]) ~ samples.df$sample_id_unique, outcex=0.5,
         ylab="Corrected MFI", xlab="Sample", add=FALSE, las=2, cex.axis = 0.4, yaxt="n")
 axis(2, cex.axis=0.6)
 abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
@@ -245,7 +260,8 @@ graphics.off()
 ###Identify deviant buffer targets across all pads
 
 #Mean corrected MFI for every sample for EACH target (background protein magnitude)
-cor_target_mean <- rowMeans(cor.matrix)
+# !!!error - temp2 not found, leads to cor_buffer_deviant not found, fix this later if we want to include this
+cor_target_mean <- rowMeans(cor2.matrix)
 #Are any corrected buffer targets universally deviant, accross all pads?
 temp <- Reduce(intersect, list(targets_buffer, which(cor_target_mean>cor_cutoff)))
 cor_buffer_deviant <- annotation_targets.df[temp2,]
@@ -256,7 +272,7 @@ remove(temp)
 png(filename = paste("buffer_spots.tif"), width = 5, height = 4, units = "in", res = 600)
 par(mar = c(5, 3, 2.25, 0.5), oma = c(0, 0, 0, 0), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.6, cex.lab = 0.7, xpd=NA, las=2)
-boxplot(t(cor.matrix[targets_buffer,]),
+boxplot(t(cor2.matrix[targets_buffer,]),
         cex=0.5,
         ylab="Corrected MFI")
 abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
@@ -268,7 +284,7 @@ png(filename = paste("buffer_spots_slide.tif"), width = 5, height = 4, units = "
 par(mfrow=c(2,3), mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=2)
 for (i in 1:index_slide){
-  boxplot(t(cor.matrix[targets_buffer,samples.df$slide_no==i]),
+  boxplot(t(cor2.matrix[targets_buffer,samples.df$slide_no==i]),
           ylab="Corrected MFI",
           ylim=c(0,2000),
           add=FALSE, 
@@ -287,9 +303,9 @@ png(filename = paste("cov_buffer.tif"), width = 5, height = 4, units = "in", res
 par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
 
-for(i in 1:ncol(cor.matrix))
+for(i in 1:ncol(cor2.matrix))
 {
-  temp <- sd(cor.matrix[targets_buffer,i])/mean(cor.matrix[targets_buffer,i])
+  temp <- sd(cor2.matrix[targets_buffer,i], na.rm = TRUE)/mean(cor2.matrix[targets_buffer,i], na.rm = TRUE)
   cor_buffer_cov_sample <- c(cor_buffer_cov_sample, temp)
 }
 plot(cor_buffer_cov_sample, ylab="CoV corrected buffer MFI", xlab="Sample", ylim=c(0,max(cor_buffer_cov_sample)))
@@ -299,7 +315,7 @@ graphics.off()
 ### Mean values for each target ordered so it could be a heatmap - this is not currently log transformed or normalized data
 
 #Check average corrected values for each target for all individuals
-cor_target_mean <- rowMeans(cor.matrix)
+cor_target_mean <- rowMeans(cor2.matrix)
 #Mean background target magnitude for block 1, arranged in the order they are printed
 cor_target_mean_b1 = t(matrix(round(cor_target_mean[annotation_targets.df$Block==1], digits=2), nrow=max(annotation_targets.df$Column), ncol=max(annotation_targets.df$Row)))
 #Mean background target magnitude for block 2, arranged in the order they are printed
@@ -313,41 +329,46 @@ annotation_target_b1b2 <- rbind(annotation_target_b1, annotation_target_b2)
 write.csv(cbind(cor_target_mean_b1b2, annotation_target_b1b2), file="corrected_target_mean.csv")
 remove(cor_target_mean, cor_target_mean_b1, cor_target_mean_b2,cor_target_mean_b1b2, annotation_target_b1, annotation_target_b2, annotation_target_b1b2)
 
-###Remove bad spots from subsequent analysis
-
-#First, we need to tell R which spots are the highest spots on the plate
-#the spots printed immediatley after these can be made to have null MFIs
-#This call will create a vector idetifying all ref spots, plus all std spots called "Std 1"
-high_targets <- c(targets_ref, grep("Std 1", row.names(annotation_targets.df)))
-#To identify the spots to disinclude, we need to identify the position of the next spot in the print run.
-#Because block 2 is printed before block 1, we can subtract an entire block, minus 1 row (e.g. 180-12=168)
-#THIS WILL CHANGE DEPENDING ON YOUR EXACT PLATE PLAN - SO ALTER THE FIGURE ACCORDINGLY. 
-high_targets_disinclude <- ifelse(high_targets>=180, high_targets-168, high_targets+180)
-high_targets_disinclude<-high_targets_disinclude[which(high_targets_disinclude<=336)] 
-
-###Convert the spots to be disincluded to NAs in log-transformed data
-log.cor.matrix2 <- log.cor.matrix
-log.cor.matrix2[high_targets_disinclude, ] <- NA
+### Log transform the data (base 2)
+log.cor.matrix <- log2(cor2.matrix)
 
 ### Normalization ###
 
-###Create new buffer summary based on only good spots
-cor2_buffer_mean <- mean(log.cor.matrix2[targets_buffer,], na.rm = TRUE)
-cor2_buffer_sd <- sd(log.cor.matrix2[targets_buffer,], na.rm = TRUE)
+# remove this part! make sure to replace later use with earlier buffer values
+###Create new buffer summary based on only good spots, background corrected, not log-transformed --> this should be the same as before
+cor2_buffer_mean <- mean(cor2.matrix[targets_buffer,], na.rm = TRUE)
+cor2_buffer_sd <- sd(cor2.matrix[targets_buffer,], na.rm = TRUE)
 cor2_buffer_cutoff <- cor2_buffer_mean+3*(cor2_buffer_sd)
 
 ###Create sample specific buffer means for normalisation
-cor2_buffer_sample_mean <- colMeans(log.cor.matrix2[targets_buffer,], na.rm = TRUE)
+cor2_buffer_sample_mean <- colMeans(cor2.matrix[targets_buffer,], na.rm = TRUE)
+log_buffer_sample_mean <- log2(cor2_buffer_sample_mean)
 
-#subtract buffer mean from each sample to generate new intensity matrices
+#subtract buffer mean from each sample to generate new intensity matrices (log transformed data)
 #remove highly variable samples from analyses
-norm.matrix <- log.cor.matrix2
+norm.matrix <- log.cor.matrix
 for(i in 1:ncol(norm.matrix))
 {
-  norm.matrix[,i] <- norm.matrix[,i]-cor2_buffer_sample_mean[i]
+  norm.matrix[,i] <- norm.matrix[,i]-log_buffer_sample_mean[i]
 }
 
-# add setting negative values to zero...?
+
+# add setting negative values to zero...
+norm2.matrix <- norm.matrix
+i = 1
+for (i in 1:length(norm2.matrix))
+{
+  if (is.na(norm2.matrix[[i]]) | norm2.matrix[[i]] > 0) 
+  {
+    i = i+1
+    } else if(norm2.matrix[[i]] < 0) 
+    {
+      norm2.matrix[[i]] <- 0
+      i = i+1
+      }
+}
+
+
 
 ###DATA ANALYSIS###
 #Before doing any further analysis, we have to get rid of samples or targets that we are no longer interested in
