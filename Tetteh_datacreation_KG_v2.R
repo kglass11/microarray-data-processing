@@ -19,7 +19,7 @@ require("gtools")
 
 ### Define variables based on your study that will be used later in the script
   # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-  workdir <- "/Users/Katie/Desktop/R files from work/Bijagos Screen 2 Files"
+  workdir <- "H:/My Documents/R/Bijagos Screen 2 Files"
 
   #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
   sample_file <- "Analysis sample list 2.csv"
