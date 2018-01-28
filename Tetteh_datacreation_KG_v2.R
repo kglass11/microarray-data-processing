@@ -23,6 +23,9 @@ require("gtools")
 
   #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
   sample_file <- "Analysis sample list 2.csv"
+  
+  #number of technical replicates for the study (usually 1 or 2)
+  reps <- 1
 
   #define number of blocks per slide
   block_num <- 32

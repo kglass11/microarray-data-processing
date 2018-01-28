@@ -334,8 +334,9 @@ log.cor.matrix <- log2(cor2.matrix)
 
 ### Normalization ###
 
-# remove this part! make sure to replace later use with earlier buffer values
-###Create new buffer summary based on only good spots, background corrected, not log-transformed --> this should be the same as before
+# remove this part once checked whole script! make sure to replace later with earlier buffer values
+###Create new buffer summary based on only good spots, background corrected, not log-transformed 
+## checked, these values are now giving the same values as generated above in buffer section 
 cor2_buffer_mean <- mean(cor2.matrix[targets_buffer,], na.rm = TRUE)
 cor2_buffer_sd <- sd(cor2.matrix[targets_buffer,], na.rm = TRUE)
 cor2_buffer_cutoff <- cor2_buffer_mean+3*(cor2_buffer_sd)
@@ -353,7 +354,7 @@ for(i in 1:ncol(norm.matrix))
 }
 
 
-# add setting negative values to zero...
+# Set negative normalized log values to zero...
 norm2.matrix <- norm.matrix
 i = 1
 for (i in 1:length(norm2.matrix))
@@ -368,7 +369,29 @@ for (i in 1:length(norm2.matrix))
       }
 }
 
+### Average duplicates, if the data has technical replicates in the form of 2 blocks
 
+if (reps == 2)
+{
+  norm2average.matrix <- matrix(nrow = nrow(norm2.matrix)/2, ncol = ncol(norm2.matrix))
+  i=1
+  for(i in 1:(nrow(norm2.matrix)/2))
+  {
+    norm2average.matrix[i,] <- (norm2.matrix[i,] + norm2.matrix[(i+(nrow(norm2.matrix)/2)),])/2
+  }
+  colnames(norm2average.matrix) = colnames(norm2.matrix)
+  rownames(norm2average.matrix) = rownames(norm2.matrix[(1:(nrow(norm2.matrix)/2)),])
+}
+
+## some older code of Will's that could be useful for this:
+#Make smaller corrected data frames
+median.matrix.b1 <- median.matrix[which(median.df[,1]==1),]
+median.matrix.b2 <- median.matrix[which(median.df[,1]==2),]
+median.matrix.average <- (median.matrix.b1+median.matrix.b2)/2
+
+rownames(median.matrix.b1) <- rownames(ann.spot)
+rownames(median.matrix.b2) <- rownames(ann.spot)
+rownames(median.matrix.average) <- rownames(ann.spot)
 
 ###DATA ANALYSIS###
 #Before doing any further analysis, we have to get rid of samples or targets that we are no longer interested in
