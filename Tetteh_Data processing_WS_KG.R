@@ -389,8 +389,8 @@ if (reps == 2)
   # Use Patrick’s formula for ELISA to compare replicates within one subarray
   # if rep1 or rep2 is more than 1.5 times rep2 or rep1, respectively, and either is above 0.2, then exclude
   # I have adapted this for the log data, I think it was written for raw MFI.
-  # I don't think it makes sense to use 0.2 as a cutoff anymore, I think we should leave in all the data and things will be excluded later as seropositive.
-  # Also, redo this using the subsetted matrices, rep1 and rep2 instead it should be shorter
+  # I don't think it makes sense to use 0.2 as a cutoff anymore, I think we should leave in all the data and things will be excluded later as seronegative.
+  # Also, can redo this using the subsetted matrices (rep1 and rep2) and it should be shorter
 if (reps == 2)
 { 
   for (k in 1:ncol(norm2.matrix))
@@ -400,7 +400,7 @@ if (reps == 2)
       if (is.na(norm2.matrix[j,k])|is.na(norm2.matrix[(j+n),k]))
         { 
         j+1
-        } else if ((norm2.matrix[j,k] > (log2(1.5) + norm2.matrix[(j+n),k]) | (norm2.matrix[(j+n),k] > (log2(1.5) + norm2.matrix[j,k]))) & (norm2.matrix[j,k] > 0.2 | norm2.matrix[(j+n),k] > 0.2) == TRUE) 
+        } else if (norm2.matrix[j,k] > (log2(1.5) + norm2.matrix[(j+n),k]) | (norm2.matrix[(j+n),k] > (log2(1.5) + norm2.matrix[j,k])) == TRUE) 
         {
         norm2average.matrix[j,k] <- NA
         }
