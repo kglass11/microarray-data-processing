@@ -369,29 +369,60 @@ for (i in 1:length(norm2.matrix))
       }
 }
 
-### Average duplicates, if the data has technical replicates in the form of 2 blocks
+### Average duplicates, if the data has technical replicates in the form of 2 blocks / subarray
 
 if (reps == 2)
 {
-  norm2average.matrix <- matrix(nrow = nrow(norm2.matrix)/2, ncol = ncol(norm2.matrix))
-  i=1
-  for(i in 1:(nrow(norm2.matrix)/2))
-  {
-    norm2average.matrix[i,] <- (norm2.matrix[i,] + norm2.matrix[(i+(nrow(norm2.matrix)/2)),])/2
-  }
+  n = nrow(norm2.matrix)/2
+  rep1 <- norm2.matrix[1:n,]
+  rep2 <- norm2.matrix[(n+1):(n*2),]
+  
+  norm2average.matrix <- matrix(nrow = n, ncol = ncol(norm2.matrix))
   colnames(norm2average.matrix) = colnames(norm2.matrix)
-  rownames(norm2average.matrix) = rownames(norm2.matrix[(1:(nrow(norm2.matrix)/2)),])
+  rownames(norm2average.matrix) = rownames(norm2.matrix[(1:n),])
+  
+  norm2average.matrix <- (rep1+rep2)/2
+  
 }
+  
+  ### Check for deviant technical replicates, automatically exclude (set to NA)
+  # Use Patrick’s formula for ELISA to compare replicates within one subarray
+  # if rep1 or rep2 is more than 1.5 times rep2 or rep1, respectively, and either is above 0.2, then exclude
+  # I have adapted this for the log data, I think it was written for raw MFI.
+  # I don't think it makes sense to use 0.2 as a cutoff anymore, I think we should leave in all the data and things will be excluded later as seropositive.
+  # Also, redo this using the subsetted matrices, rep1 and rep2 instead it should be shorter
+if (reps == 2)
+{ 
+  for (k in 1:ncol(norm2.matrix))
+  {
+    for(j in 1:n) 
+    {
+      if (is.na(norm2.matrix[j,k])|is.na(norm2.matrix[(j+n),k]))
+        { 
+        j+1
+        } else if ((norm2.matrix[j,k] > (log2(1.5) + norm2.matrix[(j+n),k]) | (norm2.matrix[(j+n),k] > (log2(1.5) + norm2.matrix[j,k]))) & (norm2.matrix[j,k] > 0.2 | norm2.matrix[(j+n),k] > 0.2) == TRUE) 
+        {
+        norm2average.matrix[j,k] <- NA
+        }
+    }
+  }
+}
+remove(j,k)
 
-## some older code of Will's that could be useful for this:
-#Make smaller corrected data frames
-median.matrix.b1 <- median.matrix[which(median.df[,1]==1),]
-median.matrix.b2 <- median.matrix[which(median.df[,1]==2),]
-median.matrix.average <- (median.matrix.b1+median.matrix.b2)/2
+## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient, flag r<0.95.
 
-rownames(median.matrix.b1) <- rownames(ann.spot)
-rownames(median.matrix.b2) <- rownames(ann.spot)
-rownames(median.matrix.average) <- rownames(ann.spot)
+
+png(filename = paste("replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
+par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
+    mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
+
+plot(rep1, rep2)
+
+#calculate correlation coefficient (default is pearson) 
+#this isn't what we want - it's calculating based on the every sample vs every protein I think
+#cor(rep1, rep2)
+
+graphics.off()
 
 ###DATA ANALYSIS###
 #Before doing any further analysis, we have to get rid of samples or targets that we are no longer interested in
