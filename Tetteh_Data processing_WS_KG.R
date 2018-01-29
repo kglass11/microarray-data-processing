@@ -413,7 +413,8 @@ remove(j,k)
 repR <- cor(c(rep1), c(rep2), use = "complete.obs")
 print(repR)
 
-## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient, flag r<0.95.
+## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient, 
+# Add flag r<0.95?
 png(filename = paste("replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
 par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
