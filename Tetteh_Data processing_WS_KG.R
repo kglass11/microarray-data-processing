@@ -409,18 +409,17 @@ if (reps == 2)
 }
 remove(j,k)
 
+## Calculate correlation coefficient (default is pearson) 
+repR <- cor(c(rep1), c(rep2), use = "complete.obs")
+print(repR)
+
 ## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient, flag r<0.95.
-
-
 png(filename = paste("replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
 par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
 
-plot(rep1, rep2)
-
-#calculate correlation coefficient (default is pearson) 
-#this isn't what we want - it's calculating based on the every sample vs every protein I think
-#cor(rep1, rep2)
+plot(rep1, rep2, col="red", cex = 0.1)
+mtext(c(paste("Pearson correlation coefficient:", round(repR, digits=4))), side=3, adj=0)
 
 graphics.off()
 
