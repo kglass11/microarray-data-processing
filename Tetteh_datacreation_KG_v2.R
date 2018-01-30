@@ -19,23 +19,22 @@ require("gtools")
 
 ### Define variables based on your study that will be used later in the script
   # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-  workdir <- "H:/My Documents/R/Bijagos Screen 2 Files"
+  workdir <- "/Users/Katie/Desktop/R files from work/Ghana Screen 1 030417"
 
   #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-  sample_file <- "Analysis sample list 2.csv"
+  sample_file <- "Analysis sample list_GW_edited.csv"
   
   #number of technical replicates for the study (usually 1 or 2)
-  reps <- 1
+  reps <- 2
 
   #define number of blocks per slide
-  block_num <- 32
+  index_block <- 32
 
 
-### Set the working directory and path for the folder where .gpr files are. Can check working
+### Set the working directory for the folder where .gpr files are. Can check working
 #directory after with getwd()
 
 setwd(workdir)
-path=(workdir)
 
 ###Identify all .gpr files in your set path. default path for list.files() is the working directory.
 
@@ -93,7 +92,6 @@ colnames(samples.df)[5] <- "sample_id_unique"
 #Slide and sample number are determined automatically from the data you input, whereas block number is manual in this instance
 
 index_slide <- as.numeric(length(slides_list))
-index_block <- block_num
 index_sample <- as.numeric(length(samples))
 
 ###Assign your sample_ids to each row of the combined slide data (slides_all.df)

@@ -66,9 +66,11 @@ targets_ref = c(grep("REF", annotation_targets.df$Name))
 targets_std = c(grep("Std", annotation_targets.df$Name))
 targets_allcontrol = c(targets_blank, targets_buffer, targets_ref, targets_std)
 
-###Assign sample type names, to idenfy control and test samples
+###Assign sample type names, to identify control and test samples
 # KG - this is creating empty vectors right now, the samples aren't previously typed
-# to be test or control
+# to be test or control. Should we add this to the original sample file (.csv)?
+# or somehow call out known controls for removal in the script. 
+# These aren't used until seropositivity part of the script
 samples_test <- samples.df$sample_type=="test"
 samples_control <- samples.df$sample_type=="control"
 
@@ -81,6 +83,7 @@ high_targets <- c(targets_ref, grep("Std 1", row.names(annotation_targets.df)))
 #To identify the spots to disinclude, we need to identify the position of the next spot in the print run.
 #Because block 2 is printed before block 1, we can subtract an entire block, minus 1 row (e.g. 180-12=168)
 #THIS WILL CHANGE DEPENDING ON YOUR EXACT PLATE PLAN - SO ALTER THE FIGURE ACCORDINGLY. 
+#KG - I need to look into this more and review the printing, I am not sure it worked for Bijagos data or not...
 high_targets_disinclude <- ifelse(high_targets>=180, high_targets-168, high_targets+180)
 high_targets_disinclude<-high_targets_disinclude[which(high_targets_disinclude<=336)] 
 
@@ -343,6 +346,8 @@ cor2_buffer_cutoff <- cor2_buffer_mean+3*(cor2_buffer_sd)
 
 ###Create sample specific buffer means for normalisation
 cor2_buffer_sample_mean <- colMeans(cor2.matrix[targets_buffer,], na.rm = TRUE)
+cor2_buffer_sample_sd <- apply(cor2.matrix[targets_buffer,], 2, sd, na.rm = TRUE)
+#log2 transform sample buffer mean
 log_buffer_sample_mean <- log2(cor2_buffer_sample_mean)
 
 #subtract buffer mean from each sample to generate new intensity matrices (log transformed data)
@@ -381,7 +386,7 @@ if (reps == 2)
   colnames(norm2average.matrix) = colnames(norm2.matrix)
   rownames(norm2average.matrix) = rownames(norm2.matrix[(1:n),])
   
-  norm2average.matrix <- (rep1+rep2)/2
+  norm2average.matrix <- log2((2^rep1 + 2^rep2)/2)
   
 }
   
@@ -409,7 +414,7 @@ if (reps == 2)
 }
 remove(j,k)
 
-## Calculate correlation coefficient (default is pearson) 
+## Calculate correlation coefficient (default is pearson). Deviants are still plotted.
 repR <- cor(c(rep1), c(rep2), use = "complete.obs")
 print(repR)
 
@@ -425,42 +430,59 @@ mtext(c(paste("Pearson correlation coefficient:", round(repR, digits=4))), side=
 graphics.off()
 
 ###DATA ANALYSIS###
-#Before doing any further analysis, we have to get rid of samples or targets that we are no longer interested in
+#Before doing any further analysis, we have to get rid of samples or targets that we are no longer 
+#interested in.
 #E.g. If control individuals are in our analysis, they will affect mixture model based cut-offs
 #E.g. If control targets are still in our analysis, they will muck up our protein breadth estimates
-#This means we have to subset the data, so some earlier annotations will from here on be wrong (e.g. index_sample will no longer equal 96)
+#KG - for now this still includes the same protein target at different dilutions
+#This means we have to subset the data, so some earlier annotations will from here on be wrong 
+#(e.g. index_sample will no longer equal 96)
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
-norm_sub.matrix <- norm.matrix[-rmsamp_all, samples_test]
-samples_sub.df <- samples.df[samples_test,]
 
-###Form a seropositivty matrix based on reactivity over the sample background.
-#The cut-off is 1. As the data is log2 normalised, a value of 1 equates to eaxctly doible the MFI of the samples buffer mean MFI.
-#An alternative would be to raise this threshold to mean + 3SD. I think this is fine.
+#this includes ALL samples but removes control protein targets
+norm_sub.matrix <- norm2.matrix[-rmsamp_all,]
+
+#KG - for now this code doesn't work because samples_test was never filled in:
+#norm_sub.matrix <- norm2.matrix[-rmsamp_all, samples_test]
+#samples_sub.df <- samples.df[samples_test,]
+
+###Form a seropositivity matrix based on reactivity over the sample buffer background.
+#The cut-off is 1. As the data is log2 normalised, a value of 1 equates to eaxctly double the MFI of the samples buffer mean MFI.
 seropos_buffer_sub.matrix <- as.matrix(norm_sub.matrix > 1)+0
 
+#An alternative would be to raise this threshold to mean + 3SD. 
+#These values are coming up a lot higher than 1. Even if we do +2SD it is still higher than 1.
+sample_cutoff <- cor2_buffer_sample_mean + 2*cor2_buffer_sample_sd
+log_sample_cutoff <- log2(sample_cutoff)
+norm_sample_cutoff <- log_sample_cutoff - log_buffer_sample_mean
+
+seroposSD_temp.matrix <- as.matrix(norm2.matrix > norm_sample_cutoff)+0
+seroposSD.matrix <- seroposSD_temp.matrix[-rmsamp_all,]
+remove(seroposSD_temp.matrix)
+
 ###We may also wish to attempt mixture model cut-offs for each antigen. This is more complex.
-#THIS DOESNT WORK
-cutoff_list <- c()
-restarts_list <-c()
-
-for(i in 1:296){
-  temp <-  normalmixEM(t(norm_sub.matrix[i,]), lambda = NULL, mu = NULL, sigma = NULL, maxrestarts=100000)
-  if ( temp$mu[1] < temp$mu[2]) cutoff_temp <- temp$mu[1]+3*temp$sigma[1]
-  if (temp$mu[1] > temp$mu[2])  cutoff_temp <- temp$mu[2]+3*temp$sigma[2]
-  restarts_temp <- temp$restarts
-  cutoff_list <- c(cutoff_list,cutoff_temp)
-  restarts_list <- c(restarts_list,restarts_temp)
-}
-
-seropos_mix.matrix <- norm.matrix
-for(i in 1:index_target)
-{
-  if(restarts_list[i]<=100000){
-    seropos_mix[,i] <- as.numeric((norm.matrix.df[i,] > cutoff_list[i]))
-  } else {
-    seropos_mix[,i]<-rep(NA,dim(seropos_mix)[1])
-  }  
-}
+#THIS DOESNT WORK.  KG - I haven't messed with any of this section.
+# cutoff_list <- c()
+# restarts_list <-c()
+# 
+# for(i in 1:296){
+#   temp <-  normalmixEM(t(norm_sub.matrix[i,]), lambda = NULL, mu = NULL, sigma = NULL, maxrestarts=100000)
+#   if ( temp$mu[1] < temp$mu[2]) cutoff_temp <- temp$mu[1]+3*temp$sigma[1]
+#   if (temp$mu[1] > temp$mu[2])  cutoff_temp <- temp$mu[2]+3*temp$sigma[2]
+#   restarts_temp <- temp$restarts
+#   cutoff_list <- c(cutoff_list,cutoff_temp)
+#   restarts_list <- c(restarts_list,restarts_temp)
+# }
+# 
+# seropos_mix.matrix <- norm.matrix
+# for(i in 1:index_target)
+# {
+#   if(restarts_list[i]<=100000){
+#     seropos_mix[,i] <- as.numeric((norm.matrix.df[i,] > cutoff_list[i]))
+#   } else {
+#     seropos_mix[,i]<-rep(NA,dim(seropos_mix)[1])
+#   }  
+# }
 
 ###Create a threshold for overall target and person reactivity
 #e.g. To be included in heatmaps and other analyses, perhaps targets should be reacted to by at least 5% of people?
@@ -472,6 +494,15 @@ cat(sum(target_reactive), "out of", nrow(seropos_buffer_sub.matrix), "protein ta
 person_breadth <- colSums(seropos_buffer_sub.matrix, na.rm=TRUE)
 person_exposed <- person_breadth > (nrow(seropos_buffer_sub.matrix)/100)*5
 cat(sum(person_exposed), "out of", ncol(seropos_buffer_sub.matrix), "samples are reactive to at least 5% of proteins")
+
+###Repeat threshold for overall target and person reactivity with mean + 3SD cutoffs.
+target_breadth <- rowSums(seroposSD.matrix, na.rm=TRUE)
+target_reactive <- target_breadth > (ncol(seroposSD.matrix)/100)*5
+cat(sum(target_reactive), "out of", nrow(seroposSD.matrix), "protein targets are reactive in at least 5% of people")
+
+person_breadth <- colSums(seroposSD.matrix, na.rm=TRUE)
+person_exposed <- person_breadth > (nrow(seroposSD.matrix)/100)*5
+cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive to at least 5% of proteins")
 
 ###Create person and protein magnitudes
 #Not subset - i.e. taking the mean magnitude of response to all 296 target proteins
