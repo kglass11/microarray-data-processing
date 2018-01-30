@@ -452,7 +452,7 @@ seropos_buffer_sub.matrix <- as.matrix(norm_sub.matrix > 1)+0
 
 #An alternative would be to raise this threshold to mean + 3SD. 
 #These values are coming up a lot higher than 1. Even if we do +2SD it is still higher than 1.
-sample_cutoff <- cor2_buffer_sample_mean + 2*cor2_buffer_sample_sd
+sample_cutoff <- cor2_buffer_sample_mean + 3*cor2_buffer_sample_sd
 log_sample_cutoff <- log2(sample_cutoff)
 norm_sample_cutoff <- log_sample_cutoff - log_buffer_sample_mean
 
