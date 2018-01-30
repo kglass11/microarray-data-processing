@@ -504,9 +504,13 @@ person_breadth <- colSums(seroposSD.matrix, na.rm=TRUE)
 person_exposed <- person_breadth > (nrow(seroposSD.matrix)/100)*5
 cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive to at least 5% of proteins")
 
+### Export reactive protein targets
+
+write.csv()
+
 ###Create person and protein magnitudes
 #Not subset - i.e. taking the mean magnitude of response to all 296 target proteins
-png(filename = paste("magnitude_breadth_chmitimepoints.tif"), width = 6, height = 3, units = "in", res = 600)
+png(filename = paste("magnitude_breadth_ghana1.tif"), width = 6, height = 3, units = "in", res = 600)
 par(mfrow=c(1,3), mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
 person_magnitude1 <- colMeans(norm_sub.matrix[,])
