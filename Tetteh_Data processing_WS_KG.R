@@ -84,7 +84,7 @@ high_targets <- c(targets_ref, grep("Std 1", row.names(annotation_targets.df)))
 #Because block 2 is printed before block 1, we can subtract an entire block, minus 1 row (e.g. 180-12=168)
 #THIS WILL CHANGE DEPENDING ON YOUR EXACT PLATE PLAN - SO ALTER THE FIGURE ACCORDINGLY. 
 #KG - I need to look into this more and review the printing, I am not sure it worked for Bijagos data or not...
-high_targets_disinclude <- ifelse(high_targets>=180, high_targets-168, high_targets+180)
+high_targets_disinclude <- ifelse(high_targets>=index_target/2, high_targets-((index_target/2)-12), high_targets+index_target)
 high_targets_disinclude<-high_targets_disinclude[which(high_targets_disinclude<=336)] 
 
 ###Convert the spots to be disincluded to NAs in background corrected data
@@ -236,18 +236,18 @@ write.csv(cor_sample_deviant, file = "deviant_sample_corrected.csv")
 cor_buffer_cov_all <- cor_buffer_sd/cor_buffer_mean
 cor_buffer_cov_all_normal <- sd(cor2.matrix[targets_buffer, cor_normal], na.rm = TRUE)/mean(cor2.matrix[targets_buffer, cor_normal], na.rm = TRUE)
 
-#Plots by slide/pad/sample
+#Plots by slide/pad/sample ### NOT WORKING
 png(filename = paste("cor_mfi_samples.tif"), width = 5.5, height = 10, units = "in", res = 600)
 par(mfrow=c(3,1), mar = c(2, 3, 2.25, 0.5), oma = c(11.5, 0, 1, 0), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1.5, cex.axis = 0.6, cex.lab = 0.9, xpd=NA, las=1)
-boxplot(t(cor2.matrix[targets_buffer,]) ~ samples.df$slide_no, outcex=0.5,
+boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$slide_no, outcex=0.5,
         ylab="Corrected MFI", xlab="Slide", add=FALSE)
 abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
 title(main = "Corrected MFI (buffer only) by SLIDE/SUBARRAY/SAMPLE\n", adj=0)
-boxplot(t(cor2.matrix[targets_buffer,]) ~ samples.df$block_rep_1, outcex=0.5,
+boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$block_rep_1, outcex=0.5,
         ylab="Corrected MFI", xlab="Subarrays (1/2, 3/4, etc.)", add=FALSE, las=1)
 abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
-boxplot(t(cor2.matrix[targets_buffer,]) ~ samples.df$sample_id_unique, outcex=0.5,
+boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$sample_id_unique, outcex=0.5,
         ylab="Corrected MFI", xlab="Sample", add=FALSE, las=2, cex.axis = 0.4, yaxt="n")
 axis(2, cex.axis=0.6)
 abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
