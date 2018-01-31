@@ -373,6 +373,8 @@ for (i in 1:length(norm2.matrix))
       }
 }
 
+write.csv(norm2.matrix, file = "normalized_log_data.csv")
+
 ### Average duplicates, if the data has technical replicates in the form of 2 blocks / subarray
 
 if (reps == 2)
@@ -388,7 +390,9 @@ if (reps == 2)
   norm2average.matrix <- log2((2^rep1 + 2^rep2)/2)
   
 }
-  
+
+write.csv(norm2average.matrix, "average_norm_log_data.csv")  
+
   ### Check for deviant technical replicates, automatically exclude (set to NA)
   # Use Patrick’s formula for ELISA to compare replicates within one subarray
   # if rep1 or rep2 is more than 1.5 times rep2 or rep1, respectively, and either is above 0.2, then exclude
