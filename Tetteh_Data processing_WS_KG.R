@@ -80,12 +80,11 @@ samples_control <- samples.df$sample_type=="control"
 #the spots printed immediatley after these can be made to have null MFIs
 #This call will create a vector idetifying all ref spots, plus all std spots called "Std 1"
 high_targets <- c(targets_ref, grep("Std 1", row.names(annotation_targets.df)))
+
 #To identify the spots to disinclude, we need to identify the position of the next spot in the print run.
 #Because block 2 is printed before block 1, we can subtract an entire block, minus 1 row (e.g. 180-12=168)
-#THIS WILL CHANGE DEPENDING ON YOUR EXACT PLATE PLAN - SO ALTER THE FIGURE ACCORDINGLY. 
-#KG - I need to look into this more and review the printing, I am not sure it worked for Bijagos data or not...
 high_targets_disinclude <- ifelse(high_targets>=index_target/2, high_targets-((index_target/2)-12), high_targets+index_target)
-high_targets_disinclude<-high_targets_disinclude[which(high_targets_disinclude<=336)] 
+high_targets_disinclude<-high_targets_disinclude[which(high_targets_disinclude<=(index_target-24))] 
 
 ###Convert the spots to be disincluded to NAs in background corrected data
 cor2.matrix <- cor.matrix
