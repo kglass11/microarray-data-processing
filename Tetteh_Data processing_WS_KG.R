@@ -94,7 +94,7 @@ cor2.matrix[high_targets_disinclude, ] <- NA
 
 ###Check variability of control targets
 #For this, the matrix must be transposed. We do this within the command using 't'
-# KG - don't need transposed matrices for background QC...
+# KG - I think we can delete this, all needed transposing should be within the script
 
 ### 1. Background
 #To identify which slides, pads, and samples are significantly deviated, we need to calculate the mean and generate an arbitrary cut off 
@@ -213,6 +213,7 @@ graphics.off()
 #To identify which slides, pads, and samples are significantly deviated, we need to calculate the mean and generate an arbitrary cut off 
 #The cut off can be used to flag samples, and tells us whether deviation is universal, or specific to slides, pads, or samples
 
+# Buffer assessment WITHOUT disincluded values: 
 #Mean median corrected MFI for all data points
 cor_buffer_mean <- mean(cor2.matrix[targets_buffer,], na.rm = TRUE)
 #SD median corrected MFI for all data points
@@ -220,9 +221,16 @@ cor_buffer_sd <- sd(cor2.matrix[targets_buffer,], na.rm = TRUE)
 #Cut-off for deviation from mean
 cor_cutoff <- cor_buffer_mean+(3*cor_buffer_sd)
 
+# Buffer assessment WITH disincluded values
+cor_buffer_all_mean <- mean(cor.matrix[targets_buffer,])
+#SD median corrected MFI for all data points
+cor_buffer_all_sd <- sd(cor.matrix[targets_buffer,])
+#Cut-off for deviation from mean
+cor_all_cutoff <- cor_buffer_all_mean+(3*cor_buffer_all_sd)
+
 ###Identify deviant samples/slides/pads
 
-#Generate a vector of mean buffer intensity for EACH sample (corrected person magnitude)
+# WITHOUT disincluded values - Generate a vector of mean buffer intensity for EACH sample (corrected person magnitude) 
 cor_buffer_sample_mean <- colMeans(cor2.matrix[targets_buffer,], na.rm = TRUE)
 #Vectors to identify normal and deviant samples
 cor_normal <- which(cor_buffer_sample_mean<=cor_cutoff)
@@ -231,62 +239,81 @@ cor_deviant <- which(cor_buffer_sample_mean>cor_cutoff)
 cor_sample_deviant <- samples.df[cor_deviant,]
 cor_sample_deviant
 write.csv(cor_sample_deviant, file = "deviant_sample_corrected.csv")
-#Coefficient of variation for all background datapoints, and all exlcuding deviant samples
-cor_buffer_cov_all <- cor_buffer_sd/cor_buffer_mean
-cor_buffer_cov_all_normal <- sd(cor2.matrix[targets_buffer, cor_normal], na.rm = TRUE)/mean(cor2.matrix[targets_buffer, cor_normal], na.rm = TRUE)
 
-#Plots by slide/pad/sample ### NOT WORKING
+#Coefficient of variation for buffer datapoints (without disincluded targets), and all exlcuding deviant samples
+cor_buffer_cov <- cor_buffer_sd/cor_buffer_mean
+cor_buffer_cov_normal <- sd(cor2.matrix[targets_buffer, cor_normal], na.rm = TRUE)/mean(cor2.matrix[targets_buffer, cor_normal], na.rm = TRUE)
+
+#Coefficient of variation for all buffer datapoints, and all exlcuding deviant samples
+cor_buffer_cov_all <- cor_buffer_all_sd/cor_buffer_all_mean
+cor_buffer_cov_all_normal <- sd(cor.matrix[targets_buffer, cor_normal])/mean(cor.matrix[targets_buffer, cor_normal])
+
+#Plots by slide/pad/sample WITH disincluded values
 png(filename = paste("cor_mfi_samples.tif"), width = 5.5, height = 10, units = "in", res = 600)
 par(mfrow=c(3,1), mar = c(2, 3, 2.25, 0.5), oma = c(11.5, 0, 1, 0), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1.5, cex.axis = 0.6, cex.lab = 0.9, xpd=NA, las=1)
 boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$slide_no, outcex=0.5,
         ylab="Corrected MFI", xlab="Slide", add=FALSE)
-abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
+abline(h = cor_all_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
 title(main = "Corrected MFI (buffer only) by SLIDE/SUBARRAY/SAMPLE\n", adj=0)
 boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$block_rep_1, outcex=0.5,
         ylab="Corrected MFI", xlab="Subarrays (1/2, 3/4, etc.)", add=FALSE, las=1)
-abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
+abline(h = cor_all_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
 boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$sample_id_unique, outcex=0.5,
         ylab="Corrected MFI", xlab="Sample", add=FALSE, las=2, cex.axis = 0.4, yaxt="n")
 axis(2, cex.axis=0.6)
-abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
+abline(h = cor_all_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
 
-mtext(c(paste("Mean overall corrected buffer MFI:", round(cor_buffer_mean, digits=3))), side=1, cex=0.8, line=2, outer=TRUE, xpd=NA, adj=0)
-mtext(c(paste("SD overall corrected buffer MFI:", round(cor_buffer_sd, digits=3))), side=1, cex=0.8, line=3.5, outer=TRUE, xpd=NA, adj=0)
-mtext(c(paste("Cut-off overall corrected buffer MFI:", round(cor_cutoff, digits=3))), side=1, cex=0.8, line=5, outer=TRUE, xpd=NA, adj=0)
-mtext(c(paste("CoV overall corrected buffer MFI:", round(cor_buffer_cov_all, digits=3))), side=1, cex=0.8, line=6.5, outer=TRUE, xpd=NA, adj=0)
-mtext(c(paste("CoV overall corrected buffer MFI (excl. deviant samples):", round(cor_buffer_cov_all_normal, digits=3))), side=1, cex=0.8, line=8, outer=TRUE, xpd=NA, adj=0)
+mtext(c(paste("ALL Buffer Spots / Without Disincluded Buffer Spots:")), side=1, cex=0.8, line=2, outer=TRUE, xpd=NA, adj=0)
+mtext(c(paste("Mean overall corrected buffer MFI:", round(cor_buffer_all_mean, digits=3), "/", round(cor_buffer_mean, digits=3))), side=1, cex=0.8, line=3.5, outer=TRUE, xpd=NA, adj=0)
+mtext(c(paste("SD overall corrected buffer MFI:", round(cor_buffer_all_sd, digits=3), "/", round(cor_buffer_sd, digits=3))), side=1, cex=0.8, line=5, outer=TRUE, xpd=NA, adj=0)
+mtext(c(paste("Cut-off overall corrected buffer MFI:", round(cor_all_cutoff, digits=3), "/", round(cor_cutoff, digits=3))), side=1, cex=0.8, line=6.5, outer=TRUE, xpd=NA, adj=0)
+mtext(c(paste("CoV overall corrected buffer MFI:", round(cor_buffer_cov_all, digits=3), "/", round(cor_buffer_cov, digits=3))), side=1, cex=0.8, line=8, outer=TRUE, xpd=NA, adj=0)
+mtext(c(paste("CoV overall corrected buffer MFI (excl. deviant samples):", round(cor_buffer_cov_all_normal, digits=3), "/", round(cor_buffer_cov_normal, digits=3))), side=1, cex=0.8, line=9.5, outer=TRUE, xpd=NA, adj=0)
 
 graphics.off()
 
 ###Identify deviant buffer targets across all pads
 
 #Mean corrected MFI for every sample for EACH target (background protein magnitude)
-# !!!error - temp2 not found, leads to cor_buffer_deviant not found, fix this later if we want to include this
+#For data without disincluded values
 cor_target_mean <- rowMeans(cor2.matrix)
 #Are any corrected buffer targets universally deviant, accross all pads?
 temp <- Reduce(intersect, list(targets_buffer, which(cor_target_mean>cor_cutoff)))
-cor_buffer_deviant <- annotation_targets.df[temp2,]
+cor_buffer_deviant <- annotation_targets.df[temp,]
 cor_buffer_deviant
 remove(temp)
 
-#All slides
+#list of disincluded buffer targets
+removed_buffer_targets <- c()
+for (i in 1:length(targets_buffer)){
+  for(j in 1:length(high_targets_disinclude))
+  if (targets_buffer[i] == high_targets_disinclude[j]){
+    removed_buffer_targets <- targets_buffer[i]
+  }
+}
+remove(i,j)
+
+#All slides, WITH disincluded values (ALL buffer targets)
 png(filename = paste("buffer_spots.tif"), width = 5, height = 4, units = "in", res = 600)
 par(mar = c(5, 3, 2.25, 0.5), oma = c(0, 0, 0, 0), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.6, cex.lab = 0.7, xpd=NA, las=2)
-boxplot(t(cor2.matrix[targets_buffer,]),
+boxplot(t(cor.matrix[targets_buffer,]),
         cex=0.5,
         ylab="Corrected MFI")
 abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
+
+mtext(c(paste("Excluded buffer targets:", removed_buffer_targets)), las = 1)
+
 graphics.off()
 
-#By slide
+#By slide - WITH disincluded values (ALL buffer targets)
 #mfrow is ordered by the number of rows, and columns of plots you want - so must be edited based on the number of slides
 png(filename = paste("buffer_spots_slide.tif"), width = 5, height = 4, units = "in", res = 600)
 par(mfrow=c(2,3), mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=2)
 for (i in 1:index_slide){
-  boxplot(t(cor2.matrix[targets_buffer,samples.df$slide_no==i]),
+  boxplot(t(cor.matrix[targets_buffer,samples.df$slide_no==i]),
           ylab="Corrected MFI",
           ylim=c(0,2000),
           add=FALSE, 
@@ -296,9 +323,10 @@ for (i in 1:index_slide){
           adj=0)
   abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
 }
+
 graphics.off()
 
-#Plot CoV of buffer by sample
+#Plot CoV of buffer by sample - WITHOUT disincluded values
 cor_buffer_cov_sample <- c()
 
 png(filename = paste("cov_buffer.tif"), width = 5, height = 4, units = "in", res = 600)
@@ -335,13 +363,6 @@ remove(cor_target_mean, cor_target_mean_b1, cor_target_mean_b2,cor_target_mean_b
 log.cor.matrix <- log2(cor2.matrix)
 
 ### Normalization ###
-
-# remove this part once checked whole script! make sure to replace later with earlier buffer values
-###Create new buffer summary based on only good spots, background corrected, not log-transformed 
-## checked, these values are now giving the same values as generated above in buffer section 
-cor2_buffer_mean <- mean(cor2.matrix[targets_buffer,], na.rm = TRUE)
-cor2_buffer_sd <- sd(cor2.matrix[targets_buffer,], na.rm = TRUE)
-cor2_buffer_cutoff <- cor2_buffer_mean+3*(cor2_buffer_sd)
 
 ###Create sample specific buffer means for normalisation
 cor2_buffer_sample_mean <- colMeans(cor2.matrix[targets_buffer,], na.rm = TRUE)
@@ -397,7 +418,7 @@ write.csv(norm2average.matrix, "average_norm_log_data.csv")
   # Use Patrick’s formula for ELISA to compare replicates within one subarray
   # if rep1 or rep2 is more than 1.5 times rep2 or rep1, respectively, and either is above 0.2, then exclude
   # I have adapted this for the log data, I think it was written for raw MFI.
-  # I don't think it makes sense to use 0.2 as a cutoff anymore, I think we should leave in all the data and things will be excluded later as seronegative.
+  # I don't think it makes sense to use 0.2 as a cutoff anymore.
   # Also, can redo this using the subsetted matrices (rep1 and rep2) and it should be shorter
 if (reps == 2)
 { 
