@@ -412,8 +412,6 @@ if (reps == 2)
   
 }
 
-write.csv(norm2average.matrix, "average_norm_log_data.csv")  
-
   ### Check for deviant technical replicates, automatically exclude (set to NA)
   # Use Patrick’s formula for ELISA to compare replicates within one subarray
   # if rep1 or rep2 is more than 1.5 times rep2 or rep1, respectively, and either is above 0.2, then exclude
@@ -437,6 +435,8 @@ if (reps == 2)
   }
 }
 remove(j,k)
+
+write.csv(norm2average.matrix, "average_norm_log_data.csv")  
 
 ## Calculate correlation coefficient (default is pearson). Deviants are still plotted.
 repR <- cor(c(rep1), c(rep2), use = "complete.obs")
@@ -464,10 +464,14 @@ graphics.off()
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
 #this includes ALL samples but removes control protein targets
-norm_sub.matrix <- norm2.matrix[-rmsamp_all,]
+
+if (reps==2){norm3.matrix<-norm2average.matrix}
+if (reps==1){norm3.matrix<-norm2.matrix}
+
+norm_sub.matrix <- norm3.matrix[-rmsamp_all,]
 
 #KG - for now this code doesn't work because samples_test was never filled in:
-#norm_sub.matrix <- norm2.matrix[-rmsamp_all, samples_test]
+#norm_sub.matrix <- norm3.matrix[-rmsamp_all, samples_test]
 #samples_sub.df <- samples.df[samples_test,]
 
 ###Form a seropositivity matrix based on reactivity over the sample buffer background.
@@ -480,7 +484,7 @@ sample_cutoff <- cor2_buffer_sample_mean + 3*cor2_buffer_sample_sd
 log_sample_cutoff <- log2(sample_cutoff)
 norm_sample_cutoff <- log_sample_cutoff - log_buffer_sample_mean
 
-seroposSD_temp.matrix <- as.matrix(norm2.matrix > norm_sample_cutoff)+0
+seroposSD_temp.matrix <- as.matrix(norm3.matrix > norm_sample_cutoff)+0
 seroposSD.matrix <- seroposSD_temp.matrix[-rmsamp_all,]
 remove(seroposSD_temp.matrix)
 
@@ -528,13 +532,16 @@ person_breadth <- colSums(seroposSD.matrix, na.rm=TRUE)
 person_exposed <- person_breadth > (nrow(seroposSD.matrix)/100)*5
 cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive to at least 5% of proteins")
 
-### Export reactive protein targets
+### Export matrix of data for reactive protein targets only (with mean+3SD method)
+## A matrix with all the normalized data for reactive protein targets only 
+## or, only want the normalized data if the sample is reactive to 5% of targets?
 
-write.csv()
+reactive.targets.matrix <- norm_sub.matrix[target_reactive==TRUE,]
+write.csv(reactive.targets.matrix, "reactive_targets_data.csv")  
 
 ###Create person and protein magnitudes
 #Not subset - i.e. taking the mean magnitude of response to all 296 target proteins
-png(filename = paste("magnitude_breadth_ghana1.tif"), width = 6, height = 3, units = "in", res = 600)
+png(filename = paste("magnitude_breadth.tif"), width = 6, height = 3, units = "in", res = 600)
 par(mfrow=c(1,3), mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
     mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
 person_magnitude1 <- colMeans(norm_sub.matrix[,])
@@ -548,6 +555,7 @@ boxplot(person_breadth~samples_sub.df$Timepoint, ylab="Breadth of response", xla
 graphics.off()
 
 ###Subset the final corrected dataframe to only look at relevant target spots
+##this is already above, remove later, replace cor4.matrix with norm.sub.matrix
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 cor4.matrix <- cor3.matrix[-rmsamp_all,]
 
