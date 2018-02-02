@@ -1,6 +1,8 @@
 ###Combined script for reading in and processing microarray data to prepare for analysis
 
-###Create a folder, into which you should copy this script, your .gpr files (named 'Slide 1.gpr', 'Slide 2.gpr' etc.), and your sample list csv file.
+###Create a folder, into which you should copy this script, your .gpr files (named 'Slide 1.gpr', 'Slide 2.gpr' etc.), 
+# and your sample list, antigen list, and sample + metadata csv files.
+
 # Your sample list file needs four columns. Their names must be exactly as written here, though the order of the samples does not matter:
 #1.slide_no
 #2.sample_id
@@ -40,9 +42,12 @@ study <- "PRISM1"
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
 sample_file <- "Analysis sample list.csv"
 
-#define file name for sample file + additional metadata 
+#define file name for sample file + additional metadata (character vector)
 #(ex: test v. control sample, exclude samples (based on slide image), experimental groups)
 meta_file <- "Immune v nonimmune metadata.csv"
+
+#define file name for antigen list file with additional info about targets.
+target_file <- "Immune v nonimmune target info.csv"
 
 #number of technical replicates for the study (usually 1 or 2)
 reps <- 2
