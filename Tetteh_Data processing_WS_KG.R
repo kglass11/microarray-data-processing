@@ -66,13 +66,6 @@ targets_ref = c(grep("REF", annotation_targets.df$Name))
 targets_std = c(grep("Std", annotation_targets.df$Name))
 targets_allcontrol = c(targets_blank, targets_buffer, targets_ref, targets_std)
 
-###Assign sample type names, to identify control and test samples
-# KG - this is creating empty vectors right now, the samples aren't previously typed
-# to be test or control. Should we add this to the original sample file (.csv)?
-# or somehow call out known controls for removal in the script. 
-# These aren't used until seropositivity part of the script
-samples_test <- samples.df$sample_type=="test"
-samples_control <- samples.df$sample_type=="control"
 
 ###Remove bad spots from subsequent analysis
 
@@ -454,6 +447,14 @@ mtext(c(paste("Pearson correlation coefficient:", round(repR, digits=4))), side=
 graphics.off()
 
 ###DATA ANALYSIS###
+###Assign sample type names, to identify control and test samples
+# KG - this is creating empty vectors right now, the samples aren't previously typed
+# to be test or control. Should we add this to the original sample file (.csv)?
+# or somehow call out known controls for removal in the script. 
+# These aren't used until seropositivity part of the script
+samples_test <- samples.df$sample_type=="test"
+samples_control <- samples.df$sample_type=="control"
+
 #Before doing any further analysis, we have to get rid of samples or targets that we are no longer 
 #interested in.
 #E.g. If control individuals are in our analysis, they will affect mixture model based cut-offs
