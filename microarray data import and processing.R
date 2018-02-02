@@ -525,3 +525,57 @@ for (i in 1:length(norm2.matrix))
 }
 
 write.csv(norm2.matrix, file = paste0(study,"_normalized_log_data.csv"))
+
+### Average duplicates, if the data has technical replicates in the form of 2 blocks / subarray
+
+if (reps == 2)
+{
+  n = nrow(norm2.matrix)/2
+  rep1 <- norm2.matrix[1:n,]
+  rep2 <- norm2.matrix[(n+1):(n*2),]
+  
+  norm2average.matrix <- matrix(nrow = n, ncol = ncol(norm2.matrix))
+  colnames(norm2average.matrix) = colnames(norm2.matrix)
+  rownames(norm2average.matrix) = rownames(norm2.matrix[(1:n),])
+  
+  norm2average.matrix <- log2((2^rep1 + 2^rep2)/2)
+  
+}
+
+### Check for deviant technical replicates, automatically exclude (set to NA)
+# Use Patrick’s formula for ELISA to compare replicates within one array
+# if rep1 or rep2 is more than 1.5 times rep2 or rep1, respectively, exclude that pair
+# Also, can redo this using the subsetted matrices (rep1 and rep2) and it should be shorter
+if (reps == 2)
+{ 
+  for (k in 1:ncol(norm2.matrix))
+  {
+    for(j in 1:n) 
+    {
+      if (is.na(norm2.matrix[j,k])|is.na(norm2.matrix[(j+n),k]))
+      { 
+        j+1
+      } else if (norm2.matrix[j,k] > (log2(1.5) + norm2.matrix[(j+n),k]) | (norm2.matrix[(j+n),k] > (log2(1.5) + norm2.matrix[j,k])) == TRUE) 
+      {
+        norm2average.matrix[j,k] <- NA
+      }
+    }
+  }
+}
+remove(j,k)
+
+write.csv(norm2average.matrix, paste0(study, "_average_norm_log_data.csv")) 
+
+## Calculate correlation coefficient (default is pearson). Deviants are still included.
+repR <- cor(c(rep1), c(rep2), use = "complete.obs")
+print(repR)
+
+## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient.
+png(filename = paste("replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
+par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
+    mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
+
+plot(rep1, rep2, col="red", cex = 0.1)
+mtext(c(paste("Pearson correlation coefficient:", round(repR, digits=4))), side=3, adj=0)
+
+graphics.off()
