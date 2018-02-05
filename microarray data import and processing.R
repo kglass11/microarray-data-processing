@@ -60,7 +60,7 @@ index_block <- 32
 setwd(workdir)
 
 #####################################
-###READING IN YOUR MICROARRAY data###
+###READING IN YOUR MICROARRAY DATA###
 #####################################
 
 ###Identify all .gpr files in your set path. default path for list.files() is the working directory.
@@ -95,6 +95,13 @@ remove(i)
 
 ###Read in list of sample IDs
 samples.df <- read.csv(sample_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
+
+###Read in sample metadata file
+sample_meta.df <- read.csv(meta_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
+
+###Read in target metadata file
+target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
+
 
 ###Create a vector listing all of your samples, in the order they appear in your samples_list file
 #In our samples_list files, the sample ID is always in column two - which is why that column is picked out here
