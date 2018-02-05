@@ -102,7 +102,6 @@ sample_meta.df <- read.csv(meta_file, header=T, na.strings = " ", check.names = 
 ###Read in target metadata file
 target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
 
-
 ###Create a vector listing all of your samples, in the order they appear in your samples_list file
 #In our samples_list files, the sample ID is always in column two - which is why that column is picked out here
 samples <- as.character(samples.df[1:nrow(samples.df), 2])
@@ -601,18 +600,28 @@ graphics.off()
 #KG - for now this still includes the same protein target at different dilutions
 #This means we have to subset the data, so some earlier annotations will from here on be wrong 
 #(e.g. index_sample will no longer equal 96)
+
+#Assign sample type names, to identify control and test samples (logical)
+samples_test <- sample_meta.df$sample_type=="test"
+samples_control <- sample_meta.df$sample_type=="control"
+
+#Define a list of targets to be removed from further analysis (controls)
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
-#this includes ALL samples but removes control protein targets
+#This includes ALL samples but removes control protein targets
 
 if (reps==2){norm3.matrix<-norm2average.matrix}
 if (reps==1){norm3.matrix<-norm2.matrix}
 
 norm_sub.matrix <- norm3.matrix[-rmsamp_all,]
 
-###Form a seropositivity matrix based on reactivity over the sample buffer background.
+#Remove control samples as well for seropositiviy calculations
+norm_sub2.matrix <- norm3.matrix[-rmsamp_all, samples_test]
+samples_sub.df <- sample_meta.df[samples_test,]
+
+###Form a seropositivity matrix based on reactivity over a cutoff derived from sample buffer background.
 #The cut-off is 1. As the data is log2 normalised, a value of 1 equates to eaxctly double the MFI of the samples buffer mean MFI.
-seropos_buffer_sub.matrix <- as.matrix(norm_sub.matrix > 1)+0
+seropos_buffer_sub.matrix <- as.matrix(norm_sub2.matrix > 1)+0
 
 #An alternative would be to raise this threshold to mean + 3SD. 
 #These values are coming up a lot higher than 1. Even if we do +2SD it is still higher than 1.
@@ -620,20 +629,19 @@ sample_cutoff <- cor2_buffer_sample_mean + 3*cor2_buffer_sample_sd
 log_sample_cutoff <- log2(sample_cutoff)
 norm_sample_cutoff <- log_sample_cutoff - log_buffer_sample_mean
 
-seroposSD_temp.matrix <- as.matrix(norm3.matrix > norm_sample_cutoff)+0
-seroposSD.matrix <- seroposSD_temp.matrix[-rmsamp_all,]
-remove(seroposSD_temp.matrix)
+seroposSD_temp.matrix <- t(apply(norm3.matrix, 1, function(x) (x > norm_sample_cutoff)+0))
+seroposSD.matrix <- seroposSD_temp.matrix[-rmsamp_all, samples_test]
 
 ###Create a threshold for overall target and person reactivity
 #e.g. To be included in heatmaps and other analyses, perhaps targets should be reacted to by at least 5% of people?
 #Similarly, perhaps unreactive individuals should be disincluded? Either way - this is informative.
-target_breadth <- rowSums(seropos_buffer_sub.matrix, na.rm=TRUE)
-target_reactive <- target_breadth > (ncol(seropos_buffer_sub.matrix)/100)*5
-cat(sum(target_reactive), "out of", nrow(seropos_buffer_sub.matrix), "protein targets are reactive in at least 5% of people")
+target_breadth1 <- rowSums(seropos_buffer_sub.matrix, na.rm=TRUE)
+target_reactive1 <- target_breadth1 > (ncol(seropos_buffer_sub.matrix)/100)*5
+cat(sum(target_reactive1), "out of", nrow(seropos_buffer_sub.matrix), "protein targets are reactive in at least 5% of people")
 
-person_breadth <- colSums(seropos_buffer_sub.matrix, na.rm=TRUE)
-person_exposed <- person_breadth > (nrow(seropos_buffer_sub.matrix)/100)*5
-cat(sum(person_exposed), "out of", ncol(seropos_buffer_sub.matrix), "samples are reactive to at least 5% of proteins")
+person_breadth1 <- colSums(seropos_buffer_sub.matrix, na.rm=TRUE)
+person_exposed1 <- person_breadth1 > (nrow(seropos_buffer_sub.matrix)/100)*5
+cat(sum(person_exposed1), "out of", ncol(seropos_buffer_sub.matrix), "samples are reactive to at least 5% of proteins")
 
 ###Repeat threshold for overall target and person reactivity with mean + 3SD cutoffs.
 target_breadth <- rowSums(seroposSD.matrix, na.rm=TRUE)
@@ -645,6 +653,7 @@ person_exposed <- person_breadth > (nrow(seroposSD.matrix)/100)*5
 cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive to at least 5% of proteins")
 
 ### Export matrix of data for reactive protein targets only (cutoff mean+3SD method)
+# Includes ALL samples
 reactive.targets.matrix <- norm_sub.matrix[target_reactive==TRUE,]
 write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
 
