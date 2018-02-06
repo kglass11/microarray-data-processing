@@ -657,6 +657,10 @@ cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive
 reactive.targets.matrix <- norm_sub.matrix[target_reactive==TRUE,]
 write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
 
-### Make one giant list or data-frame with the antigen categories and all the data
-norm_meta.df <- cbind(target_meta.df,norm3.matrix)
-head(norm_meta.df)
+### Make one giant data-frame with the antigen categories and all the data
+norm_target_meta.df <- cbind(target_meta.df,norm3.matrix)
+
+#head(norm_meta.df)
+
+# Subset the non-malarial antigens
+nonmalarial.df <- 
