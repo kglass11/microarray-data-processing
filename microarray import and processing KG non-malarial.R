@@ -662,5 +662,5 @@ norm_target_meta.df <- cbind(target_meta.df,norm3.matrix)
 
 #head(norm_meta.df)
 
-# Subset the non-malarial antigens
-nonmalarial.df <- 
+# Subset the non-malarial antigens (need to change the name from non-malarial to non_malarial in the original excel file)
+nonmalarial.df <- norm_target_meta.df[norm_target_meta.df$Category==non_malarial]
