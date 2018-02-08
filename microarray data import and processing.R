@@ -3,11 +3,14 @@
 ###Create a folder, into which you should copy this script, your .gpr files (named 'Slide 1.gpr', 'Slide 2.gpr' etc.), 
 # and your sample list, sample metadata, and target (antigen) metadata csv files.
 
-# Your sample list file needs four columns. Their names must be exactly as written here, though the order of the samples does not matter:
+# Your sample list file needs six columns. Their names must be exactly as written here, though the order of the samples does not matter:
 #1.slide_no
 #2.sample_id
 #3.block_rep_1
 #4.block_rep_2
+#5.exclude - where samples you want to exclude are labeled "yes"
+#6.sample_type - where samples are labeled as "test" or "control"
+
 
 # Your sample metadata file must have a column called "sample_type" where samples are labeled as "test" or "control"
 
@@ -609,18 +612,21 @@ graphics.off()
 #(e.g. index_sample will no longer equal 96)
 
 #Assign sample type names, to identify control and test samples (logical)
-samples_test <- sample_meta.df$sample_type=="test"
-samples_control <- sample_meta.df$sample_type=="control"
+samples_test <- samples.df$sample_type=="test"
+samples_control <- samples.df$sample_type=="control"
 
 #Define a list of targets to be removed from further analysis (controls)
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
-#This includes ALL samples but removes control protein targets
+#Remove samples that should be excluded
+samples_exclude <- samples.df$exclude=="yes"
+
+#And remove control protein targets
 
 if (reps==2){norm3.matrix<-norm2average.matrix}
 if (reps==1){norm3.matrix<-norm2.matrix}
 
-norm_sub.matrix <- norm3.matrix[-rmsamp_all,]
+norm_sub.matrix <- norm3.matrix[-rmsamp_all,-samples_exclude]
 
 #Remove control samples as well for seropositiviy calculations
 norm_sub2.matrix <- norm3.matrix[-rmsamp_all, samples_test]
