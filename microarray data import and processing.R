@@ -44,23 +44,22 @@ library(gcookbook)
 
 ### Define variables based on your study that will be used later in the script
 # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-workdir <- "/Users/Katie/Desktop/R files from work/PRISM Immune v Nonimmune"
+workdir <- "H:/My Documents/R files from work - from home/100817 Sanger/Sanger Data Processing KG"
 
 # define a shorthand name for your study which will be appended in the file name of all exported files
-study <- "PRISM1"
+study <- "Sanger1"
 
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-sample_file <- "Analysis sample list.csv"
+sample_file <- "Sample list Sanger for merge.csv"
 
 #define file name for sample file + additional metadata (character vector)
-# test v. control sample, exclude samples (based on slide image), experimental groups)
-meta_file <- "Immune v nonimmune metadata.csv"
+meta_file <- "sanger metadata for merge.csv"
 
 #define file name for antigen list file with additional info about targets.
-target_file <- "Immune v nonimmune target info.csv"
+target_file <- "sanger targets.csv"
 
 #number of technical replicates for the study (usually 1 or 2)
-reps <- 2
+reps <- 1
 
 #define number of blocks per slide
 index_block <- 32
@@ -582,24 +581,26 @@ if (reps == 2)
       }
     }
   }
-}
-remove(j,k)
+  remove(j,k)
+  
+  write.csv(norm2average.matrix, paste0(study, "_average_norm_log_data.csv")) 
+  
+  ## Calculate correlation coefficient (default is pearson). Deviants are still included.
+  repR <- cor(c(rep1), c(rep2), use = "complete.obs")
+  print(repR)
+  
+  ## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient.
+  png(filename = paste("replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
+  par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
+      mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
+  
+  plot(rep1, rep2, col="red", cex = 0.1)
+  mtext(c(paste("Pearson correlation coefficient:", round(repR, digits=4))), side=3, adj=0)
+  
+  graphics.off()
+  
+  }
 
-write.csv(norm2average.matrix, paste0(study, "_average_norm_log_data.csv")) 
-
-## Calculate correlation coefficient (default is pearson). Deviants are still included.
-repR <- cor(c(rep1), c(rep2), use = "complete.obs")
-print(repR)
-
-## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient.
-png(filename = paste("replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
-par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
-    mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
-
-plot(rep1, rep2, col="red", cex = 0.1)
-mtext(c(paste("Pearson correlation coefficient:", round(repR, digits=4))), side=3, adj=0)
-
-graphics.off()
 
 ###Seropositivity and Reactivity Thresholds###
 
@@ -619,9 +620,8 @@ samples_control <- samples.df$sample_type=="control"
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
 #Remove samples that should be excluded
-samples_exclude <- samples.df$exclude=="yes"
-
 #And remove control protein targets
+samples_exclude <- samples.df$exclude=="yes"
 
 if (reps==2){norm3.matrix<-norm2average.matrix}
 if (reps==1){norm3.matrix<-norm2.matrix}
