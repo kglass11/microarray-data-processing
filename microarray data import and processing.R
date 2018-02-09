@@ -106,7 +106,7 @@ remove(i)
 samples.df <- read.csv(sample_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
 
 ###Read in sample metadata file
-sample_meta.df <- read.csv(meta_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
+sample_meta1.df <- read.csv(meta_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
 
 ###Read in target metadata file
 target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
@@ -121,14 +121,18 @@ samples.df$sample_id_unique <- c()
 samples_unique <- c(paste(as.character(samples.df[1:nrow(samples.df), 2]), rownames(samples.df), sep = "_"))
 samples.df$sample_id_unique <- samples_unique
 
+### Merge the sample list file and the sample metadata file to include the appropriate metadata
+
+sample_meta.df <- merge(samples.df, sample_meta1.df, by = "sample_id", all.x = TRUE)
+
 ###Create vectors indicating the number of slides, blocks, and samples
 #Slide and sample number are determined automatically from the data you input, whereas block number is manual in this instance
 index_slide <- as.numeric(length(slides_list))
 index_sample <- as.numeric(length(samples))
 
+### *****this is totally no working right now (at least not for sanger data):
 ###Assign your sample_ids to each row of the combined slide data (slides_all.df)
 #The order of data in your samples.df file is irrelevant, as long as each sample ID is correctly matched to its slide and block numbers
-slides_all.df$sample_id_unique <- c()
 
 for(i in 1:dim(slides_all.df)[1]){
   
