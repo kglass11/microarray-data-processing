@@ -44,22 +44,22 @@ library(gcookbook)
 
 ### Define variables based on your study that will be used later in the script
 # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-workdir <- "H:/My Documents/R files from work - from home/100817 Sanger/Sanger Data Processing KG"
+workdir <- "H:/My Documents/R files from work - from home/PRISM Immune v Nonimmune"
 
 # define a shorthand name for your study which will be appended in the file name of all exported files
-study <- "Sanger1"
+study <- "PRISM2"
 
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-sample_file <- "Sample list Sanger for merge.csv"
+sample_file <- "Analysis sample list v2.csv"
 
 #define file name for sample file + additional metadata (character vector)
-meta_file <- "sanger metadata for merge.csv"
+meta_file <- "Immune v nonimmune metadata.csv"
 
 #define file name for antigen list file with additional info about targets.
-target_file <- "sanger targets.csv"
+target_file <- "Immune v nonimmune target info.csv"
 
 #number of technical replicates for the study (usually 1 or 2)
-reps <- 1
+reps <- 2
 
 #define number of blocks per slide
 index_block <- 32
@@ -124,6 +124,11 @@ samples.df$sample_id_unique <- samples_unique
 ### Merge the sample list file and the sample metadata file to include the appropriate metadata
 
 sample_meta.df <- merge(samples.df, sample_meta1.df, by = "sample_id", all.x = TRUE)
+
+#identify duplicate samples and store results in a vector
+#need to do this with the "test" sample type only, not the controls!
+
+dup_samples <- samples.df$sample_id[duplicated(samples.df$sample_id)]
 
 ###Create vectors indicating the number of slides, blocks, and samples
 #Slide and sample number are determined automatically from the data you input, whereas block number is manual in this instance
@@ -532,20 +537,22 @@ for(i in 1:ncol(norm.matrix))
 }
 
 
-# Set negative normalized log values to zero...
+
 norm2.matrix <- norm.matrix
-i = 1
-for (i in 1:length(norm2.matrix))
-{
-  if (is.na(norm2.matrix[[i]]) | norm2.matrix[[i]] > 0) 
-  {
-    i = i+1
-  } else if(norm2.matrix[[i]] < 0) 
-  {
-    norm2.matrix[[i]] <- 0
-    i = i+1
-  }
-}
+
+# # We decided not to set negative values so this is commented out
+# i = 1
+# for (i in 1:length(norm2.matrix))
+# {
+#   if (is.na(norm2.matrix[[i]]) | norm2.matrix[[i]] > 0) 
+#   {
+#     i = i+1
+#   } else if(norm2.matrix[[i]] < 0) 
+#   {
+#     norm2.matrix[[i]] <- 0
+#     i = i+1
+#   }
+# }
 
 write.csv(norm2.matrix, file = paste0(study,"_normalized_log_data.csv"))
 
