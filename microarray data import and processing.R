@@ -116,11 +116,10 @@ target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names 
 samples <- as.character(samples.df[1:nrow(samples.df), 2])
 
 ###Now, make a new sample variable that is unique (to avoid issues with multiple blanks, etc.) 
-# in the next version of Will's, he changed the samples_unique to column 11 instead of 5... why? 
-# we need this not to change based on the sample file/study, it should be the same every time
+ # Add this column at the end of the sample list file, not at a prespecified column number
+samples.df$sample_id_unique <- c()
 samples_unique <- c(paste(as.character(samples.df[1:nrow(samples.df), 2]), rownames(samples.df), sep = "_"))
-samples.df[,5] <- samples_unique
-colnames(samples.df)[5] <- "sample_id_unique"
+samples.df$sample_id_unique <- samples_unique
 
 ###Create vectors indicating the number of slides, blocks, and samples
 #Slide and sample number are determined automatically from the data you input, whereas block number is manual in this instance
