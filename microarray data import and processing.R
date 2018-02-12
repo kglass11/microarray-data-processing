@@ -11,11 +11,6 @@
 #5.exclude - where samples you want to exclude are labeled "yes"
 #6.sample_type - where samples are labeled as "test" or "control"
 
-
-# Your sample metadata file must have a column called "sample_type" where samples are labeled as "test" or "control"
-
-# In the sample list file and the sample metadata file, the order of your samples must be exactly the same!
-
 # In your target metadata file, the targets must be listed in the same order as they are in the .gpr files. 
 # If you have two identical blocks printed (for duplicates), only list block 1 in your target metadata file. 
 
@@ -24,7 +19,7 @@ rm(list=ls())
 
 ###Install any packages you may need for this script. Go to Tools, install packages, 
 #then install from CRAN repository or local file or run:
-#install.packages(c("gtools","contrast", "beeswarm", "mixtools", "gplots", "ggplot2", "gcookbook"))
+#install.packages(c("dplyr","gtools","contrast", "beeswarm", "mixtools", "gplots", "ggplot2", "gcookbook"))
 
 ##Install limma if you haven't already
 ## try http:// if https:// URLs are not supported
@@ -41,19 +36,20 @@ library(mixtools)
 library(gplots)
 library(ggplot2)
 library(gcookbook)
+library(dplyr)
 
 ### Define variables based on your study that will be used later in the script
 # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-workdir <- "H:/My Documents/R files from work - from home/PRISM Immune v Nonimmune"
+workdir <- "/Users/Katie/Desktop/R files from work/PRISM Immune v Nonimmune"
 
 # define a shorthand name for your study which will be appended in the file name of all exported files
-study <- "PRISM2"
+study <- "PRISM_TEST"
 
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-sample_file <- "Analysis sample list v2.csv"
+sample_file <- "Analysis sample list_TEST.csv"
 
 #define file name for sample file + additional metadata (character vector)
-meta_file <- "Immune v nonimmune metadata.csv"
+meta_file <- "Immune v nonimmune metadata_TEST.csv"
 
 #define file name for antigen list file with additional info about targets.
 target_file <- "Immune v nonimmune target info.csv"
@@ -106,11 +102,12 @@ remove(i)
 samples.df <- read.csv(sample_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
 
 ###Read in sample metadata file
-sample_meta1.df <- read.csv(meta_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
+sample_meta1.df <- read.csv(meta_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
 
 ###Read in target metadata file
-target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
+target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
 
+###Processing sample list:
 ###Create a vector listing all of your samples, in the order they appear in your samples_list file
 #In our samples_list files, the sample ID is always in column two - which is why that column is picked out here
 samples <- as.character(samples.df[1:nrow(samples.df), 2])
@@ -121,9 +118,25 @@ samples.df$sample_id_unique <- c()
 samples_unique <- c(paste(as.character(samples.df[1:nrow(samples.df), 2]), rownames(samples.df), sep = "_"))
 samples.df$sample_id_unique <- samples_unique
 
-### Merge the sample list file and the sample metadata file to include the appropriate metadata
+### Cleaning sample metadata (epi data)
+#Remove one of the duplicates where the whole row is duplicated (i.e. same thing listed twice)
+sample_meta2.df <- distinct(sample_meta1.df)
 
-sample_meta.df <- merge(samples.df, sample_meta1.df, by = "sample_id", all.x = TRUE)
+#Export a table of duplicate entries that do not match (i.e. there is a problem with epi data) 
+duplicate_metadata <- sample_meta2.df[(duplicated(sample_meta2.df$sample_id)| duplicated(sample_meta2.df$sample_id, fromLast=TRUE)),]
+write.csv(duplicate_metadata, file = paste0(study, "_duplicate_metadata.csv"))
+
+#Remove duplicate entries automatically (both duplicates)
+sample_meta3.df <- sample_meta2.df[!(duplicated(sample_meta2.df$sample_id) | duplicated(sample_meta2.df$sample_id, fromLast=TRUE)),]
+
+#Set exclude = "yes" in sample list file for duplicates that don't match in metadata
+dup <- unique(duplicate_metadata$sample_id)
+samples.df$exclude[which(samples.df$sample_id == dup)] <- "yes"
+
+### Merge the sample list file and the sample metadata file to include the appropriate metadata
+#The duplicate metadata will now be listed as NA, with exclude = yes
+
+sample_meta.df <- merge(samples.df, sample_meta3.df, by = "sample_id", all.x = TRUE)
 
 #identify duplicate samples and store results in a vector
 #need to do this with the "test" sample type only, not the controls!
@@ -135,7 +148,7 @@ dup_samples <- samples.df$sample_id[duplicated(samples.df$sample_id)]
 index_slide <- as.numeric(length(slides_list))
 index_sample <- as.numeric(length(samples))
 
-### *****this is totally no working right now (at least not for sanger data):
+### *****this is totally not working right now for sanger data, but is working for at least 4 other data sets:
 ###Assign your sample_ids to each row of the combined slide data (slides_all.df)
 #The order of data in your samples.df file is irrelevant, as long as each sample ID is correctly matched to its slide and block numbers
 
