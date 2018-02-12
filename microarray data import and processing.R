@@ -1,13 +1,23 @@
 ###Combined script for reading in and processing microarray data to prepare for analysis
 
 ###Create a folder, into which you should copy this script, your .gpr files (named 'Slide 1.gpr', 'Slide 2.gpr' etc.), 
-# and your sample list, antigen list, and sample + metadata csv files.
+# and your sample list, sample metadata, and target (antigen) metadata csv files.
 
-# Your sample list file needs four columns. Their names must be exactly as written here, though the order of the samples does not matter:
+# Your sample list file needs six columns. Their names must be exactly as written here, though the order of the samples does not matter:
 #1.slide_no
 #2.sample_id
 #3.block_rep_1
 #4.block_rep_2
+#5.exclude - where samples you want to exclude are labeled "yes"
+#6.sample_type - where samples are labeled as "test" or "control"
+
+
+# Your sample metadata file must have a column called "sample_type" where samples are labeled as "test" or "control"
+
+# In the sample list file and the sample metadata file, the order of your samples must be exactly the same!
+
+# In your target metadata file, the targets must be listed in the same order as they are in the .gpr files. 
+# If you have two identical blocks printed (for duplicates), only list block 1 in your target metadata file. 
 
 ###Clear the environnment - OR go to Session > Clear Workspace
 rm(list=ls())
@@ -34,16 +44,15 @@ library(gcookbook)
 
 ### Define variables based on your study that will be used later in the script
 # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-workdir <- "/Users/Katie/Desktop/R files from work/PRISM Immune v Nonimmune"
+workdir <- "H:/My Documents/R files from work - from home/PRISM Immune v Nonimmune"
 
 # define a shorthand name for your study which will be appended in the file name of all exported files
-study <- "PRISM1"
+study <- "PRISM2"
 
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-sample_file <- "Analysis sample list.csv"
+sample_file <- "Analysis sample list v2.csv"
 
 #define file name for sample file + additional metadata (character vector)
-#(ex: test v. control sample, exclude samples (based on slide image), experimental groups)
 meta_file <- "Immune v nonimmune metadata.csv"
 
 #define file name for antigen list file with additional info about targets.
@@ -97,7 +106,7 @@ remove(i)
 samples.df <- read.csv(sample_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
 
 ###Read in sample metadata file
-sample_meta.df <- read.csv(meta_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
+sample_meta1.df <- read.csv(meta_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
 
 ###Read in target metadata file
 target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = TRUE)
@@ -107,20 +116,28 @@ target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names 
 samples <- as.character(samples.df[1:nrow(samples.df), 2])
 
 ###Now, make a new sample variable that is unique (to avoid issues with multiple blanks, etc.) 
-# in the next version of Will's, he changed the samples_unique to column 11 instead of 5... why? 
-# we need this not to change based on the sample file/study, it should be the same every time
+ # Add this column at the end of the sample list file, not at a prespecified column number
+samples.df$sample_id_unique <- c()
 samples_unique <- c(paste(as.character(samples.df[1:nrow(samples.df), 2]), rownames(samples.df), sep = "_"))
-samples.df[,5] <- samples_unique
-colnames(samples.df)[5] <- "sample_id_unique"
+samples.df$sample_id_unique <- samples_unique
+
+### Merge the sample list file and the sample metadata file to include the appropriate metadata
+
+sample_meta.df <- merge(samples.df, sample_meta1.df, by = "sample_id", all.x = TRUE)
+
+#identify duplicate samples and store results in a vector
+#need to do this with the "test" sample type only, not the controls!
+
+dup_samples <- samples.df$sample_id[duplicated(samples.df$sample_id)]
 
 ###Create vectors indicating the number of slides, blocks, and samples
 #Slide and sample number are determined automatically from the data you input, whereas block number is manual in this instance
 index_slide <- as.numeric(length(slides_list))
 index_sample <- as.numeric(length(samples))
 
+### *****this is totally no working right now (at least not for sanger data):
 ###Assign your sample_ids to each row of the combined slide data (slides_all.df)
 #The order of data in your samples.df file is irrelevant, as long as each sample ID is correctly matched to its slide and block numbers
-slides_all.df$sample_id_unique <- c()
 
 for(i in 1:dim(slides_all.df)[1]){
   
@@ -520,20 +537,22 @@ for(i in 1:ncol(norm.matrix))
 }
 
 
-# Set negative normalized log values to zero...
+
 norm2.matrix <- norm.matrix
-i = 1
-for (i in 1:length(norm2.matrix))
-{
-  if (is.na(norm2.matrix[[i]]) | norm2.matrix[[i]] > 0) 
-  {
-    i = i+1
-  } else if(norm2.matrix[[i]] < 0) 
-  {
-    norm2.matrix[[i]] <- 0
-    i = i+1
-  }
-}
+
+# # We decided not to set negative values so this is commented out
+# i = 1
+# for (i in 1:length(norm2.matrix))
+# {
+#   if (is.na(norm2.matrix[[i]]) | norm2.matrix[[i]] > 0) 
+#   {
+#     i = i+1
+#   } else if(norm2.matrix[[i]] < 0) 
+#   {
+#     norm2.matrix[[i]] <- 0
+#     i = i+1
+#   }
+# }
 
 write.csv(norm2.matrix, file = paste0(study,"_normalized_log_data.csv"))
 
@@ -572,24 +591,26 @@ if (reps == 2)
       }
     }
   }
-}
-remove(j,k)
+  remove(j,k)
+  
+  write.csv(norm2average.matrix, paste0(study, "_average_norm_log_data.csv")) 
+  
+  ## Calculate correlation coefficient (default is pearson). Deviants are still included.
+  repR <- cor(c(rep1), c(rep2), use = "complete.obs")
+  print(repR)
+  
+  ## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient.
+  png(filename = paste("replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
+  par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
+      mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
+  
+  plot(rep1, rep2, col="red", cex = 0.1)
+  mtext(c(paste("Pearson correlation coefficient:", round(repR, digits=4))), side=3, adj=0)
+  
+  graphics.off()
+  
+  }
 
-write.csv(norm2average.matrix, paste0(study, "_average_norm_log_data.csv")) 
-
-## Calculate correlation coefficient (default is pearson). Deviants are still included.
-repR <- cor(c(rep1), c(rep2), use = "complete.obs")
-print(repR)
-
-## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient.
-png(filename = paste("replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
-par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
-    mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
-
-plot(rep1, rep2, col="red", cex = 0.1)
-mtext(c(paste("Pearson correlation coefficient:", round(repR, digits=4))), side=3, adj=0)
-
-graphics.off()
 
 ###Seropositivity and Reactivity Thresholds###
 
@@ -602,18 +623,20 @@ graphics.off()
 #(e.g. index_sample will no longer equal 96)
 
 #Assign sample type names, to identify control and test samples (logical)
-samples_test <- sample_meta.df$sample_type=="test"
-samples_control <- sample_meta.df$sample_type=="control"
+samples_test <- samples.df$sample_type=="test"
+samples_control <- samples.df$sample_type=="control"
 
 #Define a list of targets to be removed from further analysis (controls)
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
-#This includes ALL samples but removes control protein targets
+#Remove samples that should be excluded
+#And remove control protein targets
+samples_exclude <- samples.df$exclude=="yes"
 
 if (reps==2){norm3.matrix<-norm2average.matrix}
 if (reps==1){norm3.matrix<-norm2.matrix}
 
-norm_sub.matrix <- norm3.matrix[-rmsamp_all,]
+norm_sub.matrix <- norm3.matrix[-rmsamp_all,-samples_exclude]
 
 #Remove control samples as well for seropositiviy calculations
 norm_sub2.matrix <- norm3.matrix[-rmsamp_all, samples_test]
