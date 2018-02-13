@@ -131,7 +131,9 @@ sample_meta3.df <- sample_meta2.df[!(duplicated(sample_meta2.df$sample_id) | dup
 
 #Set exclude = "yes" in sample list file for duplicates that don't match in metadata
 dup <- unique(duplicate_metadata$sample_id)
-samples.df$exclude[which(samples.df$sample_id == dup)] <- "yes"
+for(i in 1:length(dup)){
+  samples.df$exclude[which(samples.df$sample_id == dup[i])] <- "yes"
+}
 
 ### Merge the sample list file and the sample metadata file to include the appropriate metadata
 #The duplicate metadata will now be listed as NA, with exclude = yes
@@ -544,8 +546,6 @@ for(i in 1:ncol(norm.matrix))
   norm.matrix[,i] <- norm.matrix[,i]-log_buffer_sample_mean[i]
 }
 
-
-
 norm2.matrix <- norm.matrix
 
 # # We decided not to set negative values so this is commented out
@@ -623,30 +623,37 @@ if (reps == 2)
 if (reps==2){norm3.matrix<-norm2average.matrix}
 if (reps==1){norm3.matrix<-norm2.matrix}
 
-#create a transposed version of this matrix for some analyses
+#Create a transposed version of this matrix for some analyses
 trans.norm.matrix <- t(norm3.matrix)
 trans.norm.matrix <- tibble::rownames_to_column(as.data.frame(trans.norm.matrix))
 
-###Checking and averaging samples assayed in duplicate on the arrays 
-#identify duplicate samples and store results in a data frame
-#need to do this with the "test" sample type only, not the controls!
+###Identifying and excluding samples assayed in duplicate on the arrays 
+#Identify duplicate samples and store results in a data frame
+#This includes the "test" sample type only, not the controls!
 dup_samples <- samples.df[(duplicated(samples.df$sample_id) | duplicated(samples.df$sample_id, fromLast=TRUE)),]
 dup_samples <- dup_samples[dup_samples$sample_type=="test",]
 
-write.csv(dup_samples, file = paste0(study, "_duplicate_assayed_samples.csv"))
-
 dup_samp_data <- merge(dup_samples, trans.norm.matrix, by.x = "sample_id_unique", by.y = "rowname")
 
-#Subset into one data frame for each duplicate with only target data
-dup_samp1 <- dup_samp_data[duplicated(dup_samp_data$sample_id),]
-dup_samp2 <- dup_samp_data[duplicated(dup_samp_data$sample_id, fromLast=TRUE),]
+#Export a table with all the info and data for the duplicates only
+write.csv(dup_samp_data, file = paste0(study, "_duplicate_assayed_samples.csv"))
 
-sub_dup_samp1 <- dup_samp1[,((ncol(dup_samp1)-index_target/reps+1):ncol(dup_samp1))]
-sub_dup_samp2 <- dup_samp2[,((ncol(dup_samp2)-index_target/reps+1):ncol(dup_samp2))]
+#Set exclude to "yes" for all samples assayed in duplicate.
+for(i in 1:nrow(dup_samples)){
+  sample_meta.df$exclude[which(sample_meta.df$sample_id == dup_samples$sample_id[i])] <- "yes"
+}
 
-#Average the duplicates
-avg_dup_samp_data <- log2((2^sub_dup_samp1 + 2^sub_dup_samp2)/2)
-row.names(avg_dup_samp_data) <- dup_samp1$sample_id
+###Averaging duplicates - we decided not to do this so have commented these lines.
+# #Subset into one data frame for each duplicate with only target data
+# dup_samp1 <- dup_samp_data[duplicated(dup_samp_data$sample_id),]
+# dup_samp2 <- dup_samp_data[duplicated(dup_samp_data$sample_id, fromLast=TRUE),]
+# 
+# sub_dup_samp1 <- dup_samp1[,((ncol(dup_samp1)-index_target/reps+1):ncol(dup_samp1))]
+# sub_dup_samp2 <- dup_samp2[,((ncol(dup_samp2)-index_target/reps+1):ncol(dup_samp2))]
+# 
+# #Average the duplicates
+# avg_dup_samp_data <- log2((2^sub_dup_samp1 + 2^sub_dup_samp2)/2)
+# row.names(avg_dup_samp_data) <- dup_samp1$sample_id
 
 
 ###Seropositivity and Reactivity Thresholds###
@@ -667,13 +674,12 @@ samples_control <- samples.df$sample_type=="control"
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
 #Remove samples that should be excluded
-#And remove control protein targets
-samples_exclude <- samples.df$exclude=="yes"
+samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude =="yes")]
+norm_sub.matrix <- norm3.matrix[,(!colnames(norm3.matrix) %in% samples_exclude)]
 
-norm_sub.matrix <- norm3.matrix[-rmsamp_all,-samples_exclude]
-
-#Remove control samples as well for seropositiviy calculations
-norm_sub2.matrix <- norm3.matrix[-rmsamp_all, samples_test]
+#Remove control protein targets and control samples for seropositiviy calculations
+# KG - start again checking this!! 
+norm_sub2.matrix <- norm_sub.matrix[-rmsamp_all, samples_test]
 samples_sub.df <- sample_meta.df[samples_test,]
 
 ###Form a seropositivity matrix based on reactivity over a cutoff derived from sample buffer background.
