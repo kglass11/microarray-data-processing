@@ -138,11 +138,6 @@ samples.df$exclude[which(samples.df$sample_id == dup)] <- "yes"
 
 sample_meta.df <- merge(samples.df, sample_meta3.df, by = "sample_id", all.x = TRUE)
 
-#identify duplicate samples and store results in a vector
-#need to do this with the "test" sample type only, not the controls!
-
-dup_samples <- samples.df$sample_id[duplicated(samples.df$sample_id)]
-
 ###Create vectors indicating the number of slides, blocks, and samples
 #Slide and sample number are determined automatically from the data you input, whereas block number is manual in this instance
 index_slide <- as.numeric(length(slides_list))
@@ -624,6 +619,38 @@ if (reps == 2)
   
   }
 
+#create matrix that is the same name whether or not we needed to average duplicates
+if (reps==2){norm3.matrix<-norm2average.matrix}
+if (reps==1){norm3.matrix<-norm2.matrix}
+
+#create a transposed version of this matrix for some analyses
+trans.norm.matrix <- t(norm3.matrix)
+trans.norm.matrix <- tibble::rownames_to_column(as.data.frame(trans.norm.matrix))
+
+###Checking and averaging samples assayed in duplicate on the arrays 
+#identify duplicate samples and store results in a data frame
+#need to do this with the "test" sample type only, not the controls!
+dup_samples <- samples.df[(duplicated(samples.df$sample_id) | duplicated(samples.df$sample_id, fromLast=TRUE)),]
+dup_samples <- dup_samples[dup_samples$sample_type=="test",]
+
+write.csv(dup_samples, file = paste0(study, "_duplicate_assayed_samples.csv"))
+
+dup_samp_data <- merge(dup_samples, trans.norm.matrix, by.x = "sample_id_unique", by.y = "rowname")
+
+#Subset into one data frame for each duplicate with only target data
+dup_samp1 <- dup_samp_data[duplicated(dup_samp_data$sample_id),]
+dup_samp2 <- dup_samp_data[duplicated(dup_samp_data$sample_id, fromLast=TRUE),]
+
+sub_dup_samp1 <- dup_samp1[,((ncol(dup_samp1)-index_target/2+1):ncol(dup_samp1))]
+sub_dup_samp2 <- dup_samp2[,((ncol(dup_samp2)-index_target/2+1):ncol(dup_samp2))]
+
+#Average the duplicates
+avg_dup_samp_data <- log2((2^sub_dup_samp1 + 2^sub_dup_samp2)/2)
+row.names(avg_dup_samp_data) <- dup_samp1$sample_id
+
+#Applying Patrick's rule with 25% pass = keep values for that sample
+
+
 
 ###Seropositivity and Reactivity Thresholds###
 
@@ -645,9 +672,6 @@ rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, 
 #Remove samples that should be excluded
 #And remove control protein targets
 samples_exclude <- samples.df$exclude=="yes"
-
-if (reps==2){norm3.matrix<-norm2average.matrix}
-if (reps==1){norm3.matrix<-norm2.matrix}
 
 norm_sub.matrix <- norm3.matrix[-rmsamp_all,-samples_exclude]
 
