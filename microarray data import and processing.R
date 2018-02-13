@@ -648,9 +648,6 @@ sub_dup_samp2 <- dup_samp2[,((ncol(dup_samp2)-index_target/reps+1):ncol(dup_samp
 avg_dup_samp_data <- log2((2^sub_dup_samp1 + 2^sub_dup_samp2)/2)
 row.names(avg_dup_samp_data) <- dup_samp1$sample_id
 
-#Applying Patrick's rule with 25% pass = keep values for that sample
-
-
 
 ###Seropositivity and Reactivity Thresholds###
 
