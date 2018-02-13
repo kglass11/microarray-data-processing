@@ -641,8 +641,8 @@ dup_samp_data <- merge(dup_samples, trans.norm.matrix, by.x = "sample_id_unique"
 dup_samp1 <- dup_samp_data[duplicated(dup_samp_data$sample_id),]
 dup_samp2 <- dup_samp_data[duplicated(dup_samp_data$sample_id, fromLast=TRUE),]
 
-sub_dup_samp1 <- dup_samp1[,((ncol(dup_samp1)-index_target/2+1):ncol(dup_samp1))]
-sub_dup_samp2 <- dup_samp2[,((ncol(dup_samp2)-index_target/2+1):ncol(dup_samp2))]
+sub_dup_samp1 <- dup_samp1[,((ncol(dup_samp1)-index_target/reps+1):ncol(dup_samp1))]
+sub_dup_samp2 <- dup_samp2[,((ncol(dup_samp2)-index_target/reps+1):ncol(dup_samp2))]
 
 #Average the duplicates
 avg_dup_samp_data <- log2((2^sub_dup_samp1 + 2^sub_dup_samp2)/2)
