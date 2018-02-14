@@ -716,8 +716,8 @@ sample_cutoff <- cor2_buffer_sample_mean + 3*cor2_buffer_sample_sd
 log_sample_cutoff <- log2(sample_cutoff)
 norm_sample_cutoff <- log_sample_cutoff - log_buffer_sample_mean
 
-#KG - this is not working right anymore because norm3.matrix still includes the samples we want removed
 seroposSD_temp.matrix <- t(apply(norm3.matrix, 1, function(x) (x > norm_sample_cutoff)+0))
+seroposSD_temp.matrix <- seroposSD_temp.matrix[,(!colnames(seroposSD_temp.matrix) %in% samples_exclude)]
 seroposSD.matrix <- seroposSD_temp.matrix[-rmsamp_all, samples_test]
 
 ###Create a threshold for overall target and person reactivity
@@ -741,10 +741,6 @@ person_exposed <- person_breadth > (nrow(seroposSD.matrix)/100)*5
 cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive to at least 5% of proteins")
 
 ### Export matrix of data for reactive protein targets only (cutoff mean+3SD method)
-# Includes control and test samples
+# Includes control and test samples but not excluded samples
 reactive.targets.matrix <- norm_sub.matrix[target_reactive==TRUE,]
 write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
-
-### Make one giant list or data-frame with the antigen categories and all the data
-# norm_target_meta.df <- cbind(target_meta.df,norm3.matrix)
-
