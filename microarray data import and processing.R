@@ -623,17 +623,13 @@ if (reps == 2)
 if (reps==2){norm3.matrix<-norm2average.matrix}
 if (reps==1){norm3.matrix<-norm2.matrix}
 
-#Create a transposed version of this matrix for some analyses
-trans.norm.matrix <- t(norm3.matrix)
-trans.norm.matrix <- tibble::rownames_to_column(as.data.frame(trans.norm.matrix))
-
 ###Identifying and excluding samples assayed in duplicate on the arrays 
 #Identify duplicate samples and store results in a data frame
 #This includes the "test" sample type only, not the controls!
 dup_samples <- samples.df[(duplicated(samples.df$sample_id) | duplicated(samples.df$sample_id, fromLast=TRUE)),]
 dup_samples <- dup_samples[dup_samples$sample_type=="test",]
 
-dup_samp_data <- merge(dup_samples, trans.norm.matrix, by.x = "sample_id_unique", by.y = "rowname")
+dup_samp_data <- merge(dup_samples, trans.norm.matrix, by = "sample_id_unique")
 
 #Export a table with all the info and data for the duplicates only
 write.csv(dup_samp_data, file = paste0(study, "_duplicate_assayed_samples.csv"))
@@ -655,6 +651,35 @@ for(i in 1:nrow(dup_samples)){
 # avg_dup_samp_data <- log2((2^sub_dup_samp1 + 2^sub_dup_samp2)/2)
 # row.names(avg_dup_samp_data) <- dup_samp1$sample_id
 
+###Exporting processed data and metadata for further analysis (i.e. to give to Nuno)
+
+#Character vector of samples to be removed
+samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude =="yes")]
+
+#Sample metadata file, with samples removed if exclude == yes. 
+  #Sample metadata and normalized log data are linked by the column "sample_id_unique"
+  sample_meta_f.df <- sample_meta.df[!(sample_meta.df$exclude == "yes"),]
+  
+  #Export file
+  write.csv(sample_meta_f.df, file = paste0(study, "_sample_metadata.csv"))
+
+#Normalized log data with samples as rows and targets as columns for every target(including controls)
+  #Create a transposed version of the data matrix
+  trans.norm.matrix <- t(norm3.matrix)
+
+  #With samples_exclude removed and convert to data frame
+  trans.norm2.matrix <- trans.norm.matrix[(!rownames(trans.norm.matrix) %in% samples_exclude),]
+  trans.norm.df <- as.data.frame(trans.norm2.matrix)
+  
+  #Change the rownames to a separate column - 1st column is "sample_id_unique"
+  trans.norm.df <- tibble::rownames_to_column(trans.norm.df, var = "sample_id_unique")
+  
+  #Export file
+  write.csv(trans.norm.df, file = paste0(study, "_final_processed_data.csv"))
+
+#Target metadata for every target - nothing has changed about this since the beginning
+  #Export file
+  write.csv(target_meta.df, file = paste0(study, "target_metadata.csv"))
 
 ###Seropositivity and Reactivity Thresholds###
 
@@ -667,8 +692,8 @@ for(i in 1:nrow(dup_samples)){
 #(e.g. index_sample will no longer equal 96)
 
 #Assign sample type names, to identify control and test samples (logical)
-samples_test <- samples.df$sample_type=="test"
-samples_control <- samples.df$sample_type=="control"
+samples_test <- sample_meta_f.df$sample_type=="test"
+samples_control <- sample_meta_f.df$sample_type=="control"
 
 #Define a list of targets to be removed from further analysis (controls)
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
@@ -678,9 +703,8 @@ samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude 
 norm_sub.matrix <- norm3.matrix[,(!colnames(norm3.matrix) %in% samples_exclude)]
 
 #Remove control protein targets and control samples for seropositiviy calculations
-# KG - start again checking this!! 
 norm_sub2.matrix <- norm_sub.matrix[-rmsamp_all, samples_test]
-samples_sub.df <- sample_meta.df[samples_test,]
+samples_sub.df <- sample_meta_f.df[samples_test,]
 
 ###Form a seropositivity matrix based on reactivity over a cutoff derived from sample buffer background.
 #The cut-off is 1. As the data is log2 normalised, a value of 1 equates to eaxctly double the MFI of the samples buffer mean MFI.
@@ -692,6 +716,7 @@ sample_cutoff <- cor2_buffer_sample_mean + 3*cor2_buffer_sample_sd
 log_sample_cutoff <- log2(sample_cutoff)
 norm_sample_cutoff <- log_sample_cutoff - log_buffer_sample_mean
 
+#KG - this is not working right anymore because norm3.matrix still includes the samples we want removed
 seroposSD_temp.matrix <- t(apply(norm3.matrix, 1, function(x) (x > norm_sample_cutoff)+0))
 seroposSD.matrix <- seroposSD_temp.matrix[-rmsamp_all, samples_test]
 
@@ -716,10 +741,10 @@ person_exposed <- person_breadth > (nrow(seroposSD.matrix)/100)*5
 cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive to at least 5% of proteins")
 
 ### Export matrix of data for reactive protein targets only (cutoff mean+3SD method)
-# Includes ALL samples
+# Includes control and test samples
 reactive.targets.matrix <- norm_sub.matrix[target_reactive==TRUE,]
 write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
 
 ### Make one giant list or data-frame with the antigen categories and all the data
-norm_target_meta.df <- cbind(target_meta.df,norm3.matrix)
+# norm_target_meta.df <- cbind(target_meta.df,norm3.matrix)
 
