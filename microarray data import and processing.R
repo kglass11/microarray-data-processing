@@ -40,22 +40,22 @@ library(dplyr)
 
 ### Define variables based on your study that will be used later in the script
 # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-workdir <- "/Users/Katie/Desktop/R files from work/PRISM Immune v Nonimmune"
+workdir <- "I:/Drakeley Group/Protein microarrays/Experiments/100817 Sanger"
 
 # define a shorthand name for your study which will be appended in the file name of all exported files
-study <- "PRISM_TEST"
+study <- "Sanger1"
 
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-sample_file <- "Analysis sample list_TEST.csv"
+sample_file <- "Sample list Sanger for merge.csv"
 
 #define file name for sample file + additional metadata (character vector)
-meta_file <- "Immune v nonimmune metadata_TEST.csv"
+meta_file <- "Sanger metadata corrected for merge Feb8.csv"
 
 #define file name for antigen list file with additional info about targets.
-target_file <- "Immune v nonimmune target info.csv"
+target_file <- "sanger target metadata.csv"
 
 #number of technical replicates for the study (usually 1 or 2)
-reps <- 2
+reps <- 1
 
 #define number of blocks per slide
 index_block <- 32
@@ -134,6 +134,7 @@ dup <- unique(duplicate_metadata$sample_id)
 for(i in 1:length(dup)){
   samples.df$exclude[which(samples.df$sample_id == dup[i])] <- "yes"
 }
+remove(i)
 
 ### Merge the sample list file and the sample metadata file to include the appropriate metadata
 #The duplicate metadata will now be listed as NA, with exclude = yes
