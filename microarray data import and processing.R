@@ -480,7 +480,6 @@ for (i in 1:length(targets_buffer)){
 }
 remove(i,j)
 removed_buffer_targets <- subset(removed_buffer_targets, !is.na(removed_buffer_targets))
-removed_buffer_char <- past
 
 #All slides, INCLUDING "bad" spots (ALL buffer targets)
 png(filename = paste0(study, "_buffer_targets.tif"), width = 5, height = 4, units = "in", res = 600)
