@@ -244,12 +244,14 @@ high_targets_disinclude <- ifelse(high_targets>=index_target/2, high_targets-((i
 high_targets_disinclude <- high_targets_disinclude[which(high_targets_disinclude<=(index_target-24))] 
 }
 
+# need to remove NA's added to high_targets_disinclude
 if (reps==2){
   for (i in 1:length(high_targets)){
   if (high_targets[i] < (index_target - 12)){
   high_targets_disinclude[i] <- high_targets[i] + 12
   }
   }
+  high_targets_disinclude <- subset(high_targets_disinclude, !is.na(high_targets_disinclude))
 }
 remove(i)
 
@@ -473,10 +475,12 @@ removed_buffer_targets <- c()
 for (i in 1:length(targets_buffer)){
   for(j in 1:length(high_targets_disinclude))
     if (targets_buffer[i] == high_targets_disinclude[j]){
-      removed_buffer_targets <- targets_buffer[i]
+      removed_buffer_targets[j] <- targets_buffer[i]
     }
 }
 remove(i,j)
+removed_buffer_targets <- subset(removed_buffer_targets, !is.na(removed_buffer_targets))
+removed_buffer_char <- past
 
 #All slides, INCLUDING "bad" spots (ALL buffer targets)
 png(filename = paste0(study, "_buffer_targets.tif"), width = 5, height = 4, units = "in", res = 600)
@@ -487,7 +491,7 @@ boxplot(t(cor.matrix[targets_buffer,]),
         ylab="Corrected MFI")
 abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
 
-mtext(c(paste("Excluded buffer targets:", removed_buffer_targets)), las = 1)
+mtext(paste("Excluded buffer targets:", paste(removed_buffer_targets, collapse = ",")), las = 1)
 
 graphics.off()
 
@@ -560,20 +564,6 @@ for(i in 1:ncol(norm.matrix))
 
 norm2.matrix <- norm.matrix
 
-# # We decided not to set negative values so this is commented out
-# i = 1
-# for (i in 1:length(norm2.matrix))
-# {
-#   if (is.na(norm2.matrix[[i]]) | norm2.matrix[[i]] > 0) 
-#   {
-#     i = i+1
-#   } else if(norm2.matrix[[i]] < 0) 
-#   {
-#     norm2.matrix[[i]] <- 0
-#     i = i+1
-#   }
-# }
-
 write.csv(norm2.matrix, file = paste0(study,"_normalized_log_data.csv"))
 
 ### Average duplicates, if the data has technical replicates in the form of 2 blocks / subarray
@@ -620,7 +610,7 @@ if (reps == 2)
   print(repR)
   
   ## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient.
-  png(filename = paste("replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
+  png(filename = paste0(study, "_replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
   par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
       mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
   
@@ -636,12 +626,17 @@ if (reps==2){norm3.matrix<-norm2average.matrix}
 if (reps==1){norm3.matrix<-norm2.matrix}
 
 ###Identifying and excluding samples assayed in duplicate on the arrays 
+
+#Create a transposed version of the data matrix
+trans.norm.matrix <- t(norm3.matrix)
+for_dups.matrix <- tibble::rownames_to_column(as.data.frame(trans.norm.matrix), var = "sample_id_unique")
+
 #Identify duplicate samples and store results in a data frame
 #This includes the "test" sample type only, not the controls!
 dup_samples <- samples.df[(duplicated(samples.df$sample_id) | duplicated(samples.df$sample_id, fromLast=TRUE)),]
 dup_samples <- dup_samples[dup_samples$sample_type=="test",]
 
-dup_samp_data <- merge(dup_samples, trans.norm.matrix, by = "sample_id_unique")
+dup_samp_data <- merge(dup_samples, for_dups.matrix, by = "sample_id_unique")
 
 #Export a table with all the info and data for the duplicates only
 write.csv(dup_samp_data, file = paste0(study, "_duplicate_assayed_samples.csv"))
@@ -650,18 +645,6 @@ write.csv(dup_samp_data, file = paste0(study, "_duplicate_assayed_samples.csv"))
 for(i in 1:nrow(dup_samples)){
   sample_meta.df$exclude[which(sample_meta.df$sample_id == dup_samples$sample_id[i])] <- "yes"
 }
-
-###Averaging duplicates - we decided not to do this so have commented these lines.
-# #Subset into one data frame for each duplicate with only target data
-# dup_samp1 <- dup_samp_data[duplicated(dup_samp_data$sample_id),]
-# dup_samp2 <- dup_samp_data[duplicated(dup_samp_data$sample_id, fromLast=TRUE),]
-# 
-# sub_dup_samp1 <- dup_samp1[,((ncol(dup_samp1)-index_target/reps+1):ncol(dup_samp1))]
-# sub_dup_samp2 <- dup_samp2[,((ncol(dup_samp2)-index_target/reps+1):ncol(dup_samp2))]
-# 
-# #Average the duplicates
-# avg_dup_samp_data <- log2((2^sub_dup_samp1 + 2^sub_dup_samp2)/2)
-# row.names(avg_dup_samp_data) <- dup_samp1$sample_id
 
 ###Exporting processed data and metadata for further analysis (i.e. to give to Nuno)
 
@@ -676,8 +659,6 @@ samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude 
   write.csv(sample_meta_f.df, file = paste0(study, "_sample_metadata.csv"))
 
 #Normalized log data with samples as rows and targets as columns for every target(including controls)
-  #Create a transposed version of the data matrix
-  trans.norm.matrix <- t(norm3.matrix)
 
   #With samples_exclude removed and convert to data frame
   trans.norm2.matrix <- trans.norm.matrix[(!rownames(trans.norm.matrix) %in% samples_exclude),]
