@@ -239,8 +239,19 @@ high_targets <- c(targets_ref, grep("Std 1", row.names(annotation_targets.df)))
 
 #To identify the spots to disinclude, we need to identify the position of the next spot in the print run.
 #Because block 2 is printed before block 1, we can subtract an entire block, minus 1 row (e.g. 180-12=168)
+if (reps==1){
 high_targets_disinclude <- ifelse(high_targets>=index_target/2, high_targets-((index_target/2)-12), high_targets+index_target/2)
 high_targets_disinclude <- high_targets_disinclude[which(high_targets_disinclude<=(index_target-24))] 
+}
+
+if (reps==2){
+  for (i in 1:length(high_targets)){
+  if (high_targets[i] < (index_target - 12)){
+  high_targets_disinclude[i] <- high_targets[i] + 12
+  }
+  }
+}
+remove(i)
 
 ###Convert the spots to be disincluded to NAs in background corrected data
 cor2.matrix <- cor.matrix
