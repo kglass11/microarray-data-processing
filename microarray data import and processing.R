@@ -40,22 +40,22 @@ library(dplyr)
 
 ### Define variables based on your study that will be used later in the script
 # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-workdir <- "I:/Drakeley Group/Protein microarrays/Experiments/100817 Sanger"
+workdir <- "I:/Drakeley Group/Protein microarrays/Experiments/130217 Swaziland/Results"
 
 # define a shorthand name for your study which will be appended in the file name of all exported files
-study <- "Sanger1"
+study <- "Swaziland"
 
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-sample_file <- "Sample list Sanger for merge.csv"
+sample_file <- "Sample list.csv"
 
 #define file name for sample file + additional metadata (character vector)
-meta_file <- "Sanger metadata corrected for merge Feb8.csv"
+meta_file <- "Sample metadata.csv"
 
 #define file name for antigen list file with additional info about targets.
-target_file <- "sanger target metadata.csv"
+target_file <- "not done yet.csv" 
 
 #number of technical replicates for the study (usually 1 or 2)
-reps <- 1
+reps <- 2
 
 #define number of blocks per slide
 index_block <- 32
@@ -221,7 +221,7 @@ back.matrix <- as.matrix(back.df[,7:ncol(back.df)])
 cor.matrix <- backgroundCorrect.matrix(fore.matrix, back.matrix, method = "normexp", offset = 50, normexp.method = "mle")
 
 #Export this for reference
-write.csv(cor.matrix, file=paste0(study,"_background_corrected.matrix.csv"))
+write.csv(cor.matrix, file=paste0(study,"_background_corrected_MFI.csv"))
 
 ###Assign target names to groups of your array targets to identify their 'type'
 targets_blank = c(grep("BLANK", annotation_targets.df$Name))
@@ -239,7 +239,7 @@ high_targets <- c(targets_ref, grep("Std 1", row.names(annotation_targets.df)))
 
 #To identify the spots to disinclude, we need to identify the position of the next spot in the print run.
 #Because block 2 is printed before block 1, we can subtract an entire block, minus 1 row (e.g. 180-12=168)
-high_targets_disinclude <- ifelse(high_targets>=index_target/2, high_targets-((index_target/2)-12), high_targets+index_target)
+high_targets_disinclude <- ifelse(high_targets>=index_target/2, high_targets-((index_target/2)-12), high_targets+index_target/2)
 high_targets_disinclude <- high_targets_disinclude[which(high_targets_disinclude<=(index_target-24))] 
 
 ###Convert the spots to be disincluded to NAs in background corrected data
