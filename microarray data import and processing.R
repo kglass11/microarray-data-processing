@@ -533,13 +533,13 @@ cor3.matrix <- cor2.matrix
 cor3.matrix[,cor_deviant] <- NA
 
 #Add setting exclude = yes for these samples in the sample meta data frame
-### *** Check this!! Just wrote it and had to do something else.
 for(i in 1:nrow(cor_sample_deviant)){
   sample_meta.df$exclude[which(sample_meta.df$sample_id == cor_sample_deviant$sample_id[i])] <- "yes"
 }
 
-#Automatically exclude the buffer targets deviant across all arrays
-#KG - It would be good to test this on data that has deviant buffer targets! 
+#Automatically set to NA the buffer targets deviant across all arrays
+#KG - It would be good to test this on data that has deviant buffer targets, so far they are all 0.
+#KG - Actually this might be pointless as we have already calculated the values for normalization and that is the use of the buffers
 cor3.matrix[deviant_buffer_targets,] <- NA
 
 ### Mean values for each target ordered by position within the arrays (not log-transformed or normalized data)
