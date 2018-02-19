@@ -238,18 +238,33 @@ targets_allcontrol = c(targets_blank, targets_buffer, targets_ref, targets_std)
 high_targets <- c(targets_ref, grep("Std 1", row.names(annotation_targets.df)))
 
 #To identify the spots to disinclude, we need to identify the position of the next spot in the print run.
-#Because block 2 is printed before block 1, we can subtract an entire block, minus 1 row (e.g. 180-12=168)
+#This is different for reps=1 or reps=2.
+
+#subset high_targets to exclude high targets in the bottom of block 1 - these were printed last in both cases - 
+#*** this appears to be working but in reading the function description I thought I would need argument incbounds = FALSE
+#but it's working correctly without that right now and won't run with that argument :/
+high_targets1 <- high_targets[!between(high_targets, (index_target/2 - 12), (index_target/2))]
+
+high_targets_disinclude <- c()
+
+# For singlicate printing, the printer prints from top to bottom, right to left, with a new pickup for block 1 with different 
+#targets than were just printed in block 2. 
+
 if (reps==1){
-high_targets_disinclude <- ifelse(high_targets>=index_target/2, high_targets-((index_target/2)-12), high_targets+index_target/2)
-high_targets_disinclude <- high_targets_disinclude[which(high_targets_disinclude<=(index_target-24))] 
+  # If the high target is in block 2, then exclude high_target - index_target/2 
+  # If the high target is in block 1, then exclude high_target + index_target/2 + 12
+  high_targets_disinclude <- ifelse(high_targets1>=index_target/2, high_targets1-(index_target/2), high_targets1+(index_target/2+12))
 }
 
-# need to remove NA's added to high_targets_disinclude
+# For duplicate printing, the printer prints from top to bottom, right to left, with only one pickup for both duplicate rows
+
 if (reps==2){
-  for (i in 1:length(high_targets)){
-  if (high_targets[i] < (index_target - 12)){
-  high_targets_disinclude[i] <- high_targets[i] + 12
-  }
+  
+  #subset high_targets1 to exclude high targets within (index target - 12) because these were printed last.
+  high_targets2 <- high_targets1[!between(high_targets1,(index_target - 12), index_target)]
+  
+  for (i in 1:length(high_targets2)){
+  high_targets_disinclude[i] <- high_targets2[i] + 12
   }
   high_targets_disinclude <- subset(high_targets_disinclude, !is.na(high_targets_disinclude))
 }
@@ -513,9 +528,15 @@ for (i in 1:index_slide){
 
 graphics.off()
 
-#Automatically exclude the samples with deviant buffer values in a new matrix
+#Automatically set to NA the samples with deviant buffer values in a new matrix
 cor3.matrix <- cor2.matrix
 cor3.matrix[,cor_deviant] <- NA
+
+#Add setting exclude = yes for these samples in the sample meta data frame
+### *** Check this!! Just wrote it and had to do something else.
+for(i in 1:nrow(cor_sample_deviant)){
+  sample_meta.df$exclude[which(sample_meta.df$sample_id == cor_sample_deviant$sample_id[i])] <- "yes"
+}
 
 #Automatically exclude the buffer targets deviant across all arrays
 #KG - It would be good to test this on data that has deviant buffer targets! 
