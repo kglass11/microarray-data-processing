@@ -46,7 +46,7 @@ workdir <- "/Users/Katie/Desktop/R files from work/100817 Sanger/Sanger Data Pro
 study <- "Sanger"
 
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-sample_file <- "Sample list Sanger for merge.csv"
+sample_file <- "Sample list Sanger for merge v2.csv"
 
 #define file name for sample file + additional metadata (character vector)
 meta_file <- "Sanger metadata corrected for merge Feb8.csv"
@@ -173,7 +173,9 @@ write.csv(slides_all.df,file=paste0(study,"_slidesall_combinedGPR.csv"), row.nam
 
 ### Make a spot annotations dataframe
 #Column 42 is the sample id column
-annotation_targets.df <- slides_all.df[which(slides_all.df[,42]==samples_unique[1]),1:4]
+annotation_targets.df <- filter(slides_all.df, slide_no==1, Block == 1 | Block == 2)
+annotation_targets.df <- annotation_targets.df[,1:4]
+
 annotation_targets.df <- cbind(row.names(annotation_targets.df), annotation_targets.df)
 colnames(annotation_targets.df)[1] <- "target_id_numeric"
 annotation_targets.df[6] <- c(paste(rownames(annotation_targets.df), annotation_targets.df$Name, annotation_targets.df$Block, sep = "_"))
