@@ -674,7 +674,7 @@ samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude 
 
 #Sample metadata file, with samples removed if exclude == yes. 
   #Sample metadata and normalized log data are linked by the column "sample_id_unique"
-  sample_meta_f.df <- sample_meta.df[!(sample_meta.df$exclude == "yes"),]
+  sample_meta_f.df <- sample_meta.df[(!(sample_meta.df$exclude == "yes") | is.na(sample_meta.df$exclude)),]
   
   #Export file
   write.csv(sample_meta_f.df, file = paste0(study, "_sample_metadata.csv"))
@@ -693,7 +693,7 @@ samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude 
 
 #Target metadata for every target - nothing has changed about this since the beginning
   #Export file
-  write.csv(target_meta.df, file = paste0(study, "target_metadata.csv"))
+  write.csv(target_meta.df, file = paste0(study, "_target_metadata.csv"))
 
 ###Seropositivity and Reactivity Thresholds###
 
