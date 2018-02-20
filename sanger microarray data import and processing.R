@@ -700,7 +700,7 @@ samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude 
 #interested in.
 #E.g. If control individuals are in our analysis, they will affect mixture model based cut-offs
 #E.g. If control targets are still in our analysis, they will muck up our protein breadth estimates
-#KG - for now this still includes the same protein target at different dilutions
+
 #This means we have to subset the data, so some earlier annotations will from here on be wrong 
 #(e.g. index_sample will no longer equal 96)
 
