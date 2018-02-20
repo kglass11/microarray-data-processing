@@ -172,8 +172,9 @@ remove(i, sample_info_1, sample_info_2, match, row_ite, block_ite, slide_ite)
 write.csv(slides_all.df,file=paste0(study,"_slidesall_combinedGPR.csv"), row.names=T)
 
 ### Make a spot annotations dataframe
-#Column 42 is the sample id column
-annotation_targets.df <- slides_all.df[which(slides_all.df[,42]==samples_unique[1]),1:4]
+annotation_targets.df <- filter(slides_all.df, slide_no==1, Block == 1 | Block == 2)
+annotation_targets.df <- annotation_targets.df[,1:4]
+
 annotation_targets.df <- cbind(row.names(annotation_targets.df), annotation_targets.df)
 colnames(annotation_targets.df)[1] <- "target_id_numeric"
 annotation_targets.df[6] <- c(paste(rownames(annotation_targets.df), annotation_targets.df$Name, annotation_targets.df$Block, sep = "_"))
@@ -672,8 +673,8 @@ samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude 
 
 #Sample metadata file, with samples removed if exclude == yes. 
   #Sample metadata and normalized log data are linked by the column "sample_id_unique"
-  sample_meta_f.df <- sample_meta.df[!(sample_meta.df$exclude == "yes"),]
-  
+  sample_meta_f.df <- sample_meta.df[(!(sample_meta.df$exclude == "yes") | is.na(sample_meta.df$exclude)),]
+
   #Export file
   write.csv(sample_meta_f.df, file = paste0(study, "_sample_metadata.csv"))
 
@@ -691,7 +692,7 @@ samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude 
 
 #Target metadata for every target - nothing has changed about this since the beginning
   #Export file
-  write.csv(target_meta.df, file = paste0(study, "target_metadata.csv"))
+  write.csv(target_meta.df, file = paste0(study, "_target_metadata.csv"))
 
 ###Seropositivity and Reactivity Thresholds###
 

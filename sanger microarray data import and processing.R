@@ -172,7 +172,6 @@ remove(i, sample_info_1, sample_info_2, match, row_ite, block_ite, slide_ite)
 write.csv(slides_all.df,file=paste0(study,"_slidesall_combinedGPR.csv"), row.names=T)
 
 ### Make a spot annotations dataframe
-#Column 42 is the sample id column
 annotation_targets.df <- filter(slides_all.df, slide_no==1, Block == 1 | Block == 2)
 annotation_targets.df <- annotation_targets.df[,1:4]
 
