@@ -236,6 +236,7 @@ targets_allcontrol = c(targets_blank, targets_buffer, targets_ref, targets_std)
 #the spots printed immediately after these can be made to have null MFIs
 #This call will create a vector identifying all ref spots, plus all std spots called "Std 1"
 high_targets <- c(targets_ref, grep("Std 1", row.names(annotation_targets.df)))
+high_targets_disinclude <-c()
 
 #To identify the spots to disinclude, we need to identify the position of the next spot in the print run.
 #This is different for reps=1 or reps=2.
@@ -260,8 +261,9 @@ if (reps==1){
 
 if (reps==2){
   
-  #subset high_targets1 to exclude high targets within (index target - 12) because these were printed last.
+  #subset high_targets1 to exclude high targets within (index target - 12) and (index target/2 -12) because these were printed last.
   high_targets2 <- high_targets1[!between(high_targets1,(index_target - 12), index_target)]
+  high_targets2 <- high_targets2[!between(high_targets2, index_target/2 - 12, index_target/2)]
   
   for (i in 1:length(high_targets2)){
   high_targets_disinclude[i] <- high_targets2[i] + 12
