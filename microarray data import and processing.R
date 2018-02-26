@@ -755,5 +755,5 @@ cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive
 
 ### Export matrix of data for reactive protein targets only (cutoff mean+3SD method)
 # Includes control and test samples but not excluded samples
-reactive.targets.matrix <- norm_sub.matrix[target_reactive==TRUE,]
+reactive.targets.matrix <- norm_sub2.matrix[target_reactive==TRUE,]
 write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
