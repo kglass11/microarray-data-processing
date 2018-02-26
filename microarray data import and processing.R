@@ -40,19 +40,19 @@ library(dplyr)
 
 ### Define variables based on your study that will be used later in the script
 # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-workdir <- "I:/Drakeley Group/Protein microarrays/Experiments/130217 Swaziland/Results"
+workdir <- "/Users/Katie/Desktop/R files from work/PRISM Immune v Nonimmune"
 
 # define a shorthand name for your study which will be appended in the file name of all exported files
-study <- "Swaziland"
+study <- "PRISM1"
 
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-sample_file <- "Sample list.csv"
+sample_file <- "Analysis sample list.csv"
 
 #define file name for sample file + additional metadata (character vector)
-meta_file <- "Sample metadata.csv"
+meta_file <- "Immune v nonimmune metadata.csv"
 
 #define file name for antigen list file with additional info about targets.
-target_file <- "not done yet.csv" 
+target_file <- "Immune v nonimmune target info.csv" 
 
 #number of technical replicates for the study (usually 1 or 2)
 reps <- 2
@@ -566,6 +566,9 @@ remove(cor_target_mean, cor_target_mean_b1, cor_target_mean_b2,cor_target_mean_b
 ### Log transform the data (base 2)
 log.cor.matrix <- log2(cor3.matrix)
 
+#export this matrix to compare normalized vs. not normalized data.
+write.csv(t(log.cor.matrix), file = paste0(study,"_log_data.csv"))
+
 ### Normalization
 
 ###Create sample specific buffer means for normalisation
@@ -584,7 +587,7 @@ for(i in 1:ncol(norm.matrix))
 
 norm2.matrix <- norm.matrix
 
-write.csv(norm2.matrix, file = paste0(study,"_normalized_log_data.csv"))
+write.csv(t(norm2.matrix), file = paste0(study,"_normalized_log_data.csv"))
 
 ### Average duplicates, if the data has technical replicates in the form of 2 blocks / subarray
 
