@@ -772,4 +772,5 @@ plot(density(c(log.cor.matrix), na.rm = TRUE))
 
 subtracted = fore.matrix - back.matrix
 log.subtracted = log2(subtracted)
+hist(c(log.subtracted), breaks = 200)
 plot(density(c(log.subtracted), na.rm = TRUE))
