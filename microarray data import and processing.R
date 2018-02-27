@@ -503,10 +503,10 @@ removed_buffer_targets <- subset(removed_buffer_targets, !is.na(removed_buffer_t
 #All slides, INCLUDING "bad" spots (ALL buffer targets)
 png(filename = paste0(study, "_buffer_targets.tif"), width = 5, height = 4, units = "in", res = 600)
 par(mar = c(5, 3, 2.25, 0.5), oma = c(0, 0, 0, 0), bty = "o", 
-    mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.6, cex.lab = 0.7, xpd=NA, las=2)
+    mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.6, cex.lab = 1, xpd=NA, las=2)
 boxplot(t(cor.matrix[targets_buffer,]),
         cex=0.5,
-        ylab="Corrected MFI")
+        ylab="Corrected MFI (log scale)", log = "y")
 abline(h = cor_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
 
 mtext(paste("Excluded buffer targets:", paste(removed_buffer_targets, collapse = ",")), las = 1)
