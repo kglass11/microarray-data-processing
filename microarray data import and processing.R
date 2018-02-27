@@ -764,3 +764,12 @@ cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive
 # Includes control and test samples but not excluded samples
 reactive.targets.matrix <- norm_sub2.matrix[target_reactive==TRUE,]
 write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
+
+#plots comparing normexp background correction to the background subtraction method
+#plots of log data, normexp method (it looked terrible not log transformed)
+hist(c(log.cor.matrix), breaks = 200)
+plot(density(c(log.cor.matrix), na.rm = TRUE))
+
+subtracted = fore.matrix - back.matrix
+log.subtracted = log2(subtracted)
+plot(density(c(log.subtracted), na.rm = TRUE))
