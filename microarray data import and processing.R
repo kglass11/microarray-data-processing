@@ -40,19 +40,19 @@ library(dplyr)
 
 ### Define variables based on your study that will be used later in the script
 # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-workdir <- "/Users/Katie/Desktop/R files from work/PRISM Immune v Nonimmune"
+workdir <- "/Users/Katie/Desktop/R files from work/Swaziland Results"
 
 # define a shorthand name for your study which will be appended in the file name of all exported files
-study <- "PRISM1"
+study <- "Swaziland"
 
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-sample_file <- "Analysis sample list.csv"
+sample_file <- "Sample list.csv"
 
 #define file name for sample file + additional metadata (character vector)
-meta_file <- "Immune v nonimmune metadata.csv"
+meta_file <- "Sample metadata.csv"
 
 #define file name for antigen list file with additional info about targets.
-target_file <- "Immune v nonimmune target info.csv" 
+target_file <- "not done yet.csv" 
 
 #number of technical replicates for the study (usually 1 or 2)
 reps <- 2
@@ -452,19 +452,23 @@ cor_buffer_cov_all_normal <- sd(cor.matrix[targets_buffer, cor_normal])/mean(cor
 
 #Plots by slide/pad/sample INCLUDING "bad" spots (all buffer data)
 png(filename = paste0(study,"_buffer_mfi_QCplots.tif"), width = 5.5, height = 10, units = "in", res = 600)
-par(mfrow=c(3,1), mar = c(2, 3, 2.25, 0.5), oma = c(11.5, 0, 1, 0), bty = "o", 
-    mgp = c(2, 0.5, 0), cex.main = 1.5, cex.axis = 0.6, cex.lab = 0.9, xpd=NA, las=1)
-boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$slide_no, outcex=0.5,
-        ylab="Corrected MFI", xlab="Slide", add=FALSE)
+par(mfrow=c(3,1), mar = c(2, 4, 2.25, 0.5), oma = c(11.5, 0, 1, 0), bty = "o", 
+    mgp = c(2, 0.5, 0), cex.main = 1.5, cex.axis = 1, cex.lab = 1.25, xpd=NA, las=1)
+
+boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$slide_no, outcex=0.5, xlab="Slide", add=FALSE, log = "y")
 abline(h = cor_all_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
-title(main = "Corrected MFI (buffer only) by SLIDE/SUBARRAY/SAMPLE\n", adj=0)
-boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$block_rep_1, outcex=0.5,
-        ylab="Corrected MFI", xlab="Subarrays (1/2, 3/4, etc.)", add=FALSE, las=1)
+title(main = "Corrected Buffer MFI by SLIDE/SUBARRAY/SAMPLE\n", adj=0)
+title(ylab="Corrected MFI (log scale)", line=2.7)
+
+boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$block_rep_1, outcex=0.5, xlab="Subarrays (1/2, 3/4, etc.)", add=FALSE, las=1, log = "y")
 abline(h = cor_all_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
-boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$sample_id_unique, outcex=0.5,
-        ylab="Corrected MFI", xlab="Sample", add=FALSE, las=2, cex.axis = 0.4, yaxt="n")
-axis(2, cex.axis=0.6)
+title(ylab="Corrected MFI (log scale)", line=2.7)
+
+boxplot(t(cor.matrix[targets_buffer,]) ~ samples.df$sample_id_unique, outcex=0.5, xlab="Sample", add=FALSE, las=2, cex.axis = 0.4, yaxt="n", log = "y")
+axis(2, cex.axis=1)
 abline(h = cor_all_cutoff, col = "red", lty = 2, lwd = 0.7, xpd=FALSE)
+abline(h = cor_buffer_all_mean, col = "red", lwd = 0.7, xpd=FALSE)
+title(ylab="Corrected MFI (log scale)", line=2.7)
 
 mtext(c(paste("INCLUDING Bad Buffer Spots / EXCLUDING Bad Buffer Spots:")), side=1, cex=0.8, line=2, outer=TRUE, xpd=NA, adj=0)
 mtext(c(paste("Mean overall corrected buffer MFI:", round(cor_buffer_all_mean, digits=3), "/", round(cor_buffer_mean, digits=3))), side=1, cex=0.8, line=3.5, outer=TRUE, xpd=NA, adj=0)
