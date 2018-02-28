@@ -669,7 +669,7 @@ mtext(paste("Geometric CV, NOT Normalized:", round(std3cv1, digits=2), "%"), sid
 
 graphics.off()
 
-#Calculate Geometric CV for all standards
+#Calculate Geometric CV for all standards - this isn't done at all yet
 #this needs to be fixed so that replicates are averaged!
 stds_norm1 <- 2^stds_norm
 CV_stds_norm <- apply(stds_norm1, 1, sd, na.rm = TRUE)/apply(stds_norm1, 1, mean, na.rm = TRUE)
