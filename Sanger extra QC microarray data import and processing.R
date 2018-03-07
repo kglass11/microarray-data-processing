@@ -857,3 +857,27 @@ cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive
 reactive.targets.matrix <- norm_sub2.matrix[target_reactive==TRUE,]
 write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
 
+### Plot of geometric mean vs target, ranked from highest to lowest
+
+# Only using data from reactive targets and reactive test samples
+reactive.matrix <- reactive.targets.matrix[,person_exposed]
+
+#negative control data for reactive targets
+neg_samples <-c(grep("Neg", colnames(norm3.matrix)))
+neg_data <- norm3.matrix[-rmsamp_all, neg_samples]
+neg_data <- neg_data[target_reactive==TRUE,]
+neg_mean <- rowMeans(neg_data)
+
+#Calculate geometric mean and geometric SD for each antigen
+#I have not done anything with the seropositivity / seronegativity here
+mean_targets <- rowMeans(reactive.matrix)
+sd_targets <- apply(reactive.matrix, 1, sd)
+
+target_data <- data.frame(mean_targets, sd_targets, neg_mean)
+target_data <- target_data[order(-mean_targets),]
+
+
+
+barplot(mean_targets)
+
+
