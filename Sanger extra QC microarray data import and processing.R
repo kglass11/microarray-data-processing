@@ -595,21 +595,18 @@ cor2_buffer_sample_sd <- apply(cor3.matrix[targets_buffer,], 2, sd, na.rm = TRUE
 log_buffer_sample_mean <- log2(cor2_buffer_sample_mean)
 
 #subtract buffer mean from each sample to generate new intensity matrices (log transformed data)
-#remove highly variable samples from analyses
 norm.matrix <- log.cor.matrix
 for(i in 1:ncol(norm.matrix))
 {
   norm.matrix[,i] <- norm.matrix[,i]-log_buffer_sample_mean[i]
 }
 
-norm2.matrix <- norm.matrix
+write.csv(t(norm.matrix), file = paste0(study,"_normalized_log_data.csv"))
 
-write.csv(t(norm2.matrix), file = paste0(study,"_normalized_log_data.csv"))
-
-### Plot standard values for each sample and assess variation 
+### Plot standard values for each sample and assess variation - with negative values
 
 #isolate data for standards, normalized and not normalized
-stds_norm <- norm2.matrix[targets_std,]
+stds_norm <- norm.matrix[targets_std,]
 stds_pre <- log.cor.matrix[targets_std,]
 
 #Plot Std 3 in Levey Jennings Style plot
@@ -685,7 +682,82 @@ plot(c(stds_norm), pch = 20, col = "darkblue")
 
 graphics.off()
 
-### Average duplicates, if the data has technical replicates in the form of 2 blocks / subarray
+# Set negative normalized log values to zero. This will be used for some analyses. 
+# For other analyses, including sending data to Nuno, the data will be input without setting values to 0. 
+# From now on, the norm.matrix has negative values, and norm2.matrix does not. 
+norm2.matrix <- norm.matrix
+i = 1
+for (i in 1:length(norm2.matrix))
+{
+  if (is.na(norm2.matrix[[i]]) | norm2.matrix[[i]] > 0) 
+  {
+    i = i+1
+  } else if(norm2.matrix[[i]] < 0) 
+  {
+    norm2.matrix[[i]] <- 0
+    i = i+1
+  }
+}
+
+write.csv(t(norm2.matrix), file = paste0(study,"_normalized_log_data_0s.csv"))
+
+
+### Average duplicates - INCLUDING negative values, if the data has technical replicates in the form of 2 blocks / subarray
+
+if (reps == 2)
+{
+  n = nrow(norm.matrix)/2
+  rep1 <- norm.matrix[1:n,]
+  rep2 <- norm.matrix[(n+1):(n*2),]
+  
+  normaverage.matrix <- matrix(nrow = n, ncol = ncol(norm.matrix))
+  colnames(normaverage.matrix) = colnames(norm.matrix)
+  rownames(normaverage.matrix) = rownames(norm.matrix[(1:n),])
+  
+  normaverage.matrix <- log2((2^rep1 + 2^rep2)/2)
+  
+}
+
+### Check for deviant technical replicates, automatically exclude (set to NA)
+# Use Patrick’s formula for ELISA to compare replicates within one array
+# if rep1 or rep2 is more than 1.5 times rep2 or rep1, respectively, exclude that pair
+# Also, can redo this using the subsetted matrices (rep1 and rep2) and it should be shorter
+if (reps == 2)
+{ 
+  for (k in 1:ncol(norm.matrix))
+  {
+    for(j in 1:n) 
+    {
+      if (is.na(norm.matrix[j,k])|is.na(norm.matrix[(j+n),k]))
+      { 
+        j+1
+      } else if (norm.matrix[j,k] > (log2(1.5) + norm.matrix[(j+n),k]) | (norm.matrix[(j+n),k] > (log2(1.5) + norm.matrix[j,k])) == TRUE) 
+      {
+        normaverage.matrix[j,k] <- NA
+      }
+    }
+  }
+  remove(j,k)
+  
+  write.csv(normaverage.matrix, paste0(study, "_average_norm_log_data.csv")) 
+  
+  ## Calculate correlation coefficient (default is pearson). Deviants are still included.
+  repR <- cor(c(rep1), c(rep2), use = "complete.obs")
+  print(repR)
+  
+  ## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient.
+  png(filename = paste0(study, "_replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
+  par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
+      mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
+  
+  plot(rep1, rep2, col="red", cex = 0.1)
+  mtext(c(paste("Pearson correlation coefficient:", round(repR, digits=4))), side=3, adj=0)
+  
+  graphics.off()
+  
+  }
+
+### Average duplicates - Negative values set to 0s, if the data has technical replicates in the form of 2 blocks / subarray
 
 if (reps == 2)
 {
@@ -722,14 +794,14 @@ if (reps == 2)
   }
   remove(j,k)
   
-  write.csv(norm2average.matrix, paste0(study, "_average_norm_log_data.csv")) 
+  write.csv(norm2average.matrix, paste0(study, "_average_norm_log_data_0s.csv")) 
   
   ## Calculate correlation coefficient (default is pearson). Deviants are still included.
   repR <- cor(c(rep1), c(rep2), use = "complete.obs")
   print(repR)
   
   ## Plot replicate 1 v. replicate 2 for each protein or each person and calculate correlation coefficient.
-  png(filename = paste0(study, "_replicatescorrelation.tif"), width = 5, height = 4, units = "in", res = 600)
+  png(filename = paste0(study, "_replicatescorrelation_0s.tif"), width = 5, height = 4, units = "in", res = 600)
   par(mar = c(4, 3, 1, 0.5), oma = c(1, 1, 1, 1), bty = "o", 
       mgp = c(2, 0.5, 0), cex.main = 1, cex.axis = 0.5, cex.lab = 0.7, xpd=NA, las=1)
   
@@ -738,15 +810,20 @@ if (reps == 2)
   
   graphics.off()
   
-  }
+}
 
 #create matrix that is the same name whether or not we needed to average duplicates
-if (reps==2){norm3.matrix<-norm2average.matrix}
-if (reps==1){norm3.matrix<-norm2.matrix}
+#Including negative values
+if (reps==2){norm3.matrix<-normaverage.matrix}
+if (reps==1){norm3.matrix<-norm.matrix}
+
+#With negative values set to 0
+if (reps==2){norm4.matrix<-norm2average.matrix}
+if (reps==1){norm4.matrix<-norm2.matrix}
 
 ###Identifying and excluding samples assayed in duplicate on the arrays 
 
-#Create a transposed version of the data matrix
+#Create a transposed version of the data matrix (includes negative values)
 trans.norm.matrix <- t(norm3.matrix)
 for_dups.matrix <- tibble::rownames_to_column(as.data.frame(trans.norm.matrix), var = "sample_id_unique")
 
@@ -766,6 +843,7 @@ for(i in 1:nrow(dup_samples)){
 }
 
 ###Exporting processed data and metadata for further analysis (i.e. to give to Nuno)
+#This data includes negative normalized values.
 
 #Character vector of samples to be removed
 samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude =="yes")]
@@ -792,9 +870,15 @@ samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude 
 #Target metadata for every target - nothing has changed about this since the beginning
   #Export file
   write.csv(target_meta.df, file = paste0(study, "_target_metadata.csv"))
+  
+  #####################################
+  ############DATA ANALYSIS############
+  #####################################
 
 ###Seropositivity and Reactivity Thresholds###
 
+#For this section, using normalized data with negative values set to 0 (norm4.matrix)
+  
 #Before doing any further analysis, we have to get rid of samples or targets that we are no longer 
 #interested in.
 #E.g. If control individuals are in our analysis, they will affect mixture model based cut-offs
@@ -812,11 +896,14 @@ rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, 
 
 #Remove samples that should be excluded
 samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude =="yes")]
-norm_sub.matrix <- norm3.matrix[,(!colnames(norm3.matrix) %in% samples_exclude)]
+norm_sub.matrix <- norm4.matrix[,(!colnames(norm4.matrix) %in% samples_exclude)]
 
 #Remove control protein targets and control samples for seropositiviy calculations
 norm_sub2.matrix <- norm_sub.matrix[-rmsamp_all, samples_test]
 samples_sub.df <- sample_meta_f.df[samples_test,]
+
+#Replace current target names with original target names now that control targets are removed
+merge(annotation_targets.df, as.data.frame(norm_sub2.matrix))
 
 ###Form a seropositivity matrix based on reactivity over a cutoff derived from sample buffer background.
 #The cut-off is 1. As the data is log2 normalised, a value of 1 equates to eaxctly double the MFI of the samples buffer mean MFI.
