@@ -901,9 +901,17 @@ norm_sub.matrix <- norm4.matrix[,(!colnames(norm4.matrix) %in% samples_exclude)]
 norm_sub2.matrix <- norm_sub.matrix[-rmsamp_all, samples_test]
 samples_sub.df <- sample_meta_f.df[samples_test,]
 
+#Replace current target names with original target names now that control targets are removed
+#might be useful to merge this instead with the target dataframe?
+#Need to change how this is sorting in the merge!! Then it should all work fine.
+norm_sub3.df <- merge(norm_sub2.matrix, annotation_targets.df, by ="row.names", sort = FALSE)
+norm_sub3.df <- tibble::column_to_rownames(norm_sub3.df, var="Row.names")
+row.names(norm_sub3.df) <- norm_sub3.df$Name
+norm_sub4.df <- norm_sub3.df[,1:ncol(norm_sub2.matrix)]
+
 ###Form a seropositivity matrix based on reactivity over a cutoff derived from sample buffer background.
 #The cut-off is 1. As the data is log2 normalised, a value of 1 equates to eaxctly double the MFI of the samples buffer mean MFI.
-seropos_buffer_sub.matrix <- as.matrix(norm_sub2.matrix > 1)+0
+seropos_buffer_sub.matrix <- as.matrix(norm_sub4.df > 1)+0
 
 #An alternative would be to raise this threshold to mean + 3SD. 
 #These values are coming up a lot higher than 1. Even if we do +2SD it is still higher than 1.
@@ -937,16 +945,7 @@ cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive
 
 ### Export matrix of data for reactive protein targets only (cutoff mean+3SD method)
 
-#Replace current target names with original target names now that control targets are removed
-#might be useful to merge this instead with the target dataframe?
-#Need to change how this is sorting in the merge!! Then it should all work fine.
-norm_sub3.df <- merge(norm_sub2.matrix, annotation_targets.df, by ="row.names", sort = FALSE)
-norm_sub3.df <- tibble::column_to_rownames(norm_sub3.df, var="Row.names")
-row.names(norm_sub3.df) <- norm_sub3.df$Name
-norm_sub4.df <- norm_sub3.df[,1:ncol(norm_sub2.matrix)]
-
 # Includes control and test samples but not excluded samples
-# Can't use norm_sub4 with target_reactive because the targets aren't in the same order anymore.
 reactive.targets.matrix <- as.matrix(norm_sub4.df[target_reactive==TRUE,])
 write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
 
@@ -969,7 +968,38 @@ sd_targets <- apply(reactive.matrix, 1, sd)
 target_data <- data.frame(mean_targets, sd_targets, neg_mean)
 target_data <- target_data[order(-mean_targets),]
 
+#Still need to make the plot in R, for now was exporting the data to excel and plotting there
 
-barplot(mean_targets)
+### Plot of number of seropositive individuals for each sanger antigen 
+
+reactive_seroposSD.matrix <- seroposSD.matrix[target_reactive==TRUE, person_exposed]
+rownames(reactive_seroposSD.matrix) <- rownames(reactive.targets.matrix)
+sanger_antigens <- c(grep("(s)", rownames(reactive_seroposSD.matrix), fixed = TRUE))
+sanger_seroposSD.matrix <- reactive_seroposSD.matrix[sanger_antigens,]
+
+sanger_seroposSD.df <- tibble::rownames_to_column(sanger_seroposSD.matrix)
+
+
+#Sum of people positive for each reactive sanger antigen, sorted highest to lowest
+sanger_sums <- sort(rowSums(sanger_seroposSD.matrix), decreasing = TRUE)
+#check plot in R
+barplot(sanger_sums)
+
+#This plot still doesn't look good, I just didn't finish and make it quickly in excel to move on
+png(filename = paste0(study,"_targets_seropos_sums.tif"), width = 5.5, height = 4, units = "in", res = 600)
+par(mar = c(2, 4, 2.25, 0.5), oma = c(11.5, 0, 1, 0), bty = "o", 
+    mgp = c(2, 0.5, 0), cex.main = 1.5, cex.axis = 1, cex.lab = 1.25, xpd=NA, las=1)
+
+barplot(sanger_sums, xlab="Target", add=FALSE, col = "darkblue", ylim=c(0,max(sanger_sums)*1.25))
+title(main = "Number of People Seropositive for each Reactive Antigen", adj=0)
+title(ylab="Number of People", line=2.7)
+
+graphics.off()
+
+qplot(t(sanger_seroposSD.matrix), geom="histogram")
+
+
+
+
 
 
