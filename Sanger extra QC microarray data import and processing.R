@@ -170,6 +170,12 @@ remove(i, sample_info_1, sample_info_2, match, row_ite, block_ite, slide_ite)
 ###Write slides_all.df to a file to keep as a csv in your directory
 write.csv(slides_all.df,file=paste0(study,"_slidesall_combinedGPR.csv"), row.names=T)
 
+###Save slides_all.df as an R object to be loaded later so that you don't have to redo that part
+save(slides_all.df, file=paste0(study,"_slides_all.df"))
+     
+#If you are going to load slides_all.df to save time, run in the command line:
+#load(paste0(study,"_slides_all.df"))
+
 ### Make a spot annotations dataframe
 annotation_targets.df <- filter(slides_all.df, slide_no==1, Block == 1 | Block == 2)
 annotation_targets.df <- annotation_targets.df[,1:4]

@@ -171,6 +171,11 @@ remove(i, sample_info_1, sample_info_2, match, row_ite, block_ite, slide_ite)
 ###Write slides_all.df to a file to keep as a csv in your directory
 write.csv(slides_all.df,file=paste0(study,"_slidesall_combinedGPR.csv"), row.names=T)
 
+###Save slides_all.df as an R object to be loaded later so that you don't have to redo that part
+save(slides_all.df, file=paste0(study,"_slides_all.df"))
+#If you are going to load slides_all.df to save time, run in the command line:
+#load(paste0(study,"_slides_all.df"))
+
 ### Make a spot annotations dataframe
 annotation_targets.df <- filter(slides_all.df, slide_no==1, Block == 1 | Block == 2)
 annotation_targets.df <- annotation_targets.df[,1:4]
@@ -765,12 +770,3 @@ cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive
 reactive.targets.matrix <- norm_sub2.matrix[target_reactive==TRUE,]
 write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
 
-#plots comparing normexp background correction to the background subtraction method
-#plots of log data, normexp method (it looked terrible not log transformed)
-hist(c(log.cor.matrix), breaks = 200)
-plot(density(c(log.cor.matrix), na.rm = TRUE))
-
-subtracted = fore.matrix - back.matrix
-log.subtracted = log2(subtracted)
-hist(c(log.subtracted), breaks = 200)
-plot(density(c(log.subtracted), na.rm = TRUE))
