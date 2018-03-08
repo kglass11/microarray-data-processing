@@ -827,6 +827,23 @@ if (reps==1){norm3.matrix<-norm.matrix}
 if (reps==2){norm4.matrix<-norm2average.matrix}
 if (reps==1){norm4.matrix<-norm2.matrix}
 
+### Subtracting Protein Tag Signal from tagged antigens - only for norm4.matrix (no negative values)
+
+#Sanger antigens are tagged with CD4
+sanger_antigens <- c(grep("(s)", rownames(norm4.matrix), fixed = TRUE))
+CD4 <- c(grep("CD4", rownames(norm4.matrix), fixed = TRUE))
+
+norm4_sanger.df <- as.data.frame(norm4.matrix[sanger_antigens,])
+tag_norm4_sanger.df <- data.frame()
+for (i in 1:length(sanger_antigens)){
+  for(j in 1:ncol(norm4.matrix)){
+  tag_norm4_sanger.df[[i,j]] <- 2^norm4_sanger.df[[i,j]] - 2^norm4.matrix[[CD4,j]]
+  ifelse(tag_norm4_sanger.df[i,j] > 0, tag_norm4_sanger.df[[i,j]] <- log2(tag_norm4_sanger.df[[i,j]]), 
+         tag_norm4_sanger.df[[i,j]] <- 0)
+  }
+}
+remove(i,j)
+
 ###Identifying and excluding samples assayed in duplicate on the arrays 
 
 #Create a transposed version of the data matrix (includes negative values)
@@ -980,8 +997,8 @@ target_data <- target_data[order(-mean_targets),]
 
 reactive_seroposSD.matrix <- seroposSD.matrix[target_reactive==TRUE, person_exposed]
 rownames(reactive_seroposSD.matrix) <- rownames(reactive.targets.matrix)
-sanger_antigens <- c(grep("(s)", rownames(reactive_seroposSD.matrix), fixed = TRUE))
-sanger_seroposSD.matrix <- reactive_seroposSD.matrix[sanger_antigens,]
+sub_sanger_antigens <- c(grep("(s)", rownames(reactive_seroposSD.matrix), fixed = TRUE))
+sanger_seroposSD.matrix <- reactive_seroposSD.matrix[sub_sanger_antigens,]
 
 sanger_seroposSD.df <- tibble::rownames_to_column(sanger_seroposSD.matrix)
 
