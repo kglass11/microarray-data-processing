@@ -833,13 +833,13 @@ if (reps==1){norm4.matrix<-norm2.matrix}
 sanger_antigens <- c(grep("(s)", rownames(norm4.matrix), fixed = TRUE))
 CD4 <- c(grep("CD4", rownames(norm4.matrix), fixed = TRUE))
 
+#This is not quite working
 norm4_sanger.df <- as.data.frame(norm4.matrix[sanger_antigens,])
-tag_norm4_sanger.df <- data.frame()
 for (i in 1:length(sanger_antigens)){
   for(j in 1:ncol(norm4.matrix)){
-  tag_norm4_sanger.df[[i,j]] <- 2^norm4_sanger.df[[i,j]] - 2^norm4.matrix[[CD4,j]]
-  ifelse(tag_norm4_sanger.df[i,j] > 0, tag_norm4_sanger.df[[i,j]] <- log2(tag_norm4_sanger.df[[i,j]]), 
-         tag_norm4_sanger.df[[i,j]] <- 0)
+  norm4_sanger.df[[i,j]] <- 2^norm4_sanger.df[[i,j]] - 2^norm4.matrix[[CD4,j]]
+  ifelse(norm4_sanger.df[i,j] > 0, norm4_sanger.df[[i,j]] <- log2(norm4_sanger.df[[i,j]]), 
+        norm4_sanger.df[[i,j]] <- 0)
   }
 }
 remove(i,j)
