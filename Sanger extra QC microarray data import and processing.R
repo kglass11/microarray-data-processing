@@ -895,15 +895,11 @@ samples_control <- sample_meta_f.df$sample_type=="control"
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
 #Remove samples that should be excluded
-samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude =="yes")]
 norm_sub.matrix <- norm4.matrix[,(!colnames(norm4.matrix) %in% samples_exclude)]
 
-#Remove control protein targets and control samples for seropositiviy calculations
+#Remove control protein targets and control samples for seropositivity calculations
 norm_sub2.matrix <- norm_sub.matrix[-rmsamp_all, samples_test]
 samples_sub.df <- sample_meta_f.df[samples_test,]
-
-#Replace current target names with original target names now that control targets are removed
-merge(annotation_targets.df, as.data.frame(norm_sub2.matrix))
 
 ###Form a seropositivity matrix based on reactivity over a cutoff derived from sample buffer background.
 #The cut-off is 1. As the data is log2 normalised, a value of 1 equates to eaxctly double the MFI of the samples buffer mean MFI.
@@ -915,7 +911,7 @@ sample_cutoff <- cor2_buffer_sample_mean + 3*cor2_buffer_sample_sd
 log_sample_cutoff <- log2(sample_cutoff)
 norm_sample_cutoff <- log_sample_cutoff - log_buffer_sample_mean
 
-seroposSD_temp.matrix <- t(apply(norm3.matrix, 1, function(x) (x > norm_sample_cutoff)+0))
+seroposSD_temp.matrix <- t(apply(norm4.matrix, 1, function(x) (x > norm_sample_cutoff)+0))
 seroposSD_temp.matrix <- seroposSD_temp.matrix[,(!colnames(seroposSD_temp.matrix) %in% samples_exclude)]
 seroposSD.matrix <- seroposSD_temp.matrix[-rmsamp_all, samples_test]
 
@@ -940,8 +936,18 @@ person_exposed <- person_breadth > (nrow(seroposSD.matrix)/100)*5
 cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive to at least 5% of proteins")
 
 ### Export matrix of data for reactive protein targets only (cutoff mean+3SD method)
+
+#Replace current target names with original target names now that control targets are removed
+#might be useful to merge this instead with the target dataframe?
+#Need to change how this is sorting in the merge!! Then it should all work fine.
+norm_sub3.df <- merge(norm_sub2.matrix, annotation_targets.df, by ="row.names", sort = FALSE)
+norm_sub3.df <- tibble::column_to_rownames(norm_sub3.df, var="Row.names")
+row.names(norm_sub3.df) <- norm_sub3.df$Name
+norm_sub4.df <- norm_sub3.df[,1:ncol(norm_sub2.matrix)]
+
 # Includes control and test samples but not excluded samples
-reactive.targets.matrix <- norm_sub2.matrix[target_reactive==TRUE,]
+# Can't use norm_sub4 with target_reactive because the targets aren't in the same order anymore.
+reactive.targets.matrix <- as.matrix(norm_sub4.df[target_reactive==TRUE,])
 write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
 
 ### Plot of geometric mean vs target, ranked from highest to lowest
@@ -950,8 +956,8 @@ write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv"))
 reactive.matrix <- reactive.targets.matrix[,person_exposed]
 
 #negative control data for reactive targets
-neg_samples <-c(grep("Neg", colnames(norm3.matrix)))
-neg_data <- norm3.matrix[-rmsamp_all, neg_samples]
+neg_samples <-c(grep("Neg", colnames(norm4.matrix)))
+neg_data <- norm4.matrix[-rmsamp_all, neg_samples]
 neg_data <- neg_data[target_reactive==TRUE,]
 neg_mean <- rowMeans(neg_data)
 
@@ -962,7 +968,6 @@ sd_targets <- apply(reactive.matrix, 1, sd)
 
 target_data <- data.frame(mean_targets, sd_targets, neg_mean)
 target_data <- target_data[order(-mean_targets),]
-
 
 
 barplot(mean_targets)
