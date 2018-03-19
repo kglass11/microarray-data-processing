@@ -52,7 +52,7 @@ sample_file <- "Sample list Sanger for merge v2.csv"
 meta_file <- "Sanger metadata corrected for merge Feb8.csv"
 
 #define file name for antigen list file with additional info about targets.
-target_file <- "sanger target metadata.csv" 
+target_file <- "sanger_target_metadata_KT_v2.csv" 
 
 #number of technical replicates for the study (usually 1 or 2)
 reps <- 1
@@ -827,23 +827,6 @@ if (reps==1){norm3.matrix<-norm.matrix}
 if (reps==2){norm4.matrix<-norm2average.matrix}
 if (reps==1){norm4.matrix<-norm2.matrix}
 
-### Subtracting Protein Tag Signal from tagged antigens - only for norm4.matrix (no negative values)
-
-#Sanger antigens are tagged with CD4
-sanger_antigens <- c(grep("(s)", rownames(norm4.matrix), fixed = TRUE))
-CD4 <- c(grep("CD4", rownames(norm4.matrix), fixed = TRUE))
-
-#This is not quite working
-norm4_sanger.df <- as.data.frame(norm4.matrix[sanger_antigens,])
-for (i in 1:length(sanger_antigens)){
-  for(j in 1:ncol(norm4.matrix)){
-  norm4_sanger.df[[i,j]] <- 2^norm4_sanger.df[[i,j]] - 2^norm4.matrix[[CD4,j]]
-  ifelse(norm4_sanger.df[i,j] > 0, norm4_sanger.df[[i,j]] <- log2(norm4_sanger.df[[i,j]]), 
-        norm4_sanger.df[[i,j]] <- 0)
-  }
-}
-remove(i,j)
-
 ###Identifying and excluding samples assayed in duplicate on the arrays 
 
 #Create a transposed version of the data matrix (includes negative values)
@@ -893,136 +876,6 @@ samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude 
 #Target metadata for every target - nothing has changed about this since the beginning
   #Export file
   write.csv(target_meta.df, file = paste0(study, "_target_metadata.csv"))
-  
-  #####################################
-  ############DATA ANALYSIS############
-  #####################################
 
-###Seropositivity and Reactivity Thresholds###
-
-#For this section, using normalized data with negative values set to 0 (norm4.matrix)
-  
-#Before doing any further analysis, we have to get rid of samples or targets that we are no longer 
-#interested in.
-#E.g. If control individuals are in our analysis, they will affect mixture model based cut-offs
-#E.g. If control targets are still in our analysis, they will muck up our protein breadth estimates
-#KG - for now this still includes the same protein target at different dilutions
-#This means we have to subset the data, so some earlier annotations will from here on be wrong 
-#(e.g. index_sample will no longer equal 96)
-
-#Assign sample type names, to identify control and test samples (logical)
-samples_test <- sample_meta_f.df$sample_type=="test"
-samples_control <- sample_meta_f.df$sample_type=="control"
-
-#Define a list of targets to be removed from further analysis (controls)
-rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
-
-#Remove samples that should be excluded
-norm_sub.matrix <- norm4.matrix[,(!colnames(norm4.matrix) %in% samples_exclude)]
-
-#Remove control protein targets and control samples for seropositivity calculations
-norm_sub2.matrix <- norm_sub.matrix[-rmsamp_all, samples_test]
-samples_sub.df <- sample_meta_f.df[samples_test,]
-
-#Replace current target names with original target names now that control targets are removed
-#might be useful to merge this instead with the target dataframe?
-#Need to change how this is sorting in the merge!! Then it should all work fine.
-norm_sub3.df <- merge(norm_sub2.matrix, annotation_targets.df, by ="row.names", sort = FALSE)
-norm_sub3.df <- tibble::column_to_rownames(norm_sub3.df, var="Row.names")
-row.names(norm_sub3.df) <- norm_sub3.df$Name
-norm_sub4.df <- norm_sub3.df[,1:ncol(norm_sub2.matrix)]
-
-###Form a seropositivity matrix based on reactivity over a cutoff derived from sample buffer background.
-#The cut-off is 1. As the data is log2 normalised, a value of 1 equates to eaxctly double the MFI of the samples buffer mean MFI.
-seropos_buffer_sub.matrix <- as.matrix(norm_sub4.df > 1)+0
-
-#An alternative would be to raise this threshold to mean + 3SD. 
-#These values are coming up a lot higher than 1. Even if we do +2SD it is still higher than 1.
-sample_cutoff <- cor2_buffer_sample_mean + 3*cor2_buffer_sample_sd
-log_sample_cutoff <- log2(sample_cutoff)
-norm_sample_cutoff <- log_sample_cutoff - log_buffer_sample_mean
-
-seroposSD_temp.matrix <- t(apply(norm4.matrix, 1, function(x) (x > norm_sample_cutoff)+0))
-seroposSD_temp.matrix <- seroposSD_temp.matrix[,(!colnames(seroposSD_temp.matrix) %in% samples_exclude)]
-seroposSD.matrix <- seroposSD_temp.matrix[-rmsamp_all, samples_test]
-
-###Create a threshold for overall target and person reactivity
-#e.g. To be included in heatmaps and other analyses, perhaps targets should be reacted to by at least 5% of people?
-#Similarly, perhaps unreactive individuals should be disincluded? Either way - this is informative.
-target_breadth1 <- rowSums(seropos_buffer_sub.matrix, na.rm=TRUE)
-target_reactive1 <- target_breadth1 > (ncol(seropos_buffer_sub.matrix)/100)*5
-cat(sum(target_reactive1), "out of", nrow(seropos_buffer_sub.matrix), "protein targets are reactive in at least 5% of people")
-
-person_breadth1 <- colSums(seropos_buffer_sub.matrix, na.rm=TRUE)
-person_exposed1 <- person_breadth1 > (nrow(seropos_buffer_sub.matrix)/100)*5
-cat(sum(person_exposed1), "out of", ncol(seropos_buffer_sub.matrix), "samples are reactive to at least 5% of proteins")
-
-###Repeat threshold for overall target and person reactivity with mean + 3SD cutoffs.
-target_breadth <- rowSums(seroposSD.matrix, na.rm=TRUE)
-target_reactive <- target_breadth > (ncol(seroposSD.matrix)/100)*5
-cat(sum(target_reactive), "out of", nrow(seroposSD.matrix), "protein targets are reactive in at least 5% of people")
-
-person_breadth <- colSums(seroposSD.matrix, na.rm=TRUE)
-person_exposed <- person_breadth > (nrow(seroposSD.matrix)/100)*5
-cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive to at least 5% of proteins")
-
-### Export matrix of data for reactive protein targets only (cutoff mean+3SD method)
-
-# Includes control and test samples but not excluded samples
-reactive.targets.matrix <- as.matrix(norm_sub4.df[target_reactive==TRUE,])
-write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
-
-### Plot of geometric mean vs target, ranked from highest to lowest
-
-# Only using data from reactive targets and reactive test samples
-reactive.matrix <- reactive.targets.matrix[,person_exposed]
-
-#negative control data for reactive targets
-neg_samples <-c(grep("Neg", colnames(norm4.matrix)))
-neg_data <- norm4.matrix[-rmsamp_all, neg_samples]
-neg_data <- neg_data[target_reactive==TRUE,]
-neg_mean <- rowMeans(neg_data)
-
-#Calculate geometric mean and geometric SD for each antigen
-#I have not done anything with the seropositivity / seronegativity here
-mean_targets <- rowMeans(reactive.matrix)
-sd_targets <- apply(reactive.matrix, 1, sd)
-
-target_data <- data.frame(mean_targets, sd_targets, neg_mean)
-target_data <- target_data[order(-mean_targets),]
-
-#Still need to make the plot in R, for now was exporting the data to excel and plotting there
-
-### Plot of number of seropositive individuals for each sanger antigen 
-
-reactive_seroposSD.matrix <- seroposSD.matrix[target_reactive==TRUE, person_exposed]
-rownames(reactive_seroposSD.matrix) <- rownames(reactive.targets.matrix)
-sub_sanger_antigens <- c(grep("(s)", rownames(reactive_seroposSD.matrix), fixed = TRUE))
-sanger_seroposSD.matrix <- reactive_seroposSD.matrix[sub_sanger_antigens,]
-
-sanger_seroposSD.df <- tibble::rownames_to_column(sanger_seroposSD.matrix)
-
-
-#Sum of people positive for each reactive sanger antigen, sorted highest to lowest
-sanger_sums <- sort(rowSums(sanger_seroposSD.matrix), decreasing = TRUE)
-#check plot in R
-barplot(sanger_sums)
-
-#This plot still doesn't look good, I just didn't finish and make it quickly in excel to move on
-png(filename = paste0(study,"_targets_seropos_sums.tif"), width = 5.5, height = 4, units = "in", res = 600)
-par(mar = c(2, 4, 2.25, 0.5), oma = c(11.5, 0, 1, 0), bty = "o", 
-    mgp = c(2, 0.5, 0), cex.main = 1.5, cex.axis = 1, cex.lab = 1.25, xpd=NA, las=1)
-
-barplot(sanger_sums, xlab="Target", add=FALSE, col = "darkblue", ylim=c(0,max(sanger_sums)*1.25))
-title(main = "Number of People Seropositive for each Reactive Antigen", adj=0)
-title(ylab="Number of People", line=2.7)
-
-graphics.off()
-
-qplot(t(sanger_seroposSD.matrix), geom="histogram")
-
-
-
-
-
-
+#Save R workspace so that can load prior to analysis 
+  save.image(file="SangerAfterProcessing.RData")
