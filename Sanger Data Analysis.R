@@ -6,11 +6,26 @@
 #####################################
 
 #If you haven't just continued from the processing script, run:
-#load(file="SangerAfterProcessing.RData")
+#rm(list=ls())
 
-#install.packages("reshape2")
+#setwd(I:/Drakeley Group/Protein microarrays/Experiments/100817 Sanger/Sanger Data Processed)
 
-library(reshape2)
+# require("gtools")
+# 
+# library(limma)
+# library(contrast)
+# library(beeswarm)
+# library(mixtools)
+# library(gplots)
+# library(ggplot2)
+# library(gcookbook)
+# library(dplyr)
+# 
+# #load(file="SangerAfterProcessing.RData")
+# 
+# #install.packages("reshape2")
+# 
+# library(reshape2)
 
 ###Seropositivity and Reactivity Thresholds###
 
