@@ -25,15 +25,14 @@ library(reshape2)
 #(e.g. index_sample will no longer equal 96)
 
 #Assign sample type names, to identify control and test samples (logical)
-#This isn't calling out the right indices because sample_meta_f and the other matrices aren't in the same order! 
-samples_test <- sample_meta_f.df$sample_type=="test"
-samples_control <- sample_meta_f.df$sample_type=="control"
+samples_test <- sample_meta.df$sample_id_unique[which(sample_meta.df$sample_type =="test")]
+samples_control <- sample_meta.df$sample_id_unique[which(sample_meta.df$sample_type =="control")]
 
 #Define a list of targets to be removed from further analysis (controls)
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
 #Remove control protein targets and control samples for seropositivity calculations
-norm_sub.matrix <- norm4.matrix[-rmsamp_all, samples_test]
+norm_sub.matrix <- norm4.matrix[-rmsamp_all, colnames(norm4.matrix) %in% samples_test]
             
 #Remove samples that should be excluded
 norm_sub2.matrix <- norm_sub.matrix[,(!colnames(norm_sub.matrix) %in% samples_exclude)]
