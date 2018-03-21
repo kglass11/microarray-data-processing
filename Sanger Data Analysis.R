@@ -31,12 +31,11 @@ samples_control <- sample_meta_f.df$sample_type=="control"
 #Define a list of targets to be removed from further analysis (controls)
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
-#Remove samples that should be excluded
-norm_sub.matrix <- norm4.matrix[,(!colnames(norm4.matrix) %in% samples_exclude)]
-
 #Remove control protein targets and control samples for seropositivity calculations
-norm_sub2.matrix <- norm_sub.matrix[-rmsamp_all, samples_test]
-samples_sub.df <- sample_meta_f.df[samples_test,]
+norm_sub.matrix <- norm4.matrix[-rmsamp_all, samples_test]
+            
+#Remove samples that should be excluded
+norm_sub2.matrix <- norm_sub.matrix[,(!colnames(norm_sub.matrix) %in% samples_exclude)]
 
 #Replace current target names with original target names now that control targets are removed
 #might be useful to merge this instead with the target dataframe?
