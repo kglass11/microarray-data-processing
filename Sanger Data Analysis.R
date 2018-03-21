@@ -190,20 +190,23 @@ norm_sample_cutoff <- log_sample_cutoff - log_buffer_sample_mean
 #Tailor the norm_sample_cutoff to remove excluded samples and control samples
 buffer_cutoff.matrix <- as.matrix(norm_sample_cutoff)
 rownames(buffer_cutoff.matrix, colnames(norm4.matrix))
+sub_buf_cutoff.matrix <- as.matrix(buffer_cutoff.matrix[rownames(buffer_cutoff.matrix) %in% samples_test,])
+sub_cutoff <- sub_buf_cutoff.matrix[(!rownames(sub_buf_cutoff.matrix) %in% samples_exclude),]
 
+#Plot the sample cutoffs?
+png(filename = paste0(study, "_Buffer_Cutoffs.tif"), width = 5, height = 4, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+plot(sub_cutoff, pch='*', col = "blue", ylim=c(0,max(sub_cutoff)*1.25),
+     ylab="Seropositivity Cutoff", xlab="Sample (Array)")
+
+graphics.off()
 
 #Then can apply the norm_sample_cutoff to each data frame of interest
 #because the samples are not changing, only the antigens are changing. 
 
-#This seropositivity matrix includes ALL non-control antigens and all non-excluded "test" samples
-#*** This is still using the data before switching to subtracted antigens! need to change strategy on this part
-seroposSD_temp.matrix <- t(apply(norm4.matrix, 1, function(x) (x > norm_sample_cutoff)+0))
-seroposSD_temp.matrix <- seroposSD_temp.matrix[,(!colnames(seroposSD_temp.matrix) %in% samples_exclude)]
-seroposSD.matrix <- seroposSD_temp.matrix[-rmsamp_all, samples_test]
-
 #Make seropositivity matrices for Pf and Pv separately 
-
-
+SP_Pf.df <- t(apply(Pf_antigens.df, 1, function(x) ((x > sub_cutoff)+0)))
+SP_Pv.df <- t(apply(Pv_antigens.df, 1, function(x) ((x > sub_cutoff)+0)))
 
 ###Create a threshold for overall target and person reactivity
 #e.g. To be included in heatmaps and other analyses, perhaps targets should be reacted to by at least 5% of people?
