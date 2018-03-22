@@ -40,18 +40,17 @@
 #(e.g. index_sample will no longer equal 96)
 
 #Assign sample type names, to identify control and test samples (logical)
-samples_test <- sample_meta_f.df$sample_type=="test"
-samples_control <- sample_meta_f.df$sample_type=="control"
+samples_test <- sample_meta.df$sample_id_unique[which(sample_meta.df$sample_type =="test")]
+samples_control <- sample_meta.df$sample_id_unique[which(sample_meta.df$sample_type =="control")]
 
 #Define a list of targets to be removed from further analysis (controls)
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
-#Remove samples that should be excluded
-norm_sub.matrix <- norm4.matrix[,(!colnames(norm4.matrix) %in% samples_exclude)]
-
 #Remove control protein targets and control samples for seropositivity calculations
-norm_sub2.matrix <- norm_sub.matrix[-rmsamp_all, samples_test]
-samples_sub.df <- sample_meta_f.df[samples_test,]
+norm_sub.matrix <- norm4.matrix[-rmsamp_all, colnames(norm4.matrix) %in% samples_test]
+            
+#Remove samples that should be excluded
+norm_sub2.matrix <- norm_sub.matrix[,(!colnames(norm_sub.matrix) %in% samples_exclude)]
 
 #Replace current target names with original target names now that control targets are removed
 #might be useful to merge this instead with the target dataframe?
@@ -59,6 +58,9 @@ norm_sub3.df <- merge(norm_sub2.matrix, annotation_targets.df, by ="row.names", 
 norm_sub3.df <- tibble::column_to_rownames(norm_sub3.df, var="Row.names")
 row.names(norm_sub3.df) <- norm_sub3.df$Name
 norm_sub4.df <- norm_sub3.df[,1:ncol(norm_sub2.matrix)]
+
+#Make the dilution column of target_meta.df a character type
+target_meta.df$Dilution <- as.character(target_meta.df$Dilution)
 
 #Merge with target metadata to filter based on expression tag etc.
 target.df <- merge(target_meta.df, norm_sub4.df, by.x = "Name", by.y ="row.names", all.y = TRUE, sort = FALSE)
@@ -172,8 +174,7 @@ norm_sub5.df <- rbind(no_tags.df, sub_GST_antigens.df, sub_CD4_antigens.df)
 #Make another target.df merged data frame for further use with tag-subtracted values
 target2.df <- merge(target_meta.df, norm_sub5.df, by.x = "Name", by.y ="row.names", all.y = TRUE, sort = FALSE)
 
-#For seropositivity calculations, do once for Pf and once Pv, all antigens, regardless of dilution
-#In future, can add a column to target metadata for "Dilution" and sort based on Dilution == "1"
+#For seropositivity calculations, do once for Pf and once Pv, all antigens, all dilutions
 Pf_antigens.df <- filter(target2.df, Plasmodium == "Pf")
 Pf_antigens.df <- tibble::column_to_rownames(Pf_antigens.df, var="Name")
 Pf_antigens.df <- Pf_antigens.df[,sapply(Pf_antigens.df, is.numeric)]
@@ -182,22 +183,45 @@ Pv_antigens.df <- filter(target2.df, Plasmodium == "Pv")
 Pv_antigens.df <- tibble::column_to_rownames(Pv_antigens.df, var="Name")
 Pv_antigens.df <- Pv_antigens.df[,sapply(Pv_antigens.df, is.numeric)]
 
+#For the person_exposed calculation, only want the antigens at 1 dilution each.
+#For the Sanger antigens Dilution = 0.5 
+#For all other antigens, Dilution = 1
+sub_Pf_antigens.df <- filter(target2.df, (Plasmodium == "Pf" & Dilution == "1") 
+    | (Plasmodium == "Pf" & Source == "J. Rayner; WTSI" & Dilution == "0.5"))
+sub_Pf_antigens.df.df <- tibble::column_to_rownames(sub_Pf_antigens.df, var="Name")
+sub_Pf_antigens.df <- sub_Pf_antigens.df[,sapply(sub_Pf_antigens.df, is.numeric)]
+
+sub_Pv_antigens.df <- filter(target2.df, (Plasmodium == "Pv" & Dilution == "1") 
+    | (Plasmodium == "Pv" & Source == "J. Rayner; WTSI" & Dilution == "0.5"))
+sub_Pv_antigens.df <- tibble::column_to_rownames(sub_Pv_antigens.df, var="Name")
+sub_Pv_antigens.df <- sub_Pv_antigens.df[,sapply(sub_Pv_antigens.df, is.numeric)]
+
 ###Form a seropositivity matrix based on reactivity over a cutoff derived from sample buffer background.
-#The threshold is the sample buffer mean + 3SD. 
+#The threshold is the sample buffer mean + 3SD. Then take Log2 and normalize. 
 sample_cutoff <- cor2_buffer_sample_mean + 3*cor2_buffer_sample_sd
 log_sample_cutoff <- log2(sample_cutoff)
 norm_sample_cutoff <- log_sample_cutoff - log_buffer_sample_mean
 
-#This seropositivity matrix includes ALL non-control antigens and all non-excluded "test" samples
-#*** This is still using the data before switching to subtracted antigens! need to change strategy on this part
-seroposSD_temp.matrix <- t(apply(norm4.matrix, 1, function(x) (x > norm_sample_cutoff)+0))
-seroposSD_temp.matrix <- seroposSD_temp.matrix[,(!colnames(seroposSD_temp.matrix) %in% samples_exclude)]
-seroposSD.matrix <- seroposSD_temp.matrix[-rmsamp_all, samples_test]
+#Tailor the norm_sample_cutoff to remove excluded samples and control samples
+buffer_cutoff.matrix <- as.matrix(norm_sample_cutoff)
+rownames(buffer_cutoff.matrix, colnames(norm4.matrix))
+sub_buf_cutoff.matrix <- as.matrix(buffer_cutoff.matrix[rownames(buffer_cutoff.matrix) %in% samples_test,])
+sub_cutoff <- sub_buf_cutoff.matrix[(!rownames(sub_buf_cutoff.matrix) %in% samples_exclude),]
+
+#Plot the sample cutoffs?
+png(filename = paste0(study, "_Buffer_Cutoffs.tif"), width = 5, height = 4, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+plot(sub_cutoff, pch='*', col = "blue", ylim=c(0,max(sub_cutoff)*1.25),
+     ylab="Seropositivity Cutoff", xlab="Sample (Array)")
+
+graphics.off()
+
+#Then can apply the norm_sample_cutoff to each data frame of interest
+#because the samples are not changing, only the antigens are changing. 
 
 #Make seropositivity matrices for Pf and Pv separately 
-
-# *** We might switch to using neg populations run on microarray slides for the cutoffs
-
+SP_Pf.df <- t(apply(Pf_antigens.df, 1, function(x) ((x > sub_cutoff)+0)))
+SP_Pv.df <- t(apply(Pv_antigens.df, 1, function(x) ((x > sub_cutoff)+0)))
 
 ###Create a threshold for overall target and person reactivity
 #e.g. To be included in heatmaps and other analyses, perhaps targets should be reacted to by at least 5% of people?
