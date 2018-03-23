@@ -289,6 +289,14 @@ remove(a,b)
 melt.Pf <- melt(as.matrix(SP_Pf_data.df), na.rm = TRUE)
 colnames(melt.Pf) <- c("Target", "Sample", "Normalized")
 
+#negative control data for Pf reactive targets, tag-subtracted data
+neg_samples <-c(grep("Neg", colnames(norm4.matrix)))
+neg_data <- norm_sub5.df[-rmsamp_all, neg_samples]
+neg_data <- neg_data[Pf_target_reactive==TRUE,]
+neg_mean <- as.matrix(rowMeans(neg_data))
+
+#Add negative control data to the plot?
+
 #Violin and Box Plots of data for reactive Pf antigens, sorted by highest median to lowest
 ggplot(melt.Pf, aes(x=reorder(Target, -Normalized, FUN=median), y=Normalized)) + geom_violin()
 
@@ -307,18 +315,50 @@ ggplot(melt.Pf, aes(x=reorder(Target, Normalized, FUN=median), y=Normalized)) + 
 graphics.off()
 
 #Same thing for Pv Antigens
+#Only include the data if the person is seropositive
+exposed_SP_Pv.df <- SP_Pv.df[Pv_target_reactive==TRUE, Pv_person_exposed==TRUE]
+reactive_Pv.df <- Pv_antigens.df[Pv_target_reactive==TRUE,Pv_person_exposed==TRUE]
+
+#Make a new data frame where seropositive values will be the number and otherwise it will be NA
+SP_Pv_data.df <- data.frame(matrix(NA, nrow = nrow(reactive_Pv.df), ncol = ncol(reactive_Pv.df)))
+rownames(SP_Pv_data.df) <- rownames(reactive_Pv.df)
+colnames(SP_Pv_data.df) <- colnames(reactive_Pv.df)
+
+for(b in 1:ncol(reactive_Pv.df)){
+  for(a in 1:nrow(reactive_Pv.df)){
+    if(exposed_SP_Pv.df[[a,b]]==1){
+      SP_Pv_data.df[[a,b]] <- reactive_Pv.df[[a,b]] 
+    }
+  }
+}
+remove(a,b)
+
+#then melt this data.frame with Na.rm = TRUE to organize for ggplot2
+melt.Pv <- melt(as.matrix(SP_Pv_data.df), na.rm = TRUE)
+colnames(melt.Pv) <- c("Target", "Sample", "Normalized")
+
+#Violin and Box Plots of data for reactive Pv antigens, sorted by highest median to lowest
+ggplot(melt.Pv, aes(x=reorder(Target, -Normalized, FUN=median), y=Normalized)) + geom_violin()
+
+png(filename = paste0(study, "_Pv_violin.tif"), width = 5, height = 4, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(melt.Pv, aes(x=reorder(Target, -Normalized, FUN=median), y=Normalized)) + geom_violin() + xlab("Target") + ylab("Normalized Log2(MFI)") + theme(text = element_text(size=12))
+
+graphics.off()
+
+png(filename = paste0(study, "_Pv_boxplot.tif"), width = 5, height = 4, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(melt.Pv, aes(x=reorder(Target, -Normalized, FUN=median), y=Normalized)) + geom_boxplot(outlier.size = 0.3) + xlab("Target") + ylab("Normalized Log2(MFI)") + theme(text = element_text(size=12))
+
+graphics.off()
 
 
 ### Plot of geometric mean vs target, ranked from highest to lowest
 
 # Only using data from reactive targets and reactive test samples
 reactive.matrix <- reactive.targets.matrix[,person_exposed]
-
-#negative control data for reactive targets
-neg_samples <-c(grep("Neg", colnames(norm4.matrix)))
-neg_data <- norm4.matrix[-rmsamp_all, neg_samples]
-neg_data <- neg_data[target_reactive==TRUE,]
-neg_mean <- rowMeans(neg_data)
 
 #Calculate geometric mean and geometric SD for each antigen
 #I have not done anything with the seropositivity / seronegativity here
