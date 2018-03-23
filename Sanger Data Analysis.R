@@ -292,8 +292,8 @@ colnames(melt.Pf) <- c("Target", "Sample", "Normalized")
 #negative control data for Pf reactive targets, tag-subtracted data
 neg_samples <-c(grep("Neg", colnames(norm4.matrix)))
 neg_data <- norm_sub5.df[-rmsamp_all, neg_samples]
-neg_data <- neg_data[Pf_target_reactive==TRUE,]
-neg_mean <- as.matrix(rowMeans(neg_data))
+Pf_neg_data <- neg_data[Pf_target_reactive==TRUE,]
+Pf_neg_mean <- as.matrix(rowMeans(Pf_neg_data))
 
 #Add negative control data to the plot?
 
@@ -333,6 +333,10 @@ for(b in 1:ncol(reactive_Pv.df)){
 }
 remove(a,b)
 
+#negative control data for Pv reactive targets, tag-subtracted data
+Pv_neg_data <- neg_data[Pv_target_reactive==TRUE,]
+Pv_neg_mean <- as.matrix(rowMeans(Pv_neg_data))
+
 #then melt this data.frame with Na.rm = TRUE to organize for ggplot2
 melt.Pv <- melt(as.matrix(SP_Pv_data.df), na.rm = TRUE)
 colnames(melt.Pv) <- c("Target", "Sample", "Normalized")
@@ -355,6 +359,9 @@ ggplot(melt.Pv, aes(x=reorder(Target, -Normalized, FUN=median), y=Normalized)) +
 graphics.off()
 
 
+
+
+#Old code - not using now
 ### Plot of geometric mean vs target, ranked from highest to lowest
 
 # Only using data from reactive targets and reactive test samples
