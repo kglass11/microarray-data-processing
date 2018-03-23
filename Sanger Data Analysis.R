@@ -237,7 +237,7 @@ cat(sum(Pf_target_reactive), "out of", nrow(SP_Pf.df), "Pf targets are reactive 
 #All Pv antigens
 Pv_target_breadth <- rowSums(SP_Pv.df, na.rm=TRUE)
 Pv_target_reactive <- Pv_target_breadth > (ncol(SP_Pv.df)/100)*5
-cat(sum(Pv_target_reactive), "out of", nrow(SP_Pv.df), "Pf targets are reactive in at least 5% of people")
+cat(sum(Pv_target_reactive), "out of", nrow(SP_Pv.df), "Pv targets are reactive in at least 5% of people")
 
 ###Create a threshold for overall person reactivity
 #Similarly, perhaps unreactive individuals should be disincluded? Either way - this is informative.
@@ -247,19 +247,21 @@ cat(sum(Pv_target_reactive), "out of", nrow(SP_Pv.df), "Pf targets are reactive 
 #Sub Pf antigens
 Pf_person_breadth <- colSums(sub_SP_Pf.df, na.rm=TRUE)
 Pf_person_exposed <- Pf_person_breadth > (nrow(sub_SP_Pf.df)/100)*5
-cat(sum(Pf_person_exposed), "out of", ncol(sub_SP_Pf.df), "samples are reactive to at least 5% of proteins")
+cat(sum(Pf_person_exposed), "out of", ncol(sub_SP_Pf.df), "samples are reactive to at least 5% of Pf targets")
 
 #Sub Pv antigens
 Pv_person_breadth <- colSums(sub_SP_Pv.df, na.rm=TRUE)
 Pv_person_exposed <- Pv_person_breadth > (nrow(sub_SP_Pv.df)/100)*5
-cat(sum(Pv_person_exposed), "out of", ncol(sub_SP_Pv.df), "samples are reactive to at least 5% of proteins")
-
+cat(sum(Pv_person_exposed), "out of", ncol(sub_SP_Pv.df), "samples are reactive to at least 5% of Pv targets")
 
 ### Export matrix of data for reactive protein targets only (cutoff mean+3SD method)
 
-# Includes control and test samples but not excluded samples
-reactive.targets.matrix <- as.matrix(norm_sub4.df[target_reactive==TRUE,])
-write.csv(reactive.targets.matrix, paste0(study,"_reactive_targets_data.csv")) 
+# Includes test samples only
+Pf.reactive.targets.matrix <- as.matrix(norm_sub5.df[Pf_target_reactive==TRUE,])
+write.csv(Pf.reactive.targets.matrix, paste0(study,"Pf_reactive_targets_data.csv")) 
+
+Pv.reactive.targets.matrix <- as.matrix(norm_sub5.df[Pv_target_reactive==TRUE])
+write.csv(Pv.reactive.targets.matrix, paste0(study,"Pv_reactive_targets_data.csv")) 
 
 ### Plot of geometric mean vs target, ranked from highest to lowest
 
