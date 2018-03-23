@@ -266,6 +266,49 @@ write.csv(Pf.reactive.targets.matrix, paste0(study,"Pf_reactive_targets_data.csv
 Pv.reactive.targets.matrix <- as.matrix(norm_sub5.df[Pv_target_reactive==TRUE])
 write.csv(Pv.reactive.targets.matrix, paste0(study,"Pv_reactive_targets_data.csv")) 
 
+#Pf plot of normalized data for each antigen organized by highest median
+#Only include the data if the person is seropositive
+exposed_SP_Pf.df <- SP_Pf.df[Pf_target_reactive==TRUE, Pf_person_exposed==TRUE]
+reactive_Pf.df <- Pf_antigens.df[Pf_target_reactive==TRUE,Pf_person_exposed==TRUE]
+
+#Make a new data frame where seropositive values will be the number and otherwise it will be NA
+SP_Pf_data.df <- data.frame(matrix(NA, nrow = nrow(reactive_Pf.df), ncol = ncol(reactive_Pf.df)))
+rownames(SP_Pf_data.df) <- rownames(reactive_Pf.df)
+colnames(SP_Pf_data.df) <- colnames(reactive_Pf.df)
+
+for(b in 1:ncol(reactive_Pf.df)){
+  for(a in 1:nrow(reactive_Pf.df)){
+    if(exposed_SP_Pf.df[[a,b]]==1){
+    SP_Pf_data.df[[a,b]] <- reactive_Pf.df[[a,b]] 
+    }
+  }
+}
+remove(a,b)
+
+#then melt this data.frame with Na.rm = TRUE to organize for ggplot2
+melt.Pf <- melt(as.matrix(SP_Pf_data.df), na.rm = TRUE)
+colnames(melt.Pf) <- c("Target", "Sample", "Normalized")
+
+#Violin and Box Plots of data for reactive Pf antigens, sorted by highest median to lowest
+ggplot(melt.Pf, aes(x=reorder(Target, -Normalized, FUN=median), y=Normalized)) + geom_violin()
+
+png(filename = paste0(study, "_Pf_violin.tif"), width = 5, height = 8, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(melt.Pf, aes(x=reorder(Target, Normalized, FUN=median), y=Normalized)) + geom_violin() + coord_flip() + xlab("Target") + ylab("Normalized Log2(MFI)") + theme(text = element_text(size=9))
+
+graphics.off()
+
+png(filename = paste0(study, "_Pf_boxplot.tif"), width = 5, height = 8, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(melt.Pf, aes(x=reorder(Target, Normalized, FUN=median), y=Normalized)) + geom_boxplot(outlier.size = 0.3) + coord_flip() + xlab("Target") + ylab("Normalized Log2(MFI)") + theme(text = element_text(size=9))
+
+graphics.off()
+
+#Same thing for Pv Antigens
+
+
 ### Plot of geometric mean vs target, ranked from highest to lowest
 
 # Only using data from reactive targets and reactive test samples
@@ -287,27 +330,6 @@ target_data <- target_data[order(-mean_targets),]
 
 sorted_mean <- mean_targets[order(-mean_targets)]
 
-#Violin Plot for sorted means! :) 
-
-#organize the data for ggplot2 - using reactive.matrix for now
-melt.reactive <- melt(reactive.matrix)
-colnames(melt.reactive) <- c("Target", "Sample", "Normalized")
-
-#sort data by mean - this isn't working yet
-sort.melt.reactive <- with(melt.reactive, reorder(Normalized, Target, FUN = mean))
-
-ggplot(melt.reactive, aes(x=Target, y=Normalized)) + geom_violin(trim = FALSE)
-
-#1st 11 antigens only - this is not the final data just a test to see the plots
-melt.11 <- melt(as.matrix(reactive.matrix[1:11,]))
-colnames(melt.11) <- c("Target", "Sample", "Normalized") 
-
-png(filename = paste0(study, "_11_test.tif"), width = 8, height = 4, units = "in", res = 1200)
-par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
-
-ggplot(melt.11, aes(x=Target, y=Normalized)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
-
-graphics.off()
 
 #barPlot - this still looks terrible 
 png(filename = paste0(study, "_GeoMean_Reactive_Targets.tif"), width = 5, height = 4, units = "in", res = 1200)
