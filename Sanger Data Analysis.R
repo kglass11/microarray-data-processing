@@ -271,6 +271,12 @@ write.csv(Pv.reactive.targets.matrix, paste0(study,"Pv_reactive_targets_data.csv
 exposed_SP_Pf.df <- SP_Pf.df[Pf_target_reactive==TRUE, Pf_person_exposed==TRUE]
 reactive_Pf.df <- Pf_antigens.df[Pf_target_reactive==TRUE,Pf_person_exposed==TRUE]
 
+#Plot the number of seropositive people by antigen, highest to lowest for Pf
+people <- as.matrix(sort(rowSums(exposed_SP_Pf.df), decreasing = TRUE))
+
+#This is changing the order and not plotting in the order I want
+qplot(row.names(people), people[,1], xlab= "Target", ylab= "Number of Seropositive Individuals")
+
 #Make a new data frame where seropositive values will be the number and otherwise it will be NA
 SP_Pf_data.df <- data.frame(matrix(NA, nrow = nrow(reactive_Pf.df), ncol = ncol(reactive_Pf.df)))
 rownames(SP_Pf_data.df) <- rownames(reactive_Pf.df)
