@@ -46,18 +46,18 @@ samples_control <- sample_meta.df$sample_id_unique[which(sample_meta.df$sample_t
 #Define a list of targets to be removed from further analysis (controls)
 rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
 
-#Remove control protein targets and control samples for seropositivity calculations
-norm_sub.matrix <- norm4.matrix[-rmsamp_all, colnames(norm4.matrix) %in% samples_test]
+#Remove control protein targets
+#Don't remove control samples yet, need to do tag subtraction from those samples as well, 
+#and want them included in some exported data
+#Do remove samples that should be excluded
+norm_sub.matrix <- norm4.matrix[-rmsamp_all,(!colnames(norm4.matrix) %in% samples_exclude)]
             
-#Remove samples that should be excluded
-norm_sub2.matrix <- norm_sub.matrix[,(!colnames(norm_sub.matrix) %in% samples_exclude)]
-
 #Replace current target names with original target names now that control targets are removed
 #might be useful to merge this instead with the target dataframe?
-norm_sub3.df <- merge(norm_sub2.matrix, annotation_targets.df, by ="row.names", sort = FALSE)
+norm_sub3.df <- merge(norm_sub.matrix, annotation_targets.df, by ="row.names", sort = FALSE)
 norm_sub3.df <- tibble::column_to_rownames(norm_sub3.df, var="Row.names")
 row.names(norm_sub3.df) <- norm_sub3.df$Name
-norm_sub4.df <- norm_sub3.df[,1:ncol(norm_sub2.matrix)]
+norm_sub4.df <- norm_sub3.df[,1:ncol(norm_sub.matrix)]
 
 #Make the dilution column of target_meta.df a character type
 target_meta.df$Dilution <- as.character(target_meta.df$Dilution)
@@ -171,8 +171,11 @@ no_tags.df <- no_tags.df[,sapply(no_tags.df, is.numeric)]
 #shouldn't matter anymore
 norm_sub5.df <- rbind(no_tags.df, sub_GST_antigens.df, sub_CD4_antigens.df)
 
-#Make another target.df merged data frame for further use with tag-subtracted values
-target2.df <- merge(target_meta.df, norm_sub5.df, by.x = "Name", by.y ="row.names", all.y = TRUE, sort = FALSE)
+#At this point, Remove control samples for further analysis
+norm_sub6.df <- norm_sub5.df[,colnames(norm_sub5.df) %in% samples_test]
+
+#Make another target.df merged data frame for further use with tag-subtracted values and test samples only
+target2.df <- merge(target_meta.df, norm_sub6.df, by.x = "Name", by.y ="row.names", all.y = TRUE, sort = FALSE)
 
 #For seropositivity calculations, do once for Pf and once Pv, all antigens, all dilutions
 Pf_antigens.df <- filter(target2.df, Plasmodium == "Pf")
@@ -256,7 +259,7 @@ cat(sum(Pv_person_exposed), "out of", ncol(sub_SP_Pv.df), "samples are reactive 
 
 ### Export matrix of data for reactive protein targets only (cutoff mean+3SD method)
 
-# Includes test samples only
+# Includes control AND test samples
 Pf.reactive.targets.matrix <- as.matrix(norm_sub5.df[Pf_target_reactive==TRUE,])
 write.csv(Pf.reactive.targets.matrix, paste0(study,"Pf_reactive_targets_data.csv")) 
 
