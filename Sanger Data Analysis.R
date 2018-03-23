@@ -188,7 +188,7 @@ Pv_antigens.df <- Pv_antigens.df[,sapply(Pv_antigens.df, is.numeric)]
 #For all other antigens, Dilution = 1
 sub_Pf_antigens.df <- filter(target2.df, (Plasmodium == "Pf" & Dilution == "1") 
     | (Plasmodium == "Pf" & Source == "J. Rayner; WTSI" & Dilution == "0.5"))
-sub_Pf_antigens.df.df <- tibble::column_to_rownames(sub_Pf_antigens.df, var="Name")
+sub_Pf_antigens.df <- tibble::column_to_rownames(sub_Pf_antigens.df, var="Name")
 sub_Pf_antigens.df <- sub_Pf_antigens.df[,sapply(sub_Pf_antigens.df, is.numeric)]
 
 sub_Pv_antigens.df <- filter(target2.df, (Plasmodium == "Pv" & Dilution == "1") 
@@ -208,7 +208,7 @@ rownames(buffer_cutoff.matrix, colnames(norm4.matrix))
 sub_buf_cutoff.matrix <- as.matrix(buffer_cutoff.matrix[rownames(buffer_cutoff.matrix) %in% samples_test,])
 sub_cutoff <- sub_buf_cutoff.matrix[(!rownames(sub_buf_cutoff.matrix) %in% samples_exclude),]
 
-#Plot the sample cutoffs
+#Plot the sample cutoffs for samples included in analysis
 png(filename = paste0(study, "_Buffer_Cutoffs.tif"), width = 5, height = 4, units = "in", res = 1200)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 plot(sub_cutoff, pch='*', col = "blue", ylim=c(0,max(sub_cutoff)*1.25),
@@ -223,16 +223,37 @@ graphics.off()
 SP_Pf.df <- t(apply(Pf_antigens.df, 1, function(x) ((x > sub_cutoff)+0)))
 SP_Pv.df <- t(apply(Pv_antigens.df, 1, function(x) ((x > sub_cutoff)+0)))
 
-###Create a threshold for overall target and person reactivity
+sub_SP_Pf.df <- t(apply(sub_Pf_antigens.df, 1, function(x) ((x > sub_cutoff)+0)))
+sub_SP_Pv.df <- t(apply(sub_Pv_antigens.df, 1, function(x) ((x > sub_cutoff)+0)))
+  
+###Create a threshold for overall target reactivity
 #e.g. To be included in heatmaps and other analyses, perhaps targets should be reacted to by at least 5% of people?
-#Similarly, perhaps unreactive individuals should be disincluded? Either way - this is informative.
-target_breadth <- rowSums(seroposSD.matrix, na.rm=TRUE)
-target_reactive <- target_breadth > (ncol(seroposSD.matrix)/100)*5
-cat(sum(target_reactive), "out of", nrow(seroposSD.matrix), "protein targets are reactive in at least 5% of people")
 
-person_breadth <- colSums(seroposSD.matrix, na.rm=TRUE)
-person_exposed <- person_breadth > (nrow(seroposSD.matrix)/100)*5
-cat(sum(person_exposed), "out of", ncol(seroposSD.matrix), "samples are reactive to at least 5% of proteins")
+#All Pf antigens
+Pf_target_breadth <- rowSums(SP_Pf.df, na.rm=TRUE)
+Pf_target_reactive <- Pf_target_breadth > (ncol(SP_Pf.df)/100)*5
+cat(sum(Pf_target_reactive), "out of", nrow(SP_Pf.df), "Pf targets are reactive in at least 5% of people")
+
+#All Pv antigens
+Pv_target_breadth <- rowSums(SP_Pv.df, na.rm=TRUE)
+Pv_target_reactive <- Pv_target_breadth > (ncol(SP_Pv.df)/100)*5
+cat(sum(Pv_target_reactive), "out of", nrow(SP_Pv.df), "Pf targets are reactive in at least 5% of people")
+
+###Create a threshold for overall person reactivity
+#Similarly, perhaps unreactive individuals should be disincluded? Either way - this is informative.
+
+#For person reactivity, we do not want to count multiple dilutions for each antigen 
+
+#Sub Pf antigens
+Pf_person_breadth <- colSums(sub_SP_Pf.df, na.rm=TRUE)
+Pf_person_exposed <- Pf_person_breadth > (nrow(sub_SP_Pf.df)/100)*5
+cat(sum(Pf_person_exposed), "out of", ncol(sub_SP_Pf.df), "samples are reactive to at least 5% of proteins")
+
+#Sub Pv antigens
+Pv_person_breadth <- colSums(sub_SP_Pv.df, na.rm=TRUE)
+Pv_person_exposed <- Pv_person_breadth > (nrow(sub_SP_Pv.df)/100)*5
+cat(sum(Pv_person_exposed), "out of", ncol(sub_SP_Pv.df), "samples are reactive to at least 5% of proteins")
+
 
 ### Export matrix of data for reactive protein targets only (cutoff mean+3SD method)
 
