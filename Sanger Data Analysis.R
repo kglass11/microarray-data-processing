@@ -272,11 +272,20 @@ exposed_SP_Pf.df <- SP_Pf.df[Pf_target_reactive==TRUE, Pf_person_exposed==TRUE]
 reactive_Pf.df <- Pf_antigens.df[Pf_target_reactive==TRUE,Pf_person_exposed==TRUE]
 
 #Plot the number of seropositive people by antigen, highest to lowest for Pf
-people <- as.matrix(sort(rowSums(exposed_SP_Pf.df), decreasing = TRUE))
+SPpeople <- as.matrix(sort(rowSums(exposed_SP_Pf.df), decreasing = TRUE))
+SPpeople <- as.data.frame(SPpeople)
+SPpeople <- cbind(Target = rownames(SPpeople), SPpeople)
+SPpeople$Target <- as.factor(SPpeople$Target)
+#explicitly set factor levels to the correct order
+SPpeople$Target <- factor(SPpeople$Target, levels = SPpeople$Target[order(-SPpeople$V1)])
 
-#This is changing the order and not plotting in the order I want
-qplot(row.names(people), people[,1], xlab= "Target", ylab= "Number of Seropositive Individuals")
+png(filename = paste0(study, "_Pf_num_people.tif"), width = 8, height = 4.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
+ggplot(SPpeople, aes(x = Target, y = V1)) + theme_bw() + geom_bar(stat="identity") + ylab("Number of Seropositive Individuals") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 6))
+
+graphics.off()
+   
 #Make a new data frame where seropositive values will be the number and otherwise it will be NA
 SP_Pf_data.df <- data.frame(matrix(NA, nrow = nrow(reactive_Pf.df), ncol = ncol(reactive_Pf.df)))
 rownames(SP_Pf_data.df) <- rownames(reactive_Pf.df)
