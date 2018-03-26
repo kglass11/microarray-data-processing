@@ -267,9 +267,12 @@ Pv.reactive.targets.matrix <- as.matrix(norm_sub5.df[Pv_target_reactive==TRUE])
 write.csv(Pv.reactive.targets.matrix, paste0(study,"Pv_reactive_targets_data.csv")) 
 
 #Pf plot of normalized data for each antigen organized by highest median
-#Only include the data if the person is seropositive
+#Only include the data if the person is seropositive and an exposed person
 exposed_SP_Pf.df <- SP_Pf.df[Pf_target_reactive==TRUE, Pf_person_exposed==TRUE]
 reactive_Pf.df <- Pf_antigens.df[Pf_target_reactive==TRUE,Pf_person_exposed==TRUE]
+
+#Export this matrix which only includes exposed individuals
+write.csv(reactive_Pf.df, paste0(study,"Pf_exposed_data.csv"))
 
 #Plot the number of seropositive people by antigen, highest to lowest for Pf
 SPpeople <- as.matrix(sort(rowSums(exposed_SP_Pf.df), decreasing = TRUE))
@@ -329,10 +332,29 @@ ggplot(melt.Pf, aes(x=reorder(Target, Normalized, FUN=median), y=Normalized)) + 
 
 graphics.off()
 
-#Same thing for Pv Antigens
-#Only include the data if the person is seropositive
+#######Same thing for Pv Antigens########
+
+#Only include the data if the person is seropositive and it's an exposed individual
 exposed_SP_Pv.df <- SP_Pv.df[Pv_target_reactive==TRUE, Pv_person_exposed==TRUE]
 reactive_Pv.df <- Pv_antigens.df[Pv_target_reactive==TRUE,Pv_person_exposed==TRUE]
+
+#Export this matrix which only includes exposed individuals
+write.csv(reactive_Pv.df, paste0(study,"Pv_exposed_data.csv"))
+
+#Plot the number of seropositive people by antigen, highest to lowest for Pf
+SPpeoplePv <- as.matrix(sort(rowSums(exposed_SP_Pv.df), decreasing = TRUE))
+SPpeoplePv <- as.data.frame(SPpeoplePv)
+SPpeoplePv <- cbind(Target = rownames(SPpeoplePv), SPpeoplePv)
+SPpeoplePv$Target <- as.factor(SPpeoplePv$Target)
+#explicitly set factor levels to the correct order
+SPpeoplePv$Target <- factor(SPpeoplePv$Target, levels = SPpeoplePv$Target[order(-SPpeoplePv$V1)])
+
+png(filename = paste0(study, "_Pv_num_people.tif"), width = 3, height = 4.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(SPpeoplePv, aes(x = Target, y = V1)) + theme_bw() + geom_bar(stat="identity") + ylab("Number of Seropositive Individuals") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 6))
+
+graphics.off()
 
 #Make a new data frame where seropositive values will be the number and otherwise it will be NA
 SP_Pv_data.df <- data.frame(matrix(NA, nrow = nrow(reactive_Pv.df), ncol = ncol(reactive_Pv.df)))
