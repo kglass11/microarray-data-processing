@@ -76,8 +76,41 @@ remove(j,k)
   
 #subtract GST - subtract GST at the same dilution as the other antigen was diluted
 #need to deal with NAs this time
+  # subtract GST from all except AMA1; that means MSP1-19, Hyp2, GEXP18,
+
+#import target metadata file
+target_file <- "Opto Target Metadata.csv" 
+target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
+
+
+for(b in 1:ncol(GST_antigens.df)){
+  for(a in 1:nrow(GST_antigens.df)){
+    # when the GST value is positive only, subtract GST value, 
+    #otherwise want to leave as whatever the value was before (because GST was at or below buffer mean for that sample)
+    if (norm_sub4.df[GST,b] > 0){
+      #calculate difference in original MFI form (not log2)
+      sub_GST_antigens.df[a,b] <- 2^GST_antigens.df[a,b] - 2^norm_sub4.df[GST,b]
+      #can only do log2 if the difference is greater than 0, otherwise set to 0 (normalized log2 value is not above buffer)
+      if (sub_GST_antigens.df[a,b] > 0) {
+        sub_GST_antigens.df[a,b] <- log2(sub_GST_antigens.df[a,b])
+        #if the log2 tag-subtracted value is negative, means normalized value is below buffer mean,
+        #so also need to set those negatives to 0 again.
+        if(sub_GST_antigens.df[a,b] < 0){
+          sub_GST_antigens.df[a,b] <- 0
+        }
+      } else { 
+        sub_GST_antigens.df[a,b] <- 0
+      }
+    } else {
+      sub_GST_antigens.df[a,b] <- GST_antigens.df[a,b]
+    }
+  }
+}
+remove(a,b)
+
 
 # ratio of positive to negative - subtract the negative log2 value for each condition
 
+    #use a for loop with adding the row numbers?
 
-
+#Print buffers: 1 = AJ Buffer C		2 = AJ Glycerol buffer		3 = Nexterion Spot
