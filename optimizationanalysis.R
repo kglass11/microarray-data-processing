@@ -18,6 +18,10 @@ library(reshape2)
 
 load("ATT93447.RData")
 
+#import target metadata file
+target_file <- "Opto Target Metadata.csv" 
+target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
+
 # set negative normalized values to zero
 
 rep1.matrix <- as.matrix(trans.norm.rep1)
@@ -78,10 +82,14 @@ remove(j,k)
 #need to deal with NAs this time
   # subtract GST from all except AMA1; that means MSP1-19, Hyp2, GEXP18,
 
-#import target metadata file
-target_file <- "Opto Target Metadata.csv" 
-target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
+#merge target metadata with trans.norm.avg (transposed)
+target.df <- merge(target_meta.df, t(trans.norm.avg), by.x = "Name", by.y = "row.names", sort = FALSE)
 
+#function for subtracting GST from a concentration
+
+
+#Concentration = 100 
+100.df <- 
 
 for(b in 1:ncol(GST_antigens.df)){
   for(a in 1:nrow(GST_antigens.df)){
