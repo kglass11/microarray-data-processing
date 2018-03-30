@@ -177,14 +177,48 @@ dim(optimization.df) == dim(t(trans.norm.avg))
 View(optimization.df)
 
 # ratio of positive to negative - subtract the negative log2 value for each condition
+optimization.df <- t(optimization.df)
 
-    #use a for loop with adding the row numbers?
+Neg <- optimization.df[c(grep("Neg", rownames(optimization.df))),]
+CP3 <- optimization.df[c(grep("CP3", rownames(optimization.df))),]
+PRISM <- optimization.df[c(grep("PRISM", rownames(optimization.df))),]
+Swazi <- optimization.df[c(grep("Swazi", rownames(optimization.df))),]
+
+subtractNeg <- function(x){
+for(i in 1:nrow(Neg)){
+  for(k in 1:ncol(Neg)){
+    if(is.na(Neg[i,k])|is.na(x[i,k])){
+      x[i,k] <- NA
+    } else {
+      x[i,k] <- x[i,k] - Neg[i,k]
+    }
+  }
+}
+return(x)
+}
+
+#Now a negative value means the positive is less than the negative control
+#Do not set these values to 0
+CP3neg <- subtractNeg(CP3)
+PRISMneg <- subtractNeg(PRISM)
+Swazineg <- subtractNeg(Swazi)
+
+Finaldata <- rbind(CP3neg,PRISMneg,Swazineg)
+
+#get the data in the right format for ggplot2 and linear mixed models
+#this doesn't include the print buffer as a factor
+
+finaldata.df <- merge(sample_meta_f.df, Finaldata, by.y = "row.names", by.x = "sample_id", sort = TRUE)
+#the names of the columns have spaces. So they cannot be used in lmer and other functions
+newnames <- make.names(colnames(finaldata.df))
+colnames(finaldata.df) <- newnames
 
 #Print buffers: 1 = AJ Buffer C		2 = AJ Glycerol buffer		3 = Nexterion Spot
-
 
 #once the data is formatted right, do linear mixed model for each antigen
 #call the data frame optimization
 #fixed effects are: slide_type, print buffer (PB), blocking buffer (BB), blocking buffer dilution (BBD)
 #random effects are: sample; using random slope model where print buffer and blocking buffer (and dilution) affect sample variation
-fullmodel <- lmer(AMA1 ~ slide_type + PB + BB + BBD + (1+PB+BB+BBD|sample), REML = FALSE, data = optimization)
+colnames(finaldata.df[23])
+#AMA1, 100 ug/mL, print buffer 2
+fullmodel <- lmer("13_1 PfAMA1 100ug/ml_1" ~ slide_type + PB + BB + BBD + (1+PB+BB+BBD|sample), REML = FALSE, data = optimization)
