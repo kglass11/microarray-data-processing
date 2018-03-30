@@ -207,11 +207,19 @@ Finaldata <- rbind(CP3neg,PRISMneg,Swazineg)
 
 #get the data in the right format for ggplot2 and linear mixed models
 #this doesn't include the print buffer as a factor
-
 finaldata.df <- merge(sample_meta_f.df, Finaldata, by.y = "row.names", by.x = "sample_id", sort = TRUE)
 #the names of the columns have spaces. So they cannot be used in lmer and other functions
 newnames <- make.names(colnames(finaldata.df))
 colnames(finaldata.df) <- newnames
+
+#how to get print buffer as a factor for each antigen
+#merge transposed final data with target metadata again
+#separate data by print buffer in three data frames
+#replace row names with new rownames that are the same for all print buffers, don't include spaces
+#bind these back together.
+
+#at some point need to change the sample_id to only CP3, PRISM, and Swazi 
+#so that the model knows they are the same sample
 
 #Print buffers: 1 = AJ Buffer C		2 = AJ Glycerol buffer		3 = Nexterion Spot
 
@@ -220,5 +228,5 @@ colnames(finaldata.df) <- newnames
 #fixed effects are: slide_type, print buffer (PB), blocking buffer (BB), blocking buffer dilution (BBD)
 #random effects are: sample; using random slope model where print buffer and blocking buffer (and dilution) affect sample variation
 colnames(finaldata.df[23])
-#AMA1, 100 ug/mL, print buffer 2
-fullmodel <- lmer("13_1 PfAMA1 100ug/ml_1" ~ slide_type + PB + BB + BBD + (1+PB+BB+BBD|sample), REML = FALSE, data = optimization)
+#AMA1, 100 ug/mL, print buffer 1
+fullmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer + block_dilution + (1+blocking_buffer+block_dilution|sample_id), REML = FALSE, data = finaldata.df)
