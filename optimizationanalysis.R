@@ -206,27 +206,59 @@ Swazineg <- subtractNeg(Swazi)
 Finaldata <- rbind(CP3neg,PRISMneg,Swazineg)
 
 #get the data in the right format for ggplot2 and linear mixed models
-#this doesn't include the print buffer as a factor
-finaldata.df <- merge(sample_meta_f.df, Finaldata, by.y = "row.names", by.x = "sample_id", sort = TRUE)
-#the names of the columns have spaces. So they cannot be used in lmer and other functions
-newnames <- make.names(colnames(finaldata.df))
-colnames(finaldata.df) <- newnames
 
 #how to get print buffer as a factor for each antigen
 #merge transposed final data with target metadata again
 #separate data by print buffer in three data frames
 #replace row names with new rownames that are the same for all print buffers, don't include spaces
 #bind these back together.
+finaltarget.df <- merge(target_meta.df, t(Finaldata), by.y="row.names", by.x = "Name", sort = FALSE)
+PB1 <- filter(finaltarget.df, Print_Buffer == "1")
+PB2 <- filter(finaltarget.df, Print_Buffer == "2")
+PB3 <- filter(finaltarget.df, Print_Buffer == "3")
 
-#at some point need to change the sample_id to only CP3, PRISM, and Swazi 
-#so that the model knows they are the same sample
+rownames(PB1) <- PB1$Name
+rownames(PB2) <- PB1$Name
+rownames(PB3) <- PB1$Name
 
 #Print buffers: 1 = AJ Buffer C		2 = AJ Glycerol buffer		3 = Nexterion Spot
+PB1 <- as.data.frame(t(PB1[,6:ncol(PB1)]))
+  PB1$print_buffer <- "AJ"
+PB2 <- as.data.frame(t(PB2[,6:ncol(PB2)]))
+  PB2$print_buffer <- "AJ_Glycerol"
+PB3 <- as.data.frame(t(PB3[,6:ncol(PB3)]))
+  PB3$print_buffer <- "Nexterion_Spot"
+
+#merge these with sample_meta_f to get other columns, then rbind all together
+PB1_meta <- merge(sample_meta_f.df, PB1, by.x = "sample_id", by.y = "row.names",sort=FALSE)
+PB2_meta <- merge(sample_meta_f.df, PB2, by.x = "sample_id", by.y = "row.names",sort=FALSE)
+PB3_meta <- merge(sample_meta_f.df, PB3, by.x = "sample_id", by.y = "row.names",sort=FALSE)
+
+AHHHH.df <- rbind(PB1_meta, PB2_meta, PB3_meta)
+
+#need to change the sample_id to only CP3, PRISM, and Swazi 
+#so that the model knows they are the same sample
+AHHHH.df$sample <- "CP3"
+AHHHH.df$sample[c(grep("PRISM", AHHHH.df$sample_id))] <- "PRISM"
+AHHHH.df$sample[c(grep("Swazi", AHHHH.df$sample_id))] <- "Swazi"
+
+#the names of the columns have spaces. So they cannot be used in lmer and other functions
+newnames <- make.names(colnames(AHHHH.df))
+colnames(AHHHH.df) <- newnames
 
 #once the data is formatted right, do linear mixed model for each antigen
-#call the data frame optimization
-#fixed effects are: slide_type, print buffer (PB), blocking buffer (BB), blocking buffer dilution (BBD)
+#fixed effects are: slide_type, print_buffer, blocking_buffer, block_dilution
 #random effects are: sample; using random slope model where print buffer and blocking buffer (and dilution) affect sample variation
-colnames(finaldata.df[23])
+
 #AMA1, 100 ug/mL, print buffer 1
-fullmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer + block_dilution + (1+blocking_buffer+block_dilution|sample_id), REML = FALSE, data = finaldata.df)
+colnames(AHHHH.df[11])
+fullmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer 
+    + block_dilution + print_buffer + (1|sample), 
+    REML = FALSE, data = AHHHH.df)
+summary(fullmodel)
+
+#plot residuals - they look good, not heteroskedastic and data looks linear
+plot(fitted(fullmodel),residuals(fullmodel))
+#check normality - looks good
+hist(residuals(fullmodel))
+
