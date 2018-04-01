@@ -7,10 +7,20 @@ getwd()
 # install.packages("lme4")
 # install.packages("broom")
 # install.packages("multcomp")
+# install.packages("lsmeans")
+# install.packages("emmeans")
+# install.packages("pbkrtest")
+# install.packages("phia")
+# install.packages("lmerTest")
 
 library(broom)
 library(lme4)
 library(multcomp)
+library(lsmeans)
+library(emmeans)
+library(pbkrtest)
+library(phia)
+library(lmerTest)
 
 require("gtools")
 
@@ -275,8 +285,33 @@ augment(fullmodel)
 write.csv(tidy(fullmodel), file = "AMA1.100.LMERTidy.csv")
 write.csv(augment(fullmodel), file = "AMA1.100.LMERAug.csv")
 
-#still need to get significance and do pairwise comparisons - this isn't working
-summary(glht(fullmodel, linfct = mcp(Group = "Tukey")), test = adjusted("holm"))
+#test for main effects and interactions with Likelihood Ratio Test?
+
+intmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type * blocking_buffer 
+                    * block_dilution * print_buffer + (1|sample), 
+                    REML = FALSE, data = AHHHH.df)
+summary(intmodel)
+plot(fitted(intmodel),residuals(intmodel))
+hist(residuals(intmodel))
+
+write.csv(tidy(intmodel), file = "AMA1.100.LMERTidyINT.csv")
+write.csv(augment(intmodel), file = "AMA1.100.LMERAugINT.csv")
+
+anova(fullmodel, intmodel)
+
+anova(intmodel)
+
+#get significance and do pairwise comparisons using emmeans
+#default adjustment for multiple comparisons is Tukey
+#main effects first, however we are not interested in main effects :(
+emmeans(fullmodel, pairwise ~ print_buffer)
+emmeans(fullmodel, pairwise ~ slide_type)
+emmeans(fullmodel, pairwise ~ blocking_buffer)
+emmeans(fullmodel, pairwise ~ block_dilution)
+
+#test all interactions - we are interested in interactions - this isn't working
+testInteractions(fullmodel)
+testInteractions(intmodel)
 
 #heatmap of all the data - this looks terrible and still has unwanted columns
 data <- AHHHH.df[,sapply(AHHHH.df, is.numeric)]
