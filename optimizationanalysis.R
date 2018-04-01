@@ -5,7 +5,12 @@ setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation/")
 getwd()
 
 # install.packages("lme4")
+# install.packages("broom")
+# install.packages("multcomp")
+
+library(broom)
 library(lme4)
+library(multcomp)
 
 require("gtools")
 
@@ -261,4 +266,19 @@ summary(fullmodel)
 plot(fitted(fullmodel),residuals(fullmodel))
 #check normality - looks good
 hist(residuals(fullmodel))
+
+#prepare a better organized summary of the model and export to a file.
+#summary can only be written to a text file, and doesn't keep columns organized
+tidy(fullmodel)
+augment(fullmodel)
+
+write.csv(tidy(fullmodel), file = "AMA1.100.LMERTidy.csv")
+write.csv(augment(fullmodel), file = "AMA1.100.LMERAug.csv")
+
+#still need to get significance and do pairwise comparisons - this isn't working
+summary(glht(fullmodel, linfct = mcp(Group = "Tukey")), test = adjusted("holm"))
+
+#heatmap of all the data - this looks terrible and still has unwanted columns
+data <- AHHHH.df[,sapply(AHHHH.df, is.numeric)]
+heatmap(as.matrix(data))
 
