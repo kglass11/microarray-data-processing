@@ -12,6 +12,7 @@ getwd()
 # install.packages("pbkrtest")
 # install.packages("phia")
 # install.packages("lmerTest")
+# install.packages("multcompView")
 
 library(broom)
 library(lme4)
@@ -21,6 +22,7 @@ library(emmeans)
 library(pbkrtest)
 library(phia)
 library(lmerTest)
+library(multcompView)
 
 require("gtools")
 
@@ -309,11 +311,28 @@ emmeans(fullmodel, pairwise ~ slide_type)
 emmeans(fullmodel, pairwise ~ blocking_buffer)
 emmeans(fullmodel, pairwise ~ block_dilution)
 
+#plot the data
+png(filename = "AMA1.100.emmip.tif", width = 8, height = 5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+emmip(intmodel, print_buffer ~ block_dilution | blocking_buffer | slide_type) + element_text(size=8)
+
+graphics.off()
+
+#get letters for all pairwise comparisons, interaction model
+emm.intmodel <- emmeans(intmodel, ~ print_buffer | slide_type | blocking_buffer | block_dilution)
+
+#this did not work! it ran for over an hour and didn't finish
+pairwiseletters <- cld.emmGrid(emm.intmodel, by = NULL, Letters = LETTERS, sort = TRUE, reversed = TRUE, details = TRUE)
+
 #test all interactions - we are interested in interactions - this isn't working
 testInteractions(fullmodel)
 testInteractions(intmodel)
+#Still need to do all pairwise comparisons!!! 
 
 #heatmap of all the data - this looks terrible and still has unwanted columns
 data <- AHHHH.df[,sapply(AHHHH.df, is.numeric)]
 heatmap(as.matrix(data))
 
+#hierarchical clustering - this isn't working
+clusters <- hclust(dist(AHHHH.df[11]), na.rm = TRUE)
+plot(clusters)
