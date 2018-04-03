@@ -13,6 +13,7 @@ getwd()
 # install.packages("phia")
 # install.packages("lmerTest")
 # install.packages("multcompView")
+# install.packages("MuMIn")
 
 library(broom)
 library(lme4)
@@ -23,6 +24,7 @@ library(pbkrtest)
 library(phia)
 library(lmerTest)
 library(multcompView)
+library(MuMIn)
 
 require("gtools")
 
@@ -36,7 +38,8 @@ library(gcookbook)
 library(dplyr)
 library(reshape2)
 
-load("ATT93447.RData")
+# load("ATT93447.RData")
+load("OptimizationAfterPairwise.RData")
 
 #import target metadata file
 target_file <- "Opto Target Metadata.csv" 
@@ -267,12 +270,13 @@ colnames(AHHHH.df) <- newnames
 #fixed effects are: slide_type, print_buffer, blocking_buffer, block_dilution
 #random effects are: sample; using random slope model where print buffer and blocking buffer (and dilution) affect sample variation
 
-#AMA1, 100 ug/mL, print buffer 1
+#AMA1, 100 ug/mL, 
 colnames(AHHHH.df[11])
 fullmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer 
     + block_dilution + print_buffer + (1|sample), 
     REML = FALSE, data = AHHHH.df)
 summary(fullmodel)
+r.squaredGLMM(fullmodel)
 
 #plot residuals - they look good, not heteroskedastic and data looks linear
 plot(fitted(fullmodel),residuals(fullmodel))
@@ -295,6 +299,7 @@ intmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type * blocking_buffer
 summary(intmodel)
 plot(fitted(intmodel),residuals(intmodel))
 hist(residuals(intmodel))
+r.squaredGLMM(intmodel)
 
 write.csv(tidy(intmodel), file = "AMA1.100.LMERTidyINT.csv")
 write.csv(augment(intmodel), file = "AMA1.100.LMERAugINT.csv")
