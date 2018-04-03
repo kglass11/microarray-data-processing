@@ -321,15 +321,20 @@ graphics.off()
 #get letters for all pairwise comparisons, interaction model
 emm.intmodel <- emmeans(intmodel, ~ print_buffer | slide_type | blocking_buffer | block_dilution)
 
-#this did not work! it ran for over an hour and didn't finish
-pairwiseletters <- cld.emmGrid(emm.intmodel, by = NULL, Letters = LETTERS, sort = TRUE, reversed = TRUE, details = TRUE)
-
-#test all interactions - we are interested in interactions - this isn't working
-testInteractions(fullmodel)
-testInteractions(intmodel)
-#Still need to do all pairwise comparisons!!! 
+#this took several hours (>4) to run, and eventually finished. there are too many 
+#combinations (480 pairwise), but it worked!!! 
+#the contrast function used by cld function automatically uses Tukey adjustment
+#for multiple comparisons
+pairwiseletters <- cld(emm.intmodel, by = NULL, Letters = LETTERS, sort = TRUE, reversed = TRUE, details = TRUE)
+#save the results to a file. 
+write.csv(as.data.frame(pairwiseletters$emmeans), file = "OptimizationALLPairwiseEmmeans.csv")
+write.csv(as.data.frame(pairwiseletters$comparisons), file = "OptimizationALLPairwiseComparisons.csv")
+#save the workspace
+save.image("OptimizationAfterPairwise.RData")
 
 #heatmap of all the data - this looks terrible and still has unwanted columns
+#want a heatmap of all of the data, with antigen name and dilution on the top (x)
+#and the combo on the side. Sorted by highest total intensity (sum of the rows)
 data <- AHHHH.df[,sapply(AHHHH.df, is.numeric)]
 heatmap(as.matrix(data))
 
