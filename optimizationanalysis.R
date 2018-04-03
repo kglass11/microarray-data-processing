@@ -266,6 +266,34 @@ AHHHH.df$sample[c(grep("Swazi", AHHHH.df$sample_id))] <- "Swazi"
 newnames <- make.names(colnames(AHHHH.df))
 colnames(AHHHH.df) <- newnames
 
+#####Plotting#######
+
+#heatmap of all the data - this looks terrible and still has unwanted columns
+#want a heatmap of all of the data, with antigen name and dilution on the top (x)
+#and the combo on the side. Sorted by highest total intensity (sum of the rows)
+data <- AHHHH.df[,sapply(AHHHH.df, is.numeric)]
+
+heatmap(as.matrix(data))
+
+#heatmap with ggplot2 - not done yet
+ggplot(AHHHH.df, aes(slide_type, blocking_buffer, block_dilution)) +
+  geom_tile(aes(fill = AHHHH.df[11]), color = "white") +
+  scale_fill_gradient(low = "red", high = "steelblue") +
+  ylab("List of genes ") +
+  xlab("List of patients") +
+  theme(legend.title = element_text(size = 9),
+        legend.text = element_text(size = 9),
+        plot.title = element_text(size=9),
+        axis.title=element_text(size=9,face="bold"),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(fill = "Normalized Log2(MFI)")
+
+#hierarchical clustering - this isn't working
+clusters <- hclust(dist(AHHHH.df[11]), na.rm = TRUE)
+plot(clusters)
+
+######### Linear Mixed Effects Models ########
+
 #once the data is formatted right, do linear mixed model for each antigen
 #fixed effects are: slide_type, print_buffer, blocking_buffer, block_dilution
 #random effects are: sample; using random slope model where print buffer and blocking buffer (and dilution) affect sample variation
@@ -337,12 +365,65 @@ write.csv(as.data.frame(pairwiseletters$comparisons), file = "OptimizationALLPai
 #save the workspace
 save.image("OptimizationAfterPairwise.RData")
 
-#heatmap of all the data - this looks terrible and still has unwanted columns
-#want a heatmap of all of the data, with antigen name and dilution on the top (x)
-#and the combo on the side. Sorted by highest total intensity (sum of the rows)
-data <- AHHHH.df[,sapply(AHHHH.df, is.numeric)]
-heatmap(as.matrix(data))
+#MSP1-19, 100 ug/mL, 
+colnames(AHHHH.df[17])
+fullmodel <- lmer(X19_1.PfMSP1.19.100ug.ml_1 ~ slide_type + blocking_buffer 
+                  + block_dilution + print_buffer + (1|sample), 
+                  REML = FALSE, data = AHHHH.df)
+summary(fullmodel)
+r.squaredGLMM(fullmodel)
 
-#hierarchical clustering - this isn't working
-clusters <- hclust(dist(AHHHH.df[11]), na.rm = TRUE)
-plot(clusters)
+#plot residuals - they look mostly good, some heteroskedasticity though and data looks linear
+plot(fitted(fullmodel),residuals(fullmodel))
+#check normality - looks good
+hist(residuals(fullmodel))
+
+#prepare a better organized summary of the model and export to a file.
+#summary can only be written to a text file, and doesn't keep columns organized
+write.csv(tidy(fullmodel), file = "MSP1-19.100.LMERTidy.csv")
+write.csv(augment(fullmodel), file = "MSP1-19.100.LMERAug.csv")
+
+#test for main effects and interactions with Likelihood Ratio Test?
+intmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type * blocking_buffer 
+                 * block_dilution * print_buffer + (1|sample), 
+                 REML = FALSE, data = AHHHH.df)
+summary(intmodel)
+plot(fitted(intmodel),residuals(intmodel))
+hist(residuals(intmodel))
+r.squaredGLMM(intmodel)
+
+write.csv(tidy(intmodel), file = "AMA1.100.LMERTidyINT.csv")
+write.csv(augment(intmodel), file = "AMA1.100.LMERAugINT.csv")
+
+anova(fullmodel, intmodel)
+
+anova(intmodel)
+
+#get significance and do pairwise comparisons using emmeans
+#default adjustment for multiple comparisons is Tukey
+#main effects first, however we are not interested in main effects :(
+emmeans(fullmodel, pairwise ~ print_buffer)
+emmeans(fullmodel, pairwise ~ slide_type)
+emmeans(fullmodel, pairwise ~ blocking_buffer)
+emmeans(fullmodel, pairwise ~ block_dilution)
+
+#plot the data
+png(filename = "AMA1.100.emmip.tif", width = 8, height = 5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+emmip(intmodel, print_buffer ~ block_dilution | blocking_buffer | slide_type) + element_text(size=8)
+
+graphics.off()
+
+#get letters for all pairwise comparisons, interaction model
+emm.intmodel <- emmeans(intmodel, ~ print_buffer | slide_type | blocking_buffer | block_dilution)
+
+#this took several hours (>4) to run, and eventually finished. there are too many 
+#combinations (480 pairwise), but it worked!!! 
+#the contrast function used by cld function automatically uses Tukey adjustment
+#for multiple comparisons
+pairwiseletters <- cld(emm.intmodel, by = NULL, Letters = LETTERS, sort = TRUE, reversed = TRUE, details = TRUE)
+#save the results to a file. 
+write.csv(as.data.frame(pairwiseletters$emmeans), file = "OptimizationALLPairwiseEmmeans.csv")
+write.csv(as.data.frame(pairwiseletters$comparisons), file = "OptimizationALLPairwiseComparisons.csv")
+#save the workspace
+save.image("OptimizationAfterPairwise.RData")
