@@ -384,7 +384,7 @@ write.csv(tidy(fullmodel), file = "MSP1-19.100.LMERTidy.csv")
 write.csv(augment(fullmodel), file = "MSP1-19.100.LMERAug.csv")
 
 #test for main effects and interactions with Likelihood Ratio Test?
-intmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type * blocking_buffer 
+intmodel <- lmer(X19_1.PfMSP1.19.100ug.ml_1 ~ slide_type * blocking_buffer 
                  * block_dilution * print_buffer + (1|sample), 
                  REML = FALSE, data = AHHHH.df)
 summary(intmodel)
@@ -392,8 +392,8 @@ plot(fitted(intmodel),residuals(intmodel))
 hist(residuals(intmodel))
 r.squaredGLMM(intmodel)
 
-write.csv(tidy(intmodel), file = "AMA1.100.LMERTidyINT.csv")
-write.csv(augment(intmodel), file = "AMA1.100.LMERAugINT.csv")
+write.csv(tidy(intmodel), file = "MSP1.19.100.LMERTidyINT.csv")
+write.csv(augment(intmodel), file = "MSP1.19.100.LMERAugINT.csv")
 
 anova(fullmodel, intmodel)
 
@@ -408,9 +408,9 @@ emmeans(fullmodel, pairwise ~ blocking_buffer)
 emmeans(fullmodel, pairwise ~ block_dilution)
 
 #plot the data
-png(filename = "AMA1.100.emmip.tif", width = 8, height = 5, units = "in", res = 1200)
+png(filename = "MSP1-19.100.emmip.tif", width = 8, height = 5, units = "in", res = 1200)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
-emmip(intmodel, print_buffer ~ block_dilution | blocking_buffer | slide_type) + element_text(size=8)
+emmip(intmodel, print_buffer ~ block_dilution | blocking_buffer | slide_type)
 
 graphics.off()
 
@@ -423,7 +423,25 @@ emm.intmodel <- emmeans(intmodel, ~ print_buffer | slide_type | blocking_buffer 
 #for multiple comparisons
 pairwiseletters <- cld(emm.intmodel, by = NULL, Letters = LETTERS, sort = TRUE, reversed = TRUE, details = TRUE)
 #save the results to a file. 
-write.csv(as.data.frame(pairwiseletters$emmeans), file = "OptimizationALLPairwiseEmmeans.csv")
-write.csv(as.data.frame(pairwiseletters$comparisons), file = "OptimizationALLPairwiseComparisons.csv")
+write.csv(as.data.frame(pairwiseletters$emmeans), file = "MSP1-19.100.ALLPairwiseEmmeans.csv")
+write.csv(as.data.frame(pairwiseletters$comparisons), file = "MSP1-19.100.ALLPairwiseComparisons.csv")
+#above, forgot to change the name of pairwiseletters to be antigen specific!
+#so this pairwise overwrote the previous one for AMA1
+
 #save the workspace
-save.image("OptimizationAfterPairwise.RData")
+save.image("OptimizationAfterPairwiseMSP1-19.RData")
+
+######### Plotting the data from the successful combos in pairwiseletters #######
+
+#import the data which I decided was good in excel
+AMA1.100.best <- read.csv("AMA1.100.BEST.csv")
+MSP1.19.100.best <- read.csv("MSP1-19.100.BEST.csv")
+
+#merge with the AHHHH.df to get original values for all three samples
+AMA1.100.exp <- merge(AMA1.100.best, AHHHH.df, all.x = TRUE, sort = FALSE)
+MSP1.19.100.exp <- merge(MSP1.19.100.best, AHHHH.df, all.x = TRUE, sort = FALSE)
+
+#Plot every point for each combo, different colors for each sample,
+#keep same order that we have in the excel file (sorted highest to lowest EMM)
+
+
