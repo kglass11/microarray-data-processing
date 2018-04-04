@@ -437,11 +437,59 @@ save.image("OptimizationAfterPairwiseMSP1-19.RData")
 AMA1.100.best <- read.csv("AMA1.100.BEST.csv")
 MSP1.19.100.best <- read.csv("MSP1-19.100.BEST.csv")
 
+#add rowid as a column to get a number for each combination
+AMA1.100.best <- tibble::rowid_to_column(AMA1.100.best)
+MSP1.19.100.best <- tibble::rowid_to_column(MSP1.19.100.best)
+
 #merge with the AHHHH.df to get original values for all three samples
+#some are NA! I didn't realize that samples with NA would be included
 AMA1.100.exp <- merge(AMA1.100.best, AHHHH.df, all.x = TRUE, sort = FALSE)
 MSP1.19.100.exp <- merge(MSP1.19.100.best, AHHHH.df, all.x = TRUE, sort = FALSE)
 
-#Plot every point for each combo, different colors for each sample,
 #keep same order that we have in the excel file (sorted highest to lowest EMM)
+#maybe try to use rownumber as factor, sorted by EMM? and then put in better labels later?
+rowidorder <- c(as.character(AMA1.100.exp$rowid))
+AMA1.100.exp$rowid <- factor(AMA1.100.exp$rowid, levels = rev(unique(rowidorder)))
 
+rowidorderMSP <- c(as.character(MSP1.19.100.exp$rowid))
+MSP1.19.100.exp$rowid <- factor(MSP1.19.100.exp$rowid, levels = rev(unique(rowidorderMSP)))
 
+#COORD_FLIP!!! Plot every point for each combo, different colors for each sample, 
+#AMA1 100
+png(filename = paste0("AMA1.100.best.dot.tif"), width = 3, height = 8, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(AMA1.100.exp, aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1, color = sample)) + theme_bw() + geom_point() + coord_flip() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text( vjust = 1, hjust=1, size = 10))
+
+graphics.off()
+
+#MSP1.19 100
+png(filename = paste0("MSP1_19.100.best.dot.tif"), width = 3, height = 8, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(MSP1.19.100.exp, aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1, color = sample)) + theme_bw() + geom_point() + coord_flip() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text( vjust = 1, hjust=1, size = 10))
+
+graphics.off()
+
+#Same plots - NOT COORD_FLIP to put on PPT slides 
+#AMA1 100
+AMA1.100.exp$rowid <- factor(AMA1.100.exp$rowid, levels = unique(rowidorder))
+
+png(filename = paste0("H.AMA1.100.best.dot.tif"), width = 8, height = 3, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(AMA1.100.exp, aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1, color = sample)) + theme_bw() + geom_point() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text( vjust = 1, size = 10))
+
+graphics.off()
+
+#MSP1.19 100
+MSP1.19.100.exp$rowid <- factor(MSP1.19.100.exp$rowid, levels = unique(rowidorderMSP))
+
+png(filename = paste0("H.MSP1_19.100.best.dot.tif"), width = 8, height = 3, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(MSP1.19.100.exp, aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1, color = sample)) + theme_bw() + geom_point() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text(vjust = 1, size = 10))
+
+graphics.off()
+
+#Which combinations are present in multiple antigens? 
