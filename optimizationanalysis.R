@@ -493,3 +493,8 @@ ggplot(MSP1.19.100.exp, aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1, color = s
 graphics.off()
 
 #Which combinations are present in multiple antigens? 
+AMA1.100.Combo <- AMA1.100.best[,2:5]
+MSP1.19.100.Combo <- MSP1.19.100.best[,2:5]
+
+ComboMult <- merge(AMA1.100.Combo, MSP1.19.100.Combo, sort = FALSE)
+#12 combos are present in AMA1.100 and MSP1.19.100 best lists
