@@ -325,8 +325,18 @@ intmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type * blocking_buffer
                     * block_dilution * print_buffer + (1|sample), 
                     REML = FALSE, data = AHHHH.df)
 summary(intmodel)
-plot(fitted(intmodel),residuals(intmodel))
-hist(residuals(intmodel))
+
+#Plot residuals
+png(filename = "AMA1.100.Residuals.tif", width = 8, height = 4.5, units = "in", res = 1200)
+par(mfrow=c(1,2), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+plot(fitted(intmodel),residuals(intmodel),  pch='*', col = "blue", xlab = "Fitted", ylab = "Residuals")
+abline(a=0, b=0)
+hist(residuals(intmodel), xlab = "Residuals")
+
+graphics.off()
+
+
 r.squaredGLMM(intmodel)
 
 write.csv(tidy(intmodel), file = "AMA1.100.LMERTidyINT.csv")
@@ -388,8 +398,17 @@ intmodel <- lmer(X19_1.PfMSP1.19.100ug.ml_1 ~ slide_type * blocking_buffer
                  * block_dilution * print_buffer + (1|sample), 
                  REML = FALSE, data = AHHHH.df)
 summary(intmodel)
-plot(fitted(intmodel),residuals(intmodel))
-hist(residuals(intmodel))
+
+#Plot residuals 
+png(filename = "MSP1.19.100.Residuals.tif", width = 7.8, height = 4.5, units = "in", res = 1200)
+par(mfrow=c(1,2), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+plot(fitted(intmodel),residuals(intmodel),  pch='*', col = "blue", xlab = "Fitted", ylab = "Residuals")
+abline(a=0, b=0)
+hist(residuals(intmodel), xlab = "Residuals")
+
+graphics.off()
+
 r.squaredGLMM(intmodel)
 
 write.csv(tidy(intmodel), file = "MSP1.19.100.LMERTidyINT.csv")
@@ -430,6 +449,69 @@ write.csv(as.data.frame(pairwiseletters$comparisons), file = "MSP1-19.100.ALLPai
 
 #save the workspace
 save.image("OptimizationAfterPairwiseMSP1-19.RData")
+
+#Hyp2, 100 ug/mL, 
+colnames(AHHHH.df[23])
+fullmodel <- lmer(X25_1.Hyp2.100ug.ml_1 ~ slide_type + blocking_buffer 
+                  + block_dilution + print_buffer + (1|sample), 
+                  REML = FALSE, data = AHHHH.df)
+summary(fullmodel)
+r.squaredGLMM(fullmodel)
+
+#plot residuals - they look mostly good, some heteroskedasticity though and data looks linear
+plot(fitted(fullmodel),residuals(fullmodel))
+#check normality - looks good
+hist(residuals(fullmodel))
+
+#prepare a better organized summary of the model and export to a file.
+#summary can only be written to a text file, and doesn't keep columns organized
+write.csv(tidy(fullmodel), file = "Hyp2.100.LMERTidy.csv")
+write.csv(augment(fullmodel), file = "Hyp2.100.LMERAug.csv")
+
+#test for main effects and interactions with Likelihood Ratio Test?
+intmodel <- lmer(X25_1.Hyp2.100ug.ml_1 ~ slide_type * blocking_buffer 
+                 * block_dilution * print_buffer + (1|sample), 
+                 REML = FALSE, data = AHHHH.df)
+summary(intmodel)
+
+#Plot residuals 
+png(filename = "Hyp2.Residuals.tif", width = 7.8, height = 4.5, units = "in", res = 1200)
+par(mfrow=c(1,2), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+plot(fitted(intmodel),residuals(intmodel),  pch='*', col = "blue", xlab = "Fitted", ylab = "Residuals")
+abline(a=0, b=0)
+hist(residuals(intmodel), xlab = "Residuals")
+
+graphics.off()
+
+r.squaredGLMM(intmodel)
+
+write.csv(tidy(intmodel), file = "Hyp2.100.LMERTidyINT.csv")
+write.csv(augment(intmodel), file = "Hyp2.100.LMERAugINT.csv")
+
+anova(fullmodel, intmodel)
+
+anova(intmodel)
+
+#plot the model data
+png(filename = "Hyp2.100.emmip.tif", width = 8, height = 5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+emmip(intmodel, print_buffer ~ block_dilution | blocking_buffer | slide_type)
+
+graphics.off()
+
+#get letters for all pairwise comparisons, interaction model
+emm.intmodel <- emmeans(intmodel, ~ print_buffer | slide_type | blocking_buffer | block_dilution)
+
+#this took several hours (>6.5) to run, and eventually finished. there are too many 
+#combinations (480 pairwise), but it worked!!! 
+#the contrast function used by cld function automatically uses Tukey adjustment
+#for multiple comparisons
+Hyp2pairwiseletters <- cld(emm.intmodel, by = NULL, Letters = LETTERS, sort = TRUE, reversed = TRUE, details = TRUE)
+#save the results to a file. 
+write.csv(as.data.frame(Hyp2pairwiseletters$emmeans), file = "Hyp2.100.ALLPairwiseEmmeans.csv")
+write.csv(as.data.frame(Hyp2pairwiseletters$comparisons), file = "Hyp2.100.ALLPairwiseComparisons.csv")
+
 
 ######### Plotting the data from the successful combos in pairwiseletters #######
 
