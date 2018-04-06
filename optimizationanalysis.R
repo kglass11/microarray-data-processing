@@ -122,7 +122,7 @@ for(k in 1:ncol(rep1.matrix)){
   for(j in 1:nrow(rep1.matrix)){
     if(is.na(rep1.matrix[j,k]) | is.na(rep2.matrix[j,k]) | rep1.matrix[j,k]<2 | rep2.matrix[j,k]<2){
       j+1
-    } else if (rep1.matrix[j,k] > (log2(1.5) + rep2.matrix[j,k]) | (rep2.matrix[j,k] > (log2(1.5) + rep1.matrix[j,k])) == TRUE) 
+    } else if (rep1.matrix[j,k] > (log2(2) + rep2.matrix[j,k]) | (rep2.matrix[j,k] > (log2(2) + rep1.matrix[j,k])) == TRUE) 
     {
       trans.norm.avg[j,k] <- NA
     }
@@ -135,6 +135,9 @@ sum(is.na(trans.norm.avg))/length(c(trans.norm.avg))
 sum(is.na(c(trans.norm.avg[above2])))/length(above2)
 #what about percent if still using 1.5 as the threshold? --> 9.81%
 #what about original formula(cutoff 0.2 and 1.5) --> 10.27% NA above 0.2
+
+# For now, going forward with Patrick's rule modified to threshold of 2 for application
+# and 2x as the rule (1 on log2)
   
 #subtract GST - subtract GST at the same dilution as the other antigen was diluted
 #need to deal with NAs this time
@@ -146,6 +149,23 @@ target.df <- merge(target_meta.df, t(trans.norm.avg), by.x = "Name", by.y = "row
 #Extract GST elements for all print buffers and concentrations
 GST <- c(grep("GST", target.df$Name))
 GST.df <- target.df[GST,]
+
+#Plot all GST data
+GSTval.df <- GST.df[,(ncol(GST.df) - ncol(t(trans.norm.avg))+1):ncol(GST.df)]
+row.names(GSTval.df) <- GST.df$Name
+
+GST_val <- c(as.matrix(GSTval.df))
+
+png(filename = paste0(study, "_GST_ALL.tif"), width = 4, height = 4, units = "in", res = 600)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+plot(GST_val, pch='*', col = "blue", ylim=c(0,max(GST_val,  na.rm = TRUE)*1.25), main = "All GST",
+     ylab="Normalized log2(MFI)", xlab="Sample (Array)")
+
+#print text on the plots for number of samples where GST and CD4 are above buffer
+mtext(paste("Total Samples with GST > 0:", round(sum(GSTval.df > 0, na.rm = TRUE), digits=2), 
+            "(", round(sum(GSTval.df > 0, na.rm = TRUE)/length(GST_val)*100, digits=2), "%)"), side=1, cex=0.8, line=0.5, outer=TRUE, xpd=NA, adj=0)
+
+graphics.off()
 
 #function for subtracting GST from a concentration and print buffer
 subtractGST <- function(concentration, print_buffer){
