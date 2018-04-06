@@ -278,6 +278,44 @@ for(i in 1:nrow(Neg)){
 return(x)
 }
 
+
+#Plot GST values for each sample
+CP3.GST <- CP3[,c(grep("GST", colnames(CP3)))]
+PRISM.GST <- PRISM[,c(grep("GST", colnames(PRISM)))]
+Swazi.GST <- Swazi[,c(grep("GST", colnames(Swazi)))]
+Neg.GST <- Neg[,c(grep("GST", colnames(Swazi)))]
+
+png(filename = paste0(study, "_GST_Sample.tif"), width = 7.5, height = 8, units = "in", res = 600)
+par(mfrow=c(2,2), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+boxplot(CP3.GST, pch='*', col = "light blue", ylim=c(0,7), main = "CP3 GST",
+     ylab="Normalized log2(MFI)", las=2, cex.axis = 0.5)
+
+boxplot(PRISM.GST, pch='*', col = "light blue", ylim=c(0,7), main = "PRISM GST",
+     ylab="Normalized log2(MFI)", las=2, cex.axis = 0.5)
+
+boxplot(Swazi.GST, pch='*', col = "light blue", ylim=c(0,7), main = "Swazi GST",
+     ylab="Normalized log2(MFI)",las=2, cex.axis = 0.5)
+
+boxplot(Neg.GST, pch='*', col = "light blue", ylim=c(0,7), main = "Neg GST",
+     ylab="Normalized log2(MFI)", las=2, cex.axis = 0.5)
+
+
+#print text on the plots for number of samples where GST and CD4 are above buffer
+mtext(paste("GST > 0: CP3 =", round(sum(CP3.GST > 0, na.rm = TRUE), digits=2), 
+    "(", round(sum(CP3.GST > 0, na.rm = TRUE)/length(CP3.GST)*100, digits=2), "%), PRISM = ",
+    round(sum(PRISM.GST > 0, na.rm = TRUE), digits=2), 
+    "(", round(sum(PRISM.GST > 0, na.rm = TRUE)/length(PRISM.GST)*100, digits=2), "%), Swazi =",
+    round(sum(Swazi.GST > 0, na.rm = TRUE), digits=2), 
+    "(", round(sum(Swazi.GST > 0, na.rm = TRUE)/length(Swazi.GST)*100, digits=2), "%), Neg = ",
+    round(sum(Neg.GST > 0, na.rm = TRUE), digits=2), 
+    "(", round(sum(Neg.GST > 0, na.rm = TRUE)/length(Neg.GST)*100, digits=2), "%)"), 
+    side=1, cex=0.8, line=2.5, outer=TRUE, xpd=NA, adj=0)
+
+
+graphics.off()
+
+
+
 #Now a negative value means the positive is less than the negative control
 #Do not set these values to 0
 CP3neg <- subtractNeg(CP3)
