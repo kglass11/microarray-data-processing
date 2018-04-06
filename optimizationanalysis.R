@@ -1,7 +1,7 @@
 #optimization data analysis 
 #KG
 
-setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation/")
+setwd("I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation")
 getwd()
 
 # install.packages("lme4")
@@ -78,6 +78,8 @@ for (i in 1:length(rep2.matrix))
   rownames(trans.norm.avg) = rownames(trans.norm.rep1)
   
   trans.norm.avg <- log2((2^rep1.matrix + 2^rep2.matrix)/2)
+  
+above.2 <- which(trans.norm.avg > 0.2)
 
 ### Check for deviant technical replicates, automatically exclude (set to NA)
 # Use Patrick's formula for ELISA to compare replicates within one array
@@ -94,6 +96,45 @@ for(k in 1:ncol(rep1.matrix)){
    }
  }
 remove(j,k)
+
+#adjusting Patrick's rule for this data: 
+#check how many NA values there are with above method
+sum(is.na(trans.norm.avg))/length(c(trans.norm.avg))
+#this is actually only 5.54% NA haha
+
+#try changing the rule to only apply to those less than 2
+for(k in 1:ncol(rep1.matrix)){
+  for(j in 1:nrow(rep1.matrix)){
+    if(is.na(rep1.matrix[j,k]) | is.na(rep2.matrix[j,k]) | rep1.matrix[j,k]<2 | rep2.matrix[j,k]<2){
+      j+1
+    } else if (rep1.matrix[j,k] > (log2(1.5) + rep2.matrix[j,k]) | (rep2.matrix[j,k] > (log2(1.5) + rep1.matrix[j,k])) == TRUE) 
+    {
+      trans.norm.avg[j,k] <- NA
+    }
+  }
+}
+remove(j,k)
+#check how many NA values there are with above method --> 3.16%
+sum(is.na(trans.norm.avg))/length(c(trans.norm.avg))
+
+#Changing to 2x instead of 1.5x as cutoff for difference between reps
+for(k in 1:ncol(rep1.matrix)){
+  for(j in 1:nrow(rep1.matrix)){
+    if(is.na(rep1.matrix[j,k]) | is.na(rep2.matrix[j,k]) | rep1.matrix[j,k]<2 | rep2.matrix[j,k]<2){
+      j+1
+    } else if (rep1.matrix[j,k] > (log2(1.5) + rep2.matrix[j,k]) | (rep2.matrix[j,k] > (log2(1.5) + rep1.matrix[j,k])) == TRUE) 
+    {
+      trans.norm.avg[j,k] <- NA
+    }
+  }
+}
+remove(j,k)
+#check how many NA values there are with above method --> 3.16%
+sum(is.na(trans.norm.avg))/length(c(trans.norm.avg))
+#what percent of values above the threshold (2) are now NA? --> 3.49%
+sum(is.na(c(trans.norm.avg[above2])))/length(above2)
+#what about percent if still using 1.5 as the threshold? --> 9.81%
+#what about original formula(cutoff 0.2 and 1.5) --> 10.27% NA above 0.2
   
 #subtract GST - subtract GST at the same dilution as the other antigen was diluted
 #need to deal with NAs this time
