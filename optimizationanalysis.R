@@ -401,9 +401,19 @@ plot(clusters)
 colnames(AHHHH.df[11])
 fullmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer 
     + block_dilution + print_buffer + (1|sample), 
-    REML = FALSE, data = AHHHH.df)
+    REML = TRUE, data = AHHHH.df)
 summary(fullmodel)
 r.squaredGLMM(fullmodel)
+
+model_PB <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer 
+               + block_dilution + (1|sample), 
+               REML = TRUE, data = AHHHH.df)
+
+summary(model_PB)
+r.squaredGLMM(model_PB)
+
+#compare these with likelihood ratio test
+anova(model_PB, fullmodel)
 
 #plot residuals - they look good, not heteroskedastic and data looks linear
 plot(fitted(fullmodel),residuals(fullmodel))
