@@ -405,6 +405,7 @@ fullmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer
 summary(fullmodel)
 r.squaredGLMM(fullmodel)
 
+#look at the impact of each individual factor by removing 1 factor at a time
 model_PB <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer 
                + block_dilution + (1|sample), 
                REML = TRUE, data = AHHHH.df)
@@ -412,9 +413,27 @@ model_PB <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer
 summary(model_PB)
 r.squaredGLMM(model_PB)
 
-#compare these with likelihood ratio test
-anova(model_PB, fullmodel)
-
+  #compare these with likelihood ratio test
+  anova(model_PB, fullmodel)
+  
+  
+#look at the interactions between factors 
+  int2model <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer + block_dilution + print_buffer +
+                      (slide_type + blocking_buffer + block_dilution + print_buffer)^2 +
+                      (1|sample), REML = FALSE, data = AHHHH.df)
+  summary(int2model)
+  r.squaredGLMM(int2model)
+  
+  anova(int2model)
+  
+  #compare these with likelihood ratio test
+  anova(fullmodel, int2model)
+  
+  #plot residuals for int2model
+  plot(fitted(int2model),residuals(int2model))
+  #check normality - looks good
+  hist(residuals(int2model))
+  
 #plot residuals - they look good, not heteroskedastic and data looks linear
 plot(fitted(fullmodel),residuals(fullmodel))
 #check normality - looks good
