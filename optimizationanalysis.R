@@ -1,7 +1,8 @@
 #optimization data analysis 
 #KG
 
-setwd("I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation")
+#I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation
+setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation")
 getwd()
 
 # install.packages("lme4")
@@ -79,43 +80,43 @@ for (i in 1:length(rep2.matrix))
   
   trans.norm.avg <- log2((2^rep1.matrix + 2^rep2.matrix)/2)
   
-above.2 <- which(trans.norm.avg > 0.2)
+above2 <- which(trans.norm.avg > 2)
 
 ### Check for deviant technical replicates, automatically exclude (set to NA)
 # Use Patrick's formula for ELISA to compare replicates within one array
 # if rep1 or rep2 is more than 1.5 times rep2 or rep1, respectively, exclude that pair
 # Added: if either rep1 or rep2 is less than 0.2, then don't apply the rule
-for(k in 1:ncol(rep1.matrix)){
-   for(j in 1:nrow(rep1.matrix)){
-     if(is.na(rep1.matrix[j,k]) | is.na(rep2.matrix[j,k]) | rep1.matrix[j,k]<0.2 | rep2.matrix[j,k]<0.2){
-       j+1
-     } else if (rep1.matrix[j,k] > (log2(1.5) + rep2.matrix[j,k]) | (rep2.matrix[j,k] > (log2(1.5) + rep1.matrix[j,k])) == TRUE) 
-     {
-       trans.norm.avg[j,k] <- NA
-     }
-   }
- }
-remove(j,k)
+# for(k in 1:ncol(rep1.matrix)){
+#    for(j in 1:nrow(rep1.matrix)){
+#      if(is.na(rep1.matrix[j,k]) | is.na(rep2.matrix[j,k]) | rep1.matrix[j,k]<0.2 | rep2.matrix[j,k]<0.2){
+#        j+1
+#      } else if (rep1.matrix[j,k] > (log2(1.5) + rep2.matrix[j,k]) | (rep2.matrix[j,k] > (log2(1.5) + rep1.matrix[j,k])) == TRUE) 
+#      {
+#        trans.norm.avg[j,k] <- NA
+#      }
+#    }
+#  }
+# remove(j,k)
 
 #adjusting Patrick's rule for this data: 
 #check how many NA values there are with above method
-sum(is.na(trans.norm.avg))/length(c(trans.norm.avg))
+# sum(is.na(trans.norm.avg))/length(c(trans.norm.avg))
 #this is actually only 5.54% NA haha
 
 #try changing the rule to only apply to those less than 2
-for(k in 1:ncol(rep1.matrix)){
-  for(j in 1:nrow(rep1.matrix)){
-    if(is.na(rep1.matrix[j,k]) | is.na(rep2.matrix[j,k]) | rep1.matrix[j,k]<2 | rep2.matrix[j,k]<2){
-      j+1
-    } else if (rep1.matrix[j,k] > (log2(1.5) + rep2.matrix[j,k]) | (rep2.matrix[j,k] > (log2(1.5) + rep1.matrix[j,k])) == TRUE) 
-    {
-      trans.norm.avg[j,k] <- NA
-    }
-  }
-}
-remove(j,k)
-#check how many NA values there are with above method --> 3.16%
-sum(is.na(trans.norm.avg))/length(c(trans.norm.avg))
+# for(k in 1:ncol(rep1.matrix)){
+#   for(j in 1:nrow(rep1.matrix)){
+#     if(is.na(rep1.matrix[j,k]) | is.na(rep2.matrix[j,k]) | rep1.matrix[j,k]<2 | rep2.matrix[j,k]<2){
+#       j+1
+#     } else if (rep1.matrix[j,k] > (log2(1.5) + rep2.matrix[j,k]) | (rep2.matrix[j,k] > (log2(1.5) + rep1.matrix[j,k])) == TRUE) 
+#     {
+#       trans.norm.avg[j,k] <- NA
+#     }
+#   }
+# }
+# remove(j,k)
+# #check how many NA values there are with above method --> 3.16%
+# sum(is.na(trans.norm.avg))/length(c(trans.norm.avg))
 
 #Changing to 2x instead of 1.5x as cutoff for difference between reps
 for(k in 1:ncol(rep1.matrix)){
@@ -129,7 +130,7 @@ for(k in 1:ncol(rep1.matrix)){
   }
 }
 remove(j,k)
-#check how many NA values there are with above method --> 3.16%
+#check how many NA values there are with above method --> 2.13%
 sum(is.na(trans.norm.avg))/length(c(trans.norm.avg))
 #what percent of values above the threshold (2) are now NA? --> 3.49%
 sum(is.na(c(trans.norm.avg[above2])))/length(above2)
@@ -159,7 +160,7 @@ GST_val <- c(as.matrix(GSTval.df))
 png(filename = paste0(study, "_GST_ALL.tif"), width = 4, height = 4, units = "in", res = 600)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 plot(GST_val, pch='*', col = "blue", ylim=c(0,max(GST_val,  na.rm = TRUE)*1.25), main = "All GST",
-     ylab="Normalized log2(MFI)", xlab="Sample (Array)")
+     ylab="Normalized log2(MFI)", xlab="GST averaged duplicates")
 
 #print text on the plots for number of samples where GST and CD4 are above buffer
 mtext(paste("Total Samples with GST > 0:", round(sum(GSTval.df > 0, na.rm = TRUE), digits=2), 
@@ -255,7 +256,7 @@ optimization.df <- rbind(no_tags.df, GST0.10B1.df, GST0.10B2.df, GST0.10B3.df,
     GST6.25B1.df, GST6.25B2.df, GST6.25B3.df)
 #Check that dimensions are the same as before
 dim(optimization.df) == dim(t(trans.norm.avg))
-View(optimization.df)
+# View(optimization.df)
 
 # ratio of positive to negative - subtract the negative log2 value for each condition
 optimization.df <- t(optimization.df)
@@ -285,8 +286,8 @@ PRISM.GST <- PRISM[,c(grep("GST", colnames(PRISM)))]
 Swazi.GST <- Swazi[,c(grep("GST", colnames(Swazi)))]
 Neg.GST <- Neg[,c(grep("GST", colnames(Swazi)))]
 
-png(filename = paste0(study, "_GST_Sample.tif"), width = 7.5, height = 8, units = "in", res = 600)
-par(mfrow=c(2,2), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+png(filename = paste0(study, "_GST_Sample.tif"), width = 7.5, height = 9, units = "in", res = 600)
+par(mfrow=c(2,2), oma=c(4,1,1,1),mar=c(6.1,4.1,1.1,1.1))
 boxplot(CP3.GST, pch='*', col = "light blue", ylim=c(0,7), main = "CP3 GST",
      ylab="Normalized log2(MFI)", las=2, cex.axis = 0.5)
 
@@ -299,7 +300,6 @@ boxplot(Swazi.GST, pch='*', col = "light blue", ylim=c(0,7), main = "Swazi GST",
 boxplot(Neg.GST, pch='*', col = "light blue", ylim=c(0,7), main = "Neg GST",
      ylab="Normalized log2(MFI)", las=2, cex.axis = 0.5)
 
-
 #print text on the plots for number of samples where GST and CD4 are above buffer
 mtext(paste("GST > 0: CP3 =", round(sum(CP3.GST > 0, na.rm = TRUE), digits=2), 
     "(", round(sum(CP3.GST > 0, na.rm = TRUE)/length(CP3.GST)*100, digits=2), "%), PRISM = ",
@@ -309,12 +309,9 @@ mtext(paste("GST > 0: CP3 =", round(sum(CP3.GST > 0, na.rm = TRUE), digits=2),
     "(", round(sum(Swazi.GST > 0, na.rm = TRUE)/length(Swazi.GST)*100, digits=2), "%), Neg = ",
     round(sum(Neg.GST > 0, na.rm = TRUE), digits=2), 
     "(", round(sum(Neg.GST > 0, na.rm = TRUE)/length(Neg.GST)*100, digits=2), "%)"), 
-    side=1, cex=0.8, line=2.5, outer=TRUE, xpd=NA, adj=0)
-
+    side=1, cex=0.8, line=1.5, outer=TRUE, xpd=NA, adj=0)
 
 graphics.off()
-
-
 
 #Now a negative value means the positive is less than the negative control
 #Do not set these values to 0
@@ -366,6 +363,24 @@ newnames <- make.names(colnames(AHHHH.df))
 colnames(AHHHH.df) <- newnames
 
 #####Plotting#######
+
+#violin, scatter, or boxplots of the data
+
+#all samples and all variables - AMA1 - Scatter plot
+png(filename = paste0(study, "AMA1.100_facet_grid.tif"), width = 8, height = 5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(AHHHH.df, aes(x=slide_type, y=X13_1.PfAMA1.100ug.ml_1, color = sample, shape = blocking_buffer)) + geom_point(size = 1)  + theme_bw() + theme(text = element_text(size=9), axis.text.x = element_text(angle = 90)) + facet_grid(print_buffer ~ block_dilution )
+
+graphics.off()
+
+#violin plot of slide type and print buffer, everything else combined 
+png(filename = paste0(study, "AMA1.100_ST_PB.tif"), width = 8, height = 5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(AHHHH.df, aes(x=slide_type, y=X13_1.PfAMA1.100ug.ml_1, color = print_buffer, fill = print_buffer)) + geom_violin()  + theme_bw() + theme(text = element_text(size=9), axis.text.x = element_text(angle = 90), legend.position="top")
+
+graphics.off()
 
 #heatmap of all the data - this looks terrible and still has unwanted columns
 #want a heatmap of all of the data, with antigen name and dilution on the top (x)
