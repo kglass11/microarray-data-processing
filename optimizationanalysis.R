@@ -465,7 +465,7 @@ model_PB <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer
   #compare these with likelihood ratio test
   anova(model_BD, fullmodel)
   
-#look at the interactions between factors 
+#look at the 2 way interactions between factors 
   int2model <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer + block_dilution + print_buffer +
                       (slide_type + blocking_buffer + block_dilution + print_buffer)^2 +
                       (1|sample), REML = FALSE, data = AHHHH.df)
@@ -477,15 +477,62 @@ model_PB <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer
   #compare these with likelihood ratio test
   anova(fullmodel, int2model)
   
-  #plot residuals for int2model
-  plot(fitted(int2model),residuals(int2model))
-  #check normality - looks good
-  hist(residuals(int2model))
+  #Plot residuals - int2model
+  png(filename = "AMA1.100.Int2.Res.tif", width = 8, height = 4.5, units = "in", res = 1200)
+  par(mfrow=c(1,2), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
-#plot residuals - they look good, not heteroskedastic and data looks linear
-plot(fitted(fullmodel),residuals(fullmodel))
-#check normality - looks good
-hist(residuals(fullmodel))
+  plot(fitted(int2model),residuals(int2model),  pch='*', col = "blue", xlab = "Fitted", ylab = "Residuals")
+  abline(a=0, b=0)
+  hist(residuals(int2model), xlab = "Residuals")
+  
+  graphics.off()
+  
+#look at 3 way interactions between factors
+  int3model <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer + block_dilution + print_buffer +
+                      (slide_type + blocking_buffer + block_dilution + print_buffer)^3 +
+                      (1|sample), REML = FALSE, data = AHHHH.df)
+  summary(int3model)
+  r.squaredGLMM(int3model)
+  
+  anova(int3model)
+  
+  #compare these with likelihood ratio test
+  anova(fullmodel, int3model)
+  anova(int2model, int3model)
+  
+  #Plot residuals - int3model
+  png(filename = "AMA1.100.Int3.Res.tif", width = 8, height = 4.5, units = "in", res = 1200)
+  par(mfrow=c(1,2), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  plot(fitted(int3model),residuals(int3model),  pch='*', col = "blue", xlab = "Fitted", ylab = "Residuals")
+  abline(a=0, b=0)
+  hist(residuals(int3model), xlab = "Residuals")
+  
+  graphics.off()
+  
+#look at 4 way interactions between factors
+  int4model <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer + block_dilution + print_buffer +
+                      (slide_type + blocking_buffer + block_dilution + print_buffer)^4 +
+                      (1|sample), REML = FALSE, data = AHHHH.df)
+  summary(int4model)
+  r.squaredGLMM(int4model)
+  
+  anova(int4model)
+  
+  #compare these with likelihood ratio test
+  anova(fullmodel, int4model)
+  anova(int2model, int4model)
+  anova(int3model, int4model)
+  
+  #Plot residuals - int4model
+  png(filename = "AMA1.100.Int4.Res.tif", width = 8, height = 4.5, units = "in", res = 1200)
+  par(mfrow=c(1,2), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  plot(fitted(int4model),residuals(int4model),  pch='*', col = "blue", xlab = "Fitted", ylab = "Residuals")
+  abline(a=0, b=0)
+  hist(residuals(int4model), xlab = "Residuals")
+  
+  graphics.off()
 
 #prepare a better organized summary of the model and export to a file.
 #summary can only be written to a text file, and doesn't keep columns organized
