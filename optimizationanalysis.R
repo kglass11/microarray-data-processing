@@ -420,26 +420,50 @@ graphics.off()
 #save workspace image to start from this point
 save.image(file = "OptimizationLMMready.RData")
 
-
-#AMA1, 100 ug/mL, 
+#AMA1, 100 ug/mL, - change REML to FALSE for anova
 colnames(AHHHH.df[11])
 fullmodel <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer 
     + block_dilution + print_buffer + (1|sample), 
-    REML = TRUE, data = AHHHH.df)
+    REML = FALSE, data = AHHHH.df)
 summary(fullmodel)
 r.squaredGLMM(fullmodel)
 
 #look at the impact of each individual factor by removing 1 factor at a time
+#print buffer
 model_PB <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer 
                + block_dilution + (1|sample), 
-               REML = TRUE, data = AHHHH.df)
-
-summary(model_PB)
-r.squaredGLMM(model_PB)
-
+               REML = FALSE, data = AHHHH.df)
+  summary(model_PB)
+  r.squaredGLMM(model_PB)
   #compare these with likelihood ratio test
   anova(model_PB, fullmodel)
   
+#slide type 
+  model_ST <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ print_buffer + blocking_buffer 
+                   + block_dilution + (1|sample), 
+                   REML = FALSE, data = AHHHH.df)
+  summary(model_ST)
+  r.squaredGLMM(model_ST)
+  #compare these with likelihood ratio test
+  anova(model_ST, fullmodel)  
+  
+#blocking buffer
+  model_BB <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ print_buffer + slide_type 
+                   + block_dilution + (1|sample), 
+                   REML = FALSE, data = AHHHH.df)
+  summary(model_BB)
+  r.squaredGLMM(model_BB)
+  #compare these with likelihood ratio test
+  anova(model_BB, fullmodel)
+  
+#block dilution
+  model_BD <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ print_buffer + slide_type 
+                  + blocking_buffer + (1|sample), 
+                   REML = FALSE, data = AHHHH.df)
+  summary(model_BD)
+  r.squaredGLMM(model_BD)
+  #compare these with likelihood ratio test
+  anova(model_BD, fullmodel)
   
 #look at the interactions between factors 
   int2model <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer + block_dilution + print_buffer +
