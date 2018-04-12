@@ -1,8 +1,9 @@
 #optimization data analysis 
 #KG
 
-#I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation
-setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation")
+#
+#"/Users/Katie/Desktop/R files from work/270717 Optimisation"
+setwd("I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation")
 getwd()
 
 # install.packages("lme4")
@@ -19,7 +20,6 @@ getwd()
 library(broom)
 library(lme4)
 library(multcomp)
-library(lsmeans)
 library(emmeans)
 library(pbkrtest)
 library(phia)
@@ -39,8 +39,13 @@ library(gcookbook)
 library(dplyr)
 library(reshape2)
 
-# load("ATT93447.RData")
-load("OptimizationAfterPairwise.RData")
+load("OptimizationLMMready.RData")
+
+#this is the file from Tate's data processing
+#load("ATT93447.RData")
+
+#this is with older method of patrick's rule and original LMM
+#load("OptimizationAfterPairwise.RData")
 
 #import target metadata file
 target_file <- "Opto Target Metadata.csv" 
@@ -385,32 +390,36 @@ graphics.off()
 #heatmap of all the data - this looks terrible and still has unwanted columns
 #want a heatmap of all of the data, with antigen name and dilution on the top (x)
 #and the combo on the side. Sorted by highest total intensity (sum of the rows)
-data <- AHHHH.df[,sapply(AHHHH.df, is.numeric)]
-
-heatmap(as.matrix(data))
-
-#heatmap with ggplot2 - not done yet
-ggplot(AHHHH.df, aes(slide_type, blocking_buffer, block_dilution)) +
-  geom_tile(aes(fill = AHHHH.df[11]), color = "white") +
-  scale_fill_gradient(low = "red", high = "steelblue") +
-  ylab("List of genes ") +
-  xlab("List of patients") +
-  theme(legend.title = element_text(size = 9),
-        legend.text = element_text(size = 9),
-        plot.title = element_text(size=9),
-        axis.title=element_text(size=9,face="bold"),
-        axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(fill = "Normalized Log2(MFI)")
-
-#hierarchical clustering - this isn't working
-clusters <- hclust(dist(AHHHH.df[11]), na.rm = TRUE)
-plot(clusters)
+# data <- AHHHH.df[,sapply(AHHHH.df, is.numeric)]
+# 
+# heatmap(as.matrix(data))
+# 
+# #heatmap with ggplot2 - not done yet
+# ggplot(AHHHH.df, aes(slide_type, blocking_buffer, block_dilution)) +
+#   geom_tile(aes(fill = AHHHH.df[11]), color = "white") +
+#   scale_fill_gradient(low = "red", high = "steelblue") +
+#   ylab("List of genes ") +
+#   xlab("List of patients") +
+#   theme(legend.title = element_text(size = 9),
+#         legend.text = element_text(size = 9),
+#         plot.title = element_text(size=9),
+#         axis.title=element_text(size=9,face="bold"),
+#         axis.text.x = element_text(angle = 90, hjust = 1)) +
+#   labs(fill = "Normalized Log2(MFI)")
+# 
+# #hierarchical clustering - this isn't working
+# clusters <- hclust(dist(AHHHH.df[11]), na.rm = TRUE)
+# plot(clusters)
 
 ######### Linear Mixed Effects Models ########
 
 #once the data is formatted right, do linear mixed model for each antigen
 #fixed effects are: slide_type, print_buffer, blocking_buffer, block_dilution
 #random effects are: sample; using random slope model where print buffer and blocking buffer (and dilution) affect sample variation
+
+#save workspace image to start from this point
+save.image(file = "OptimizationLMMready.RData")
+
 
 #AMA1, 100 ug/mL, 
 colnames(AHHHH.df[11])
