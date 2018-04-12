@@ -533,7 +533,31 @@ model_PB <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer
   hist(residuals(int4model), xlab = "Residuals")
   
   graphics.off()
+  
+#modified 3 way interaction model - significant 3 way interactions taken from int3model
+  int3.2 <- lmer(X13_1.PfAMA1.100ug.ml_1 ~ slide_type + blocking_buffer + block_dilution + print_buffer +
+                   slide_type*block_dilution*print_buffer + slide_type*blocking_buffer*block_dilution  + 
+                   (1|sample), REML = FALSE, data = AHHHH.df)
 
+  summary(int3.2)
+  r.squaredGLMM(int3.2)
+  anova(int3.2)
+  
+  #compare these with likelihood ratio test
+  anova(int2model, int3.2)
+  anova(int3model, int3.2)
+  
+  #Plot residuals - int3.2
+  png(filename = "AMA1.100.Int3.2.Res.tif", width = 8, height = 4.5, units = "in", res = 1200)
+  par(mfrow=c(1,2), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  plot(fitted(int3.2),residuals(int3.2),  pch='*', col = "blue", xlab = "Fitted", ylab = "Residuals")
+  abline(a=0, b=0)
+  hist(residuals(int3.2), xlab = "Residuals")
+  
+  graphics.off()
+  
+  
 #prepare a better organized summary of the model and export to a file.
 #summary can only be written to a text file, and doesn't keep columns organized
 tidy(fullmodel)
