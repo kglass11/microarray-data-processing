@@ -1,9 +1,9 @@
 #optimization data analysis 
 #KG
 
+#"I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation"
 #
-#"/Users/Katie/Desktop/R files from work/270717 Optimisation"
-setwd("I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation")
+setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation")
 getwd()
 
 # install.packages("lme4")
@@ -16,6 +16,7 @@ getwd()
 # install.packages("lmerTest")
 # install.packages("multcompView")
 # install.packages("MuMIn")
+# install.packages("NeatMap")
 
 library(broom)
 library(lme4)
@@ -38,6 +39,7 @@ library(ggplot2)
 library(gcookbook)
 library(dplyr)
 library(reshape2)
+library(NeatMap)
 
 load("OptimizationLMMready.RData")
 
@@ -371,11 +373,16 @@ colnames(AHHHH.df) <- newnames
 
 #violin, scatter, or boxplots of the data
 
-#all samples and all variables - AMA1 - Scatter plot
+#all samples and all variables - AMA1 100 - Scatter plot
 png(filename = paste0(study, "AMA1.100_facet_grid.tif"), width = 8, height = 5, units = "in", res = 1200)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
-ggplot(AHHHH.df, aes(x=slide_type, y=X13_1.PfAMA1.100ug.ml_1, color = sample, shape = blocking_buffer)) + geom_point(size = 1)  + theme_bw() + theme(text = element_text(size=9), axis.text.x = element_text(angle = 90)) + facet_grid(print_buffer ~ block_dilution )
+ggplot(AHHHH.df, aes(x=slide_type, y=X13_1.PfAMA1.100ug.ml_1, color = sample, shape = blocking_buffer)) + 
+  geom_point(size = 1)  + 
+  theme_bw() + 
+  theme(text = element_text(size=9), axis.text.x = element_text(angle = 90, hjust=0.95, vjust = 0.1)) + 
+  labs(x = "Slide Type", y = "Normalized Log2(Positive/Negative)", title = "AMA1 (100 µg/mL)") +
+  facet_grid(print_buffer ~ block_dilution )
 
 graphics.off()
 
@@ -383,14 +390,72 @@ graphics.off()
 png(filename = paste0(study, "AMA1.100_ST_PB.tif"), width = 8, height = 5, units = "in", res = 1200)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
-ggplot(AHHHH.df, aes(x=slide_type, y=X13_1.PfAMA1.100ug.ml_1, color = print_buffer, fill = print_buffer)) + geom_violin()  + theme_bw() + theme(text = element_text(size=9), axis.text.x = element_text(angle = 90), legend.position="top")
+ggplot(AHHHH.df, aes(x=reorder(slide_type, X13_1.PfAMA1.100ug.ml_1, FUN=max), y=X13_1.PfAMA1.100ug.ml_1, color = print_buffer, fill = print_buffer)) + 
+  geom_violin(trim = FALSE) + 
+  theme_bw() +
+  guides(color=FALSE) +
+  theme(text = element_text(size=9), axis.text.x = element_text(angle = 45, hjust = 1), legend.position="top") +
+  labs(x = "Slide Type", y = "Normalized Log2(Positive/Negative)", title = "AMA1 (100 µg/mL)", fill = "Print Buffer")
 
 graphics.off()
 
-#heatmap of all the data - this looks terrible and still has unwanted columns
-#want a heatmap of all of the data, with antigen name and dilution on the top (x)
+#Make a function of the plots to use with other columns
+
+#column is the column name from AHHHH.df for each antigen and dilution
+#antigen and dilution are character vectors 
+# antigenplots <- function(column, antigen, dilution){
+#   
+# #all samples and all variables - Scatter plot faceted
+# png(filename = paste0(antigen,"_", dilution, "_facet_grid.tif"), width = 8, height = 5, units = "in", res = 1200)
+# par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+# 
+# p1 <- ggplot(AHHHH.df, aes(x=slide_type, y=column, color = sample, shape = blocking_buffer)) + 
+#   geom_point(size = 1)  + 
+#   theme_bw() + 
+#   theme(text = element_text(size=9), axis.text.x = element_text(angle = 90, hjust=0.95, vjust = 0.1)) + 
+#   labs(x = "Slide Type", y = "Normalized Log2(Positive/Negative)", title = paste(antigen, dilution, "µg/mL")) +
+#   facet_grid(print_buffer ~ block_dilution )
+# 
+# print(p1)
+# graphics.off()
+# 
+# #violin plot of slide type and print buffer, everything else combined 
+# png(filename = paste0(antigen,"_", dilution, "_ST_PB.tif"), width = 8, height = 5, units = "in", res = 1200)
+# par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+# 
+# p2 <- ggplot(AHHHH.df, aes(x=slide_type, y=column, color = print_buffer, fill = print_buffer)) + 
+#   geom_violin(trim = FALSE) + 
+#   theme_bw() +
+#   guides(color=FALSE) +
+#   theme(text = element_text(size=9), axis.text.x = element_text(angle = 45, hjust = 1), legend.position="top") +
+#   labs(x = "Slide Type", y = "Normalized Log2(Positive/Negative)", title = paste(antigen, dilution, "µg/mL"), fill = "Print Buffer")
+# 
+# print(p2)
+# graphics.off()
+# 
+# }
+# 
+# antigenplots(X13_1.PfAMA1.100ug.ml_1, "AMA1", "100")
+
+#heatmap of all the data 
+#want a heatmap with antigen name and dilution on the top (x)
 #and the combo on the side. Sorted by highest total intensity (sum of the rows)
-# data <- AHHHH.df[,sapply(AHHHH.df, is.numeric)]
+
+#prepare relevant data as a matrix
+heatdata <- as.matrix(AHHHH.df[,11:(ncol(AHHHH.df)-2)])
+
+#prepare vector for order of rows and columns
+#AHHHH.df is currently ordered by sample > print buffer > slide type > blocking buffer > dilution
+#and the columns are ordered by antigen > dilution
+
+#prepare character vector labels? or make labels later?
+png(filename = paste0(study, "heatmap2.All.tif"), width = 4.5, height = 8, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+heatmap1(heatdata, row.order = NULL)
+
+graphics.off()
+
 # 
 # heatmap(as.matrix(data))
 # 
@@ -398,8 +463,8 @@ graphics.off()
 # ggplot(AHHHH.df, aes(slide_type, blocking_buffer, block_dilution)) +
 #   geom_tile(aes(fill = AHHHH.df[11]), color = "white") +
 #   scale_fill_gradient(low = "red", high = "steelblue") +
-#   ylab("List of genes ") +
-#   xlab("List of patients") +
+#   ylab("") +
+#   xlab("") +
 #   theme(legend.title = element_text(size = 9),
 #         legend.text = element_text(size = 9),
 #         plot.title = element_text(size=9),
