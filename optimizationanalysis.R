@@ -1,9 +1,9 @@
 #optimization data analysis 
 #KG
 
-#"I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation"
-#
-setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation")
+#""
+#/Users/Katie/Desktop/R files from work/270717 Optimisation
+setwd("I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation")
 getwd()
 
 # install.packages("lme4")
@@ -666,6 +666,12 @@ emmeans(fullmodel, pairwise ~ slide_type)
 emmeans(fullmodel, pairwise ~ blocking_buffer)
 emmeans(fullmodel, pairwise ~ block_dilution)
 
+#calculate emms
+emm.intmodel <- emmeans(intmodel, ~ print_buffer | slide_type | blocking_buffer | block_dilution)
+
+#repeat for int3.2
+emm3.2 <- emmeans(int3.2, ~ print_buffer | slide_type | blocking_buffer | block_dilution)
+
 #plot the data
 png(filename = "AMA1.100.emmip.tif", width = 8, height = 5, units = "in", res = 1200)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
@@ -673,8 +679,44 @@ emmip(intmodel, print_buffer ~ block_dilution | blocking_buffer | slide_type) + 
 
 graphics.off()
 
+#plot emmeans for int3.2 model
+png(filename = "AMA1.100.emmip3.2.tif", width = 8, height = 5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+emmip(emm3.2, print_buffer ~ block_dilution | blocking_buffer | slide_type)
+
+graphics.off()
+
+#extract the emmeans and sort highest to lowest
+emm3.2.df <- as.data.frame(emm3.2)
+emm3.2.df <- emm3.2.df[order(emm3.2.df$emmean, decreasing = TRUE),]
+
+#make rowid a column to match with AHHHH.df
+emm3.2.df <- tibble::rowid_to_column(emm3.2.df)
+
+#merge with AHHHH.df
+emmAMA1.100.df <- merge(emm3.2.df, AHHHH.df, all.x = TRUE, sort = FALSE)
+
+#keep same order that we have in the excel file (sorted highest to lowest EMM)
+#maybe try to use rownumber as factor, sorted by EMM? and then put in better labels later?
+rowidorder <- c(as.character(emmAMA1.100.df$rowid))
+emmAMA1.100.df$rowid <- factor(emmAMA1.100.df$rowid, levels = rev(unique(rowidorder)))
+
+#plot original data from groups with higest emmeans (top 36)
+emmAMA1.100.df$rowid <- factor(emmAMA1.100.df$rowid, levels = unique(rowidorder))
+
+emmAMA1.100sub <- emmAMA1.100.df[1:108,]
+
+png(filename = paste0("H.AMA1.100.3.2.tif"), width = 8, height = 3, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(emmAMA1.100sub, aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1, color = sample)) + theme_bw() + geom_point() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text( vjust = 1, size = 10))
+
+graphics.off()
+
+
+
+
 #get letters for all pairwise comparisons, interaction model
-emm.intmodel <- emmeans(intmodel, ~ print_buffer | slide_type | blocking_buffer | block_dilution)
 
 #this took several hours (>4) to run, and eventually finished. there are too many 
 #combinations (480 pairwise), but it worked!!! 
