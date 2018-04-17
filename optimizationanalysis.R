@@ -1,9 +1,9 @@
 #optimization data analysis 
 #KG
 
-#""
-#/Users/Katie/Desktop/R files from work/270717 Optimisation
-setwd("I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation")
+#"I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation"
+#
+setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation")
 getwd()
 
 # install.packages("lme4")
@@ -371,6 +371,50 @@ colnames(AHHHH.df) <- newnames
 
 #####Plotting#######
 
+#Plot the data for the PRISM and CP3 samples only, organized by geometric mean
+
+AHHsub <- filter(AHHHH.df, sample == "CP3" | sample == "PRISM")
+CP3all <- filter(AHHHH.df, sample == "CP3")
+CP3sub <- CP3all[11:46]
+PRISMall <- filter(AHHHH.df, sample == "PRISM")
+PRISMsub <- PRISMall[11:46]
+
+geomean <- (CP3sub + PRISMsub)/2
+geomean <- tibble:: rowid_to_column(geomean)
+PRISMall <- tibble::rowid_to_column(PRISMall)
+CP3all <- tibble::rowid_to_column(CP3all)
+AHHsub2 <- rbind(PRISMall, CP3all)
+
+#plot data from top 48 geomeans (10%) of conditions
+geomeanAMA1.100 <- geomean[order(geomean$X13_1.PfAMA1.100ug.ml_1, decreasing = TRUE),]
+rowidorder <- c(as.character(geomeanAMA1.100$rowid))
+geomeanAMA1.100$rowid <- factor(geomeanAMA1.100$rowid, levels = unique(rowidorder))
+
+AHHsub2$rowid <- factor(AHHsub2$rowid, levels = unique(rowidorder))
+
+#export table of conditions matching top 10% rowid. 
+
+png(filename = paste0("AMA1.100.GM.tif"), width = 8, height = 3, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(geomeanAMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1)) + theme_bw() + 
+  geom_point() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text( vjust = 1, size = 10))
+
+graphics.off()
+
+png(filename = paste0("AMA1.100.2samples.tif"), width = 8, height = 3, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(AHHsub2, aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1, color = sample)) + theme_bw() + 
+  geom_point() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text( vjust = 1, size = 10))
+
+graphics.off()
+
+
+
+
+
+
 #violin, scatter, or boxplots of the data
 
 #all samples and all variables - AMA1 100 - Scatter plot
@@ -456,6 +500,24 @@ heatmap1(heatdata, row.order = NULL)
 
 graphics.off()
 
+#heatmap of the data separated by print buffer 
+AJ <- filter(AHHHH.df, print_buffer == "AJ")
+AJ.mat <- as.matrix(AJ[,11:46])
+
+AJGly <- filter(AHHHH.df, print_buffer == "AJ_Glycerol")
+AJGly.mat <- as.matrix(AJGly[,11:46])
+
+Next <- filter(AHHHH.df, print_buffer == "Nexterion_Spot")
+Next.mat <- as.matrix(Next[,11:46])
+
+png(filename = paste0(study, "AJ_heatmap.All.tif"), width = 4.5, height = 8, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+heatmap1(AJ.mat, row.order = NULL)
+graphics.off()
+
+
+
+  
 # 
 # heatmap(as.matrix(data))
 # 
