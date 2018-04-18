@@ -2,8 +2,8 @@
 #KG
 
 #"I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation"
-#
-setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation")
+#/Users/Katie/Desktop/R files from work/270717 Optimisation
+setwd("I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation")
 getwd()
 
 # install.packages("lme4")
@@ -385,14 +385,18 @@ PRISMall <- tibble::rowid_to_column(PRISMall)
 CP3all <- tibble::rowid_to_column(CP3all)
 AHHsub2 <- rbind(PRISMall, CP3all)
 
-#plot data from top 48 geomeans (10%) of conditions
+#plot data from top 48 geomeans (10%) of conditions; AMA1, 100
 geomeanAMA1.100 <- geomean[order(geomean$X13_1.PfAMA1.100ug.ml_1, decreasing = TRUE),]
 rowidorder <- c(as.character(geomeanAMA1.100$rowid))
 geomeanAMA1.100$rowid <- factor(geomeanAMA1.100$rowid, levels = unique(rowidorder))
 
 AHHsub2$rowid <- factor(AHHsub2$rowid, levels = unique(rowidorder))
 
+conditions <- PRISMall[,c(1,9,10,11,48)]
+
 #export table of conditions matching top 10% rowid. 
+conditionsAMA1.100 <- merge(geomeanAMA1.100, conditions, sort = FALSE)
+write.csv(conditionsAMA1.100[1:48, c(1,38:41)], file = "top10AMA1.100.csv")
 
 png(filename = paste0("AMA1.100.GM.tif"), width = 8, height = 3, units = "in", res = 1200)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
@@ -402,6 +406,172 @@ ggplot(geomeanAMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1)) + th
 
 graphics.off()
 
+geomeanAMA1.100$rowid <- factor(geomeanAMA1.100$rowid, levels = rev(unique(rowidorder)))
+
+png(filename = paste0("V.AMA1.100.GM.tif"), width = 3.5, height = 4.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(geomeanAMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1)) + theme_bw() + 
+  geom_point() + theme(axis.text.y = element_text(size = 7)) +
+  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "AMA1 100 µg/mL") +
+  ylim(0,8)
+
+graphics.off()
+
+#MSP1-19, 100 ug/mL; plot data from top 48 geomeans (10%) of conditions;
+colnames(geomean[8])
+geomeanMSP1.19.100 <- geomean[order(geomean$X19_1.PfMSP1.19.100ug.ml_1, decreasing = TRUE),]
+rowidorder <- c(as.character(geomeanMSP1.19.100$rowid))
+geomeanMSP1.19.100$rowid <- factor(geomeanMSP1.19.100$rowid, levels = unique(rowidorder))
+
+AHHsub2$rowid <- factor(AHHsub2$rowid, levels = unique(rowidorder))
+
+conditions <- PRISMall[,c(1,9,10,11,48)]
+
+#export table of conditions matching top 10% rowid. 
+conditionsMSP1.19.100 <- merge(geomeanMSP1.19.100, conditions, sort = FALSE)
+write.csv(conditionsMSP1.19.100[1:48, c(1,38:41)], file = "top10MSP1.19.100.csv")
+
+png(filename = paste0("MSP1.19.100.GM.tif"), width = 8, height = 3, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(geomeanMSP1.19.100[1:48,], aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1)) + theme_bw() + 
+  geom_point() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text( vjust = 1, size = 10))
+
+graphics.off()
+
+geomeanMSP1.19.100$rowid <- factor(geomeanMSP1.19.100$rowid, levels = rev(unique(rowidorder)))
+
+png(filename = paste0("V.MSP1.19.100.GM.tif"), width = 3.5, height = 4.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(geomeanMSP1.19.100[1:48,], aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1)) + theme_bw() + 
+  geom_point() + theme(axis.text.y = element_text(size = 7)) +
+  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "MSP1-19 100 µg/mL") +
+  ylim(0,8)
+
+graphics.off()
+
+#Hyp2, 100 ug/mL; plot data from top 48 geomeans (10%) of conditions;
+colnames(geomean[14])
+geomeanHyp2.100 <- geomean[order(geomean$X25_1.Hyp2.100ug.ml_1, decreasing = TRUE),]
+rowidorder <- c(as.character(geomeanHyp2.100$rowid))
+geomeanHyp2.100$rowid <- factor(geomeanHyp2.100$rowid, levels = unique(rowidorder))
+
+AHHsub2$rowid <- factor(AHHsub2$rowid, levels = unique(rowidorder))
+
+conditions <- PRISMall[,c(1,9,10,11,48)]
+
+#export table of conditions matching top 10% rowid. 
+conditionsHyp2.100 <- merge(geomeanHyp2.100, conditions, sort = FALSE)
+write.csv(conditionsHyp2.100[1:48, c(1,38:41)], file = "top10Hyp2.100.csv")
+
+png(filename = paste0("Hyp2.100.GM.tif"), width = 8, height = 3, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(geomeanHyp2.100[1:48,], aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1)) + theme_bw() + 
+  geom_point() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text( vjust = 1, size = 10))
+
+graphics.off()
+
+geomeanHyp2.100$rowid <- factor(geomeanHyp2.100$rowid, levels = rev(unique(rowidorder)))
+
+png(filename = paste0("V.Hyp2.100.GM.tif"), width = 3.5, height = 4.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(geomeanHyp2.100[1:48,], aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1)) + theme_bw() + 
+  geom_point() + theme(axis.text.y = element_text(size = 7)) +
+  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Hyp2 100 µg/mL") +
+  ylim(0,8)
+
+graphics.off()
+
+#EPF1v2, 100 ug/mL; plot data from top 48 geomeans (10%) of conditions;
+colnames(geomean[26])
+geomeanEPF1v2.100 <- geomean[order(geomean$X37_1.EPF1v2.100ug.ml_1, decreasing = TRUE),]
+rowidorder <- c(as.character(geomeanEPF1v2.100$rowid))
+geomeanEPF1v2.100$rowid <- factor(geomeanEPF1v2.100$rowid, levels = unique(rowidorder))
+
+AHHsub2$rowid <- factor(AHHsub2$rowid, levels = unique(rowidorder))
+
+conditions <- PRISMall[,c(1,9,10,11,48)]
+
+#export table of conditions matching top 10% rowid. 
+conditionsEPF1v2.100 <- merge(geomeanEPF1v2.100, conditions, sort = FALSE)
+write.csv(conditionsEPF1v2.100[1:48, c(1,38:41)], file = "top10EPF1v2.100.csv")
+
+png(filename = paste0("EPF1v2.100.GM.tif"), width = 8, height = 3, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(geomeanEPF1v2.100[1:48,], aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1)) + theme_bw() + 
+  geom_point() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text( vjust = 1, size = 10))
+
+graphics.off()
+
+geomeanEPF1v2.100$rowid <- factor(geomeanEPF1v2.100$rowid, levels = rev(unique(rowidorder)))
+
+png(filename = paste0("V.EPF1v2.100.GM.tif"), width = 3.5, height = 4.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(geomeanEPF1v2.100[1:48,], aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1)) + theme_bw() + 
+  geom_point() + theme(axis.text.y = element_text(size = 7)) +
+  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "EPF1v2 100 µg/mL") +
+  ylim(0,8)
+
+graphics.off()
+
+
+#determine which conditions are in the top 10% for AMA1, MSP1-19, Hyp2, and EPF1v2
+
+conditionAMA1sub <- conditionsAMA1.100[1:48, c(1,38:41)]
+conditionMSP1.19sub <- conditionsMSP1.19.100[1:48, c(1,38:41)]
+conditionHyp2sub <- conditionsHyp2.100[1:48, c(1,38:41)]
+conditionEPF1v2sub <- conditionsEPF1v2.100[1:48, c(1,38:41)]
+
+two <- merge(conditionAMA1sub, conditionMSP1.19sub, sort = FALSE)
+three <- merge(two, conditionHyp2sub, sort = FALSE)
+four <- merge(three, conditionEPF1v2sub, sort = FALSE)
+
+write.csv(four, file = "commontop10.csv")
+
+
+#plot all geometric means for all 4 antigens for common 11 conditions
+#currently row ID are sorted based on the AMA1 geomeans
+
+fourGM <- merge(four, geomean, sort = FALSE)
+
+fourmelt <- melt(fourGM)
+fourmeltsub <- filter(fourmelt, variable == "X37_1.EPF1v2.100ug.ml_1" | variable == "X25_1.Hyp2.100ug.ml_1"
+                      | variable == "X19_1.PfMSP1.19.100ug.ml_1" | variable == "X13_1.PfAMA1.100ug.ml_1" )
+
+png(filename = paste0("GMfourAgstop10.tif"), width = 5, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(fourmeltsub, aes(x = rowid, y = value, color = variable)) + theme_bw() + 
+  geom_point() + theme(axis.text.y = element_text(size = 10)) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Geometric mean of common combinations") +
+  ylim(0,4) + scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2"))
+
+graphics.off()
+
+#vertical plot of the same thing
+rowids <- c(as.character(fourGM$rowid))
+fourmeltsub$rowid <- factor(fourmeltsub$rowid, levels = rev(unique(rowids)))
+
+png(filename = paste0("V.GMfourAgstop10.tif"), width = 5, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(fourmeltsub, aes(x = rowid, y = value, color = variable)) + theme_bw() + 
+  geom_point() + theme(axis.text.y = element_text(size = 10)) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Geometric mean of common combinations") +
+  ylim(0,4) + scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) + coord_flip()
+
+graphics.off()
+
+
+
+#plotting samples instead of geomean
+
 png(filename = paste0("AMA1.100.2samples.tif"), width = 8, height = 3, units = "in", res = 1200)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
@@ -409,8 +579,6 @@ ggplot(AHHsub2, aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1, color = sample)) + t
   geom_point() + ylab("Normalized Log2(MFI)") + theme(axis.text.x = element_text( vjust = 1, size = 10))
 
 graphics.off()
-
-
 
 
 
