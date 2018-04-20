@@ -3,7 +3,7 @@
 
 #"I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation"
 #/Users/Katie/Desktop/R files from work/270717 Optimisation
-setwd("I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation")
+setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation")
 getwd()
 
 # install.packages("lme4")
@@ -413,7 +413,7 @@ par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
 ggplot(geomeanAMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1)) + theme_bw() + 
   geom_point() + theme(axis.text.y = element_text(size = 7)) +
-  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "AMA1 100 µg/mL") +
+  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "AMA1 100 ?g/mL") +
   ylim(0,8)
 
 graphics.off()
@@ -447,7 +447,7 @@ par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
 ggplot(geomeanMSP1.19.100[1:48,], aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1)) + theme_bw() + 
   geom_point() + theme(axis.text.y = element_text(size = 7)) +
-  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "MSP1-19 100 µg/mL") +
+  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "MSP1-19 100 ?g/mL") +
   ylim(0,8)
 
 graphics.off()
@@ -481,7 +481,7 @@ par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
 ggplot(geomeanHyp2.100[1:48,], aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1)) + theme_bw() + 
   geom_point() + theme(axis.text.y = element_text(size = 7)) +
-  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Hyp2 100 µg/mL") +
+  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Hyp2 100 ?g/mL") +
   ylim(0,8)
 
 graphics.off()
@@ -515,7 +515,7 @@ par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
 ggplot(geomeanEPF1v2.100[1:48,], aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1)) + theme_bw() + 
   geom_point() + theme(axis.text.y = element_text(size = 7)) +
-  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "EPF1v2 100 µg/mL") +
+  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "EPF1v2 100 ?g/mL") +
   ylim(0,8)
 
 graphics.off()

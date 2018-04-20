@@ -176,34 +176,378 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   
 # MSP1.19 100 µg/mL  
   
+  #1. CP3 and PRISM with ratio from positive to negative (CP3all has everything for CP3 samples only)
   
+  #sort/order by desired column, highest to lowest values
+  colnames(CP3all[18])
+  CP3.MSP1.19.100 <- CP3all[order(CP3all$X19_1.PfMSP1.19.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(CP3.MSP1.19.100$rowid))
+  CP3.MSP1.19.100$rowid <- factor(CP3.MSP1.19.100$rowid, levels = unique(rowidorder))
   
+  PRISM.MSP1.19.100 <- PRISMall[order(PRISMall$X19_1.PfMSP1.19.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(PRISM.MSP1.19.100$rowid))
+  PRISM.MSP1.19.100$rowid <- factor(PRISM.MSP1.19.100$rowid, levels = unique(rowidorder))
   
+  #find top 48 (10%) of conditions and export table of conditions matching top 10% rowid. 
+  conditionsMSP1.19.100 <- merge(CP3.MSP1.19.100, conditions, sort = FALSE)
+  conditionMSP1.19sub <- conditionsMSP1.19.100[1:48, 1:5]
+  write.csv(conditionMSP1.19sub, file = "CP3top10MSP1.19.100.csv")
   
+  PRISM.cond.MSP1.19.100 <- merge(PRISM.MSP1.19.100, conditions, sort = FALSE)
+  PRISM.cond.MSP1.19sub <- PRISM.cond.MSP1.19.100[1:48, 1:5]
+  write.csv(PRISM.cond.MSP1.19sub, file = "PRISMtop10MSP1.19.100.csv")
   
- #old code for plotting positives and negatives on the same plots 
-  png(filename = paste0("N.CP3.Top.AMA1.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  #make one data frame with PRISM and CP3 best conditions
+  BothMSP1.19.100 <- rbind(conditionsMSP1.19.100[1:48,], PRISM.cond.MSP1.19.100[1:48,])
+  
+  #plot the top 10% values and rowids for both CP3 and PRISM on one plot - this isn't working yet
+  png(filename = paste0("Both.Top.MSP1.19.100.tif"), width = 8, height = 3, units = "in", res = 1200)
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
-  base <- ggplot(N.CP3.AMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1, color = "CP3")) + geom_point(col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(MFI)", title = "CP3 AMA1 100 µg/mL") + 
+  base <- ggplot(CP3.MSP1.19.100[1:48,]) + geom_point(aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1), col = "red") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions MSP1.19 100 µg/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
-    ylim(0,10) + scale_color_manual(name="Sample", values=c(CP3 ="red", Neg ="blue"))
+    ylim(0,9)
   
-  base + geom_point(data = Neg.CP3.AMA1[1:48,], aes(x=rowid, y=X13_1.PfAMA1.100ug.ml_1, color = "Neg"))
+  base + geom_point(data = PRISM.MSP1.19.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1), col= "green")
   
   graphics.off()
   
-#old code for vertical plots
-geomeanAMA1.100$rowid <- factor(geomeanAMA1.100$rowid, levels = rev(unique(rowidorder)))
-
-png(filename = paste0("V.AMA1.100.GM.tif"), width = 3.5, height = 4.5, units = "in", res = 1200)
-par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
-
-ggplot(geomeanAMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1)) + theme_bw() + 
-  geom_point() + theme(axis.text.y = element_text(size = 7)) +
-  coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "AMA1 100 ?g/mL") +
-  ylim(0,8)
-
-graphics.off()
-
+  #plot the top 10% values and rowids for CP3 alone
+  png(filename = paste0("CP3.Top.MSP1.19.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(CP3.MSP1.19.100[1:48,], aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 MSP1.19 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for PRISM alone
+  png(filename = paste0("PRISM.Top.MSP1.19.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(PRISM.MSP1.19.100[1:48,], aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM MSP1.19 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  graphics.off() 
+  
+ #2. without negative control ratio 
+  
+  #sort/order by desired column, highest to lowest values
+  N.CP3.MSP1.19.100 <- N.CP3all[order(N.CP3all$X19_1.PfMSP1.19.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(N.CP3.MSP1.19.100$rowid))
+  N.CP3.MSP1.19.100$rowid <- factor(N.CP3.MSP1.19.100$rowid, levels = unique(rowidorder))
+  
+  Neg.CP3.MSP1.19 <- N.Negall[order(N.CP3all$X19_1.PfMSP1.19.100ug.ml_1, decreasing = TRUE),]
+  Neg.CP3.MSP1.19$rowid <- factor(Neg.CP3.MSP1.19$rowid, levels = unique(rowidorder))
+  #bind Neg and CP3 to use as one data frame in plot
+  Neg.CP3.MSP1.19 <- rbind(N.CP3.MSP1.19.100[1:48,], Neg.CP3.MSP1.19[1:48,])
+  
+  N.PRISM.MSP1.19.100 <- N.PRISMall[order(N.PRISMall$X19_1.PfMSP1.19.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(N.PRISM.MSP1.19.100$rowid))
+  N.PRISM.MSP1.19.100$rowid <- factor(N.PRISM.MSP1.19.100$rowid, levels = unique(rowidorder))
+  
+  Neg.PRISM.MSP1.19 <- N.Negall[order(N.PRISMall$X19_1.PfMSP1.19.100ug.ml_1, decreasing = TRUE),]
+  Neg.PRISM.MSP1.19$rowid <- factor(Neg.PRISM.MSP1.19$rowid, levels = unique(rowidorder))
+  #bind Neg and PRISM to use as one data frame in plot
+  Neg.PRISM.MSP1.19 <- rbind(N.PRISM.MSP1.19.100[1:48,], Neg.PRISM.MSP1.19[1:48,])
+  
+  #find top 48 (10%) of conditions and export table of conditions matching top 10% rowid. 
+  conditionsMSP1.19.100 <- merge(N.CP3.MSP1.19.100, conditions, sort = FALSE)
+  conditionMSP1.19sub <- conditionsMSP1.19.100[1:48, 1:5]
+  write.csv(conditionMSP1.19sub, file = "N.CP3top10MSP1.19.100.csv")
+  
+  N.PRISM.cond.MSP1.19.100 <- merge(N.PRISM.MSP1.19.100, conditions, sort = FALSE)
+  N.PRISM.cond.MSP1.19sub <- N.PRISM.cond.MSP1.19.100[1:48, 1:5]
+  write.csv(N.PRISM.cond.MSP1.19sub, file = "N.PRISMtop10MSP1.19.100.csv")
+  
+  #plot the top 10% values and rowids for CP3 alone and Neg
+  png(filename = paste0("N.CP3.Top.MSP1.19.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(Neg.CP3.MSP1.19, aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1, color = sample)) + geom_point() + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(MFI)", title = "CP3 MSP1.19 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,10)
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for PRISM alone and Negs
+  #change factor levels of sample so that Neg is 2nd and PRISM is 1st
+  Neg.PRISM.MSP1.19$sample <- factor(Neg.PRISM.MSP1.19$sample, levels = c("PRISM", "Neg"))
+  
+  png(filename = paste0("N.PRISM.Top.MSP1.19.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(Neg.PRISM.MSP1.19, aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1, color = sample)) + geom_point() + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(MFI)", title = "PRISM MSP1.19 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,10)
+  
+  graphics.off()
+  
+  
+# Hyp2 100 µg/mL  
+  
+  #1. CP3 and PRISM with ratio from positive to negative (CP3all has everything for CP3 samples only)
+  
+  #sort/order by desired column, highest to lowest values
+  colnames(CP3all[24])
+  CP3.Hyp2.100 <- CP3all[order(CP3all$X25_1.Hyp2.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(CP3.Hyp2.100$rowid))
+  CP3.Hyp2.100$rowid <- factor(CP3.Hyp2.100$rowid, levels = unique(rowidorder))
+  
+  PRISM.Hyp2.100 <- PRISMall[order(PRISMall$X25_1.Hyp2.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(PRISM.Hyp2.100$rowid))
+  PRISM.Hyp2.100$rowid <- factor(PRISM.Hyp2.100$rowid, levels = unique(rowidorder))
+  
+  #find top 48 (10%) of conditions and export table of conditions matching top 10% rowid. 
+  conditionsHyp2.100 <- merge(CP3.Hyp2.100, conditions, sort = FALSE)
+  conditionHyp2sub <- conditionsHyp2.100[1:48, 1:5]
+  write.csv(conditionHyp2sub, file = "CP3top10Hyp2.100.csv")
+  
+  PRISM.cond.Hyp2.100 <- merge(PRISM.Hyp2.100, conditions, sort = FALSE)
+  PRISM.cond.Hyp2sub <- PRISM.cond.Hyp2.100[1:48, 1:5]
+  write.csv(PRISM.cond.Hyp2sub, file = "PRISMtop10Hyp2.100.csv")
+  
+  #make one data frame with PRISM and CP3 best conditions
+  BothHyp2.100 <- rbind(conditionsHyp2.100[1:48,], PRISM.cond.Hyp2.100[1:48,])
+  
+  #plot the top 10% values and rowids for both CP3 and PRISM on one plot - this isn't working yet
+  png(filename = paste0("Both.Top.Hyp2.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  base <- ggplot(CP3.Hyp2.100[1:48,]) + geom_point(aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1), col = "red") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions Hyp2 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  base + geom_point(data = PRISM.Hyp2.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1), col= "green")
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for CP3 alone
+  png(filename = paste0("CP3.Top.Hyp2.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(CP3.Hyp2.100[1:48,], aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 Hyp2 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for PRISM alone
+  png(filename = paste0("PRISM.Top.Hyp2.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(PRISM.Hyp2.100[1:48,], aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM Hyp2 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  graphics.off() 
+  
+  #2. without negative control ratio 
+  
+  #sort/order by desired column, highest to lowest values
+  N.CP3.Hyp2.100 <- N.CP3all[order(N.CP3all$X25_1.Hyp2.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(N.CP3.Hyp2.100$rowid))
+  N.CP3.Hyp2.100$rowid <- factor(N.CP3.Hyp2.100$rowid, levels = unique(rowidorder))
+  
+  Neg.CP3.Hyp2 <- N.Negall[order(N.CP3all$X25_1.Hyp2.100ug.ml_1, decreasing = TRUE),]
+  Neg.CP3.Hyp2$rowid <- factor(Neg.CP3.Hyp2$rowid, levels = unique(rowidorder))
+  #bind Neg and CP3 to use as one data frame in plot
+  Neg.CP3.Hyp2 <- rbind(N.CP3.Hyp2.100[1:48,], Neg.CP3.Hyp2[1:48,])
+  
+  N.PRISM.Hyp2.100 <- N.PRISMall[order(N.PRISMall$X25_1.Hyp2.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(N.PRISM.Hyp2.100$rowid))
+  N.PRISM.Hyp2.100$rowid <- factor(N.PRISM.Hyp2.100$rowid, levels = unique(rowidorder))
+  
+  Neg.PRISM.Hyp2 <- N.Negall[order(N.PRISMall$X25_1.Hyp2.100ug.ml_1, decreasing = TRUE),]
+  Neg.PRISM.Hyp2$rowid <- factor(Neg.PRISM.Hyp2$rowid, levels = unique(rowidorder))
+  #bind Neg and PRISM to use as one data frame in plot
+  Neg.PRISM.Hyp2 <- rbind(N.PRISM.Hyp2.100[1:48,], Neg.PRISM.Hyp2[1:48,])
+  
+  #find top 48 (10%) of conditions and export table of conditions matching top 10% rowid. 
+  conditionsHyp2.100 <- merge(N.CP3.Hyp2.100, conditions, sort = FALSE)
+  conditionHyp2sub <- conditionsHyp2.100[1:48, 1:5]
+  write.csv(conditionHyp2sub, file = "N.CP3top10Hyp2.100.csv")
+  
+  N.PRISM.cond.Hyp2.100 <- merge(N.PRISM.Hyp2.100, conditions, sort = FALSE)
+  N.PRISM.cond.Hyp2sub <- N.PRISM.cond.Hyp2.100[1:48, 1:5]
+  write.csv(N.PRISM.cond.Hyp2sub, file = "N.PRISMtop10Hyp2.100.csv")
+  
+  #plot the top 10% values and rowids for CP3 alone and Neg
+  png(filename = paste0("N.CP3.Top.Hyp2.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(Neg.CP3.Hyp2, aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1, color = sample)) + geom_point() + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(MFI)", title = "CP3 Hyp2 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,10)
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for PRISM alone and Negs
+  #change factor levels of sample so that Neg is 2nd and PRISM is 1st
+  Neg.PRISM.Hyp2$sample <- factor(Neg.PRISM.Hyp2$sample, levels = c("PRISM", "Neg"))
+  
+  png(filename = paste0("N.PRISM.Top.Hyp2.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(Neg.PRISM.Hyp2, aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1, color = sample)) + geom_point() + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(MFI)", title = "PRISM Hyp2 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,10)
+  
+  graphics.off()
+  
+  
+# EPF1v2 100 µg/mL  
+  
+  #1. CP3 and PRISM with ratio from positive to negative (CP3all has everything for CP3 samples only)
+  
+  #sort/order by desired column, highest to lowest values
+  colnames(CP3all[36])
+  CP3.EPF1v2.100 <- CP3all[order(CP3all$X37_1.EPF1v2.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(CP3.EPF1v2.100$rowid))
+  CP3.EPF1v2.100$rowid <- factor(CP3.EPF1v2.100$rowid, levels = unique(rowidorder))
+  
+  PRISM.EPF1v2.100 <- PRISMall[order(PRISMall$X37_1.EPF1v2.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(PRISM.EPF1v2.100$rowid))
+  PRISM.EPF1v2.100$rowid <- factor(PRISM.EPF1v2.100$rowid, levels = unique(rowidorder))
+  
+  #find top 48 (10%) of conditions and export table of conditions matching top 10% rowid. 
+  conditionsEPF1v2.100 <- merge(CP3.EPF1v2.100, conditions, sort = FALSE)
+  conditionEPF1v2sub <- conditionsEPF1v2.100[1:48, 1:5]
+  write.csv(conditionEPF1v2sub, file = "CP3top10EPF1v2.100.csv")
+  
+  PRISM.cond.EPF1v2.100 <- merge(PRISM.EPF1v2.100, conditions, sort = FALSE)
+  PRISM.cond.EPF1v2sub <- PRISM.cond.EPF1v2.100[1:48, 1:5]
+  write.csv(PRISM.cond.EPF1v2sub, file = "PRISMtop10EPF1v2.100.csv")
+  
+  #make one data frame with PRISM and CP3 best conditions
+  BothEPF1v2.100 <- rbind(conditionsEPF1v2.100[1:48,], PRISM.cond.EPF1v2.100[1:48,])
+  
+  #plot the top 10% values and rowids for both CP3 and PRISM on one plot - this isn't working yet
+  png(filename = paste0("Both.Top.EPF1v2.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  base <- ggplot(CP3.EPF1v2.100[1:48,]) + geom_point(aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1), col = "red") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions EPF1v2 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  base + geom_point(data = PRISM.EPF1v2.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1), col= "green")
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for CP3 alone
+  png(filename = paste0("CP3.Top.EPF1v2.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(CP3.EPF1v2.100[1:48,], aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 EPF1v2 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for PRISM alone
+  png(filename = paste0("PRISM.Top.EPF1v2.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(PRISM.EPF1v2.100[1:48,], aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM EPF1v2 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  graphics.off() 
+  
+  #2. without negative control ratio 
+  
+  #sort/order by desired column, highest to lowest values
+  N.CP3.EPF1v2.100 <- N.CP3all[order(N.CP3all$X37_1.EPF1v2.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(N.CP3.EPF1v2.100$rowid))
+  N.CP3.EPF1v2.100$rowid <- factor(N.CP3.EPF1v2.100$rowid, levels = unique(rowidorder))
+  
+  Neg.CP3.EPF1v2 <- N.Negall[order(N.CP3all$X37_1.EPF1v2.100ug.ml_1, decreasing = TRUE),]
+  Neg.CP3.EPF1v2$rowid <- factor(Neg.CP3.EPF1v2$rowid, levels = unique(rowidorder))
+  #bind Neg and CP3 to use as one data frame in plot
+  Neg.CP3.EPF1v2 <- rbind(N.CP3.EPF1v2.100[1:48,], Neg.CP3.EPF1v2[1:48,])
+  
+  N.PRISM.EPF1v2.100 <- N.PRISMall[order(N.PRISMall$X37_1.EPF1v2.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(N.PRISM.EPF1v2.100$rowid))
+  N.PRISM.EPF1v2.100$rowid <- factor(N.PRISM.EPF1v2.100$rowid, levels = unique(rowidorder))
+  
+  Neg.PRISM.EPF1v2 <- N.Negall[order(N.PRISMall$X37_1.EPF1v2.100ug.ml_1, decreasing = TRUE),]
+  Neg.PRISM.EPF1v2$rowid <- factor(Neg.PRISM.EPF1v2$rowid, levels = unique(rowidorder))
+  #bind Neg and PRISM to use as one data frame in plot
+  Neg.PRISM.EPF1v2 <- rbind(N.PRISM.EPF1v2.100[1:48,], Neg.PRISM.EPF1v2[1:48,])
+  
+  #find top 48 (10%) of conditions and export table of conditions matching top 10% rowid. 
+  conditionsEPF1v2.100 <- merge(N.CP3.EPF1v2.100, conditions, sort = FALSE)
+  conditionEPF1v2sub <- conditionsEPF1v2.100[1:48, 1:5]
+  write.csv(conditionEPF1v2sub, file = "N.CP3top10EPF1v2.100.csv")
+  
+  N.PRISM.cond.EPF1v2.100 <- merge(N.PRISM.EPF1v2.100, conditions, sort = FALSE)
+  N.PRISM.cond.EPF1v2sub <- N.PRISM.cond.EPF1v2.100[1:48, 1:5]
+  write.csv(N.PRISM.cond.EPF1v2sub, file = "N.PRISMtop10EPF1v2.100.csv")
+  
+  #plot the top 10% values and rowids for CP3 alone and Neg
+  png(filename = paste0("N.CP3.Top.EPF1v2.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(Neg.CP3.EPF1v2, aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1, color = sample)) + geom_point() + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(MFI)", title = "CP3 EPF1v2 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,10)
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for PRISM alone and Negs
+  #change factor levels of sample so that Neg is 2nd and PRISM is 1st
+  Neg.PRISM.EPF1v2$sample <- factor(Neg.PRISM.EPF1v2$sample, levels = c("PRISM", "Neg"))
+  
+  png(filename = paste0("N.PRISM.Top.EPF1v2.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(Neg.PRISM.EPF1v2, aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1, color = sample)) + geom_point() + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(MFI)", title = "PRISM EPF1v2 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,10)
+  
+  graphics.off()
+  
+   
+#  #old code for plotting positives and negatives on the same plots 
+#   png(filename = paste0("N.CP3.Top.AMA1.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+#   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+#   
+#   base <- ggplot(N.CP3.AMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1, color = "CP3")) + geom_point(col = "red") + theme_bw() + 
+#     labs(x = "Row ID", y = "Normalized Log2(MFI)", title = "CP3 AMA1 100 µg/mL") + 
+#     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+#     ylim(0,10) + scale_color_manual(name="Sample", values=c(CP3 ="red", Neg ="blue"))
+#   
+#   base + geom_point(data = Neg.CP3.AMA1[1:48,], aes(x=rowid, y=X13_1.PfAMA1.100ug.ml_1, color = "Neg"))
+#   
+#   graphics.off()
+#   
+# #old code for vertical plots
+# geomeanAMA1.100$rowid <- factor(geomeanAMA1.100$rowid, levels = rev(unique(rowidorder)))
+# 
+# png(filename = paste0("V.AMA1.100.GM.tif"), width = 3.5, height = 4.5, units = "in", res = 1200)
+# par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+# 
+# ggplot(geomeanAMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1)) + theme_bw() + 
+#   geom_point() + theme(axis.text.y = element_text(size = 7)) +
+#   coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "AMA1 100 ?g/mL") +
+#   ylim(0,8)
+# 
+# graphics.off()
+# 
