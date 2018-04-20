@@ -524,6 +524,25 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   
   graphics.off()
   
+###Find the conditions which are present for all antigens!! 
+  #Ignoring the case without the negative ratio because the plots look terrible
+  
+  #First find the ones which are present in both CP3 and PRISM for each antigen
+  bothAMA1 <- merge(conditionAMA1sub, PRISM.cond.AMA1sub, sort = FALSE)
+  bothMSP1.19 <- merge(conditionMSP1.19sub, PRISM.cond.MSP1.19sub, sort = FALSE)
+  bothHyp2 <- merge(conditionHyp2sub, PRISM.cond.Hyp2sub, sort = FALSE)
+  bothEPF1v2 <- merge(conditionEPF1v2sub, PRISM.cond.EPF1v2sub, sort = FALSE)
+  
+  #check if bothAMA1 (only 1 condition :( ) is present in all antigens
+  ALL <- merge(bothAMA1, bothMSP1.19) #NOT in MSP1.19
+  ALL <- merge(bothAMA1, bothHyp2) #YES in Hyp2
+  ALL <- merge(bothAMA1, bothEPF1v2) #NOT in EPF1v2
+  
+  #check if other 3 antigens have common top conditions
+  ALL <- merge(bothMSP1.19, bothHyp2) #6 conditions in common
+  ALL.3 <- merge(ALL, bothEPF1v2) #no conditions in common
+  ALL <- merge(bothMSP1.19, bothEPF1v2) #1 condition in common
+  ALL <- merge(bothHyp2, bothEPF1v2) #3 conditions in common
    
 #  #old code for plotting positives and negatives on the same plots 
 #   png(filename = paste0("N.CP3.Top.AMA1.100.tif"), width = 8, height = 3, units = "in", res = 1200)
