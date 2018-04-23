@@ -528,10 +528,10 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   #Ignoring the case without the negative ratio because the plots look terrible
   
   #First find the ones which are present in both CP3 and PRISM for each antigen
-  bothAMA1 <- merge(conditionAMA1sub, PRISM.cond.AMA1sub, sort = FALSE)
-  bothMSP1.19 <- merge(conditionMSP1.19sub, PRISM.cond.MSP1.19sub, sort = FALSE)
-  bothHyp2 <- merge(conditionHyp2sub, PRISM.cond.Hyp2sub, sort = FALSE)
-  bothEPF1v2 <- merge(conditionEPF1v2sub, PRISM.cond.EPF1v2sub, sort = FALSE)
+  bothAMA1 <- merge(conditionAMA1sub, PRISM.cond.AMA1sub, sort = FALSE) # one condition
+  bothMSP1.19 <- merge(conditionMSP1.19sub, PRISM.cond.MSP1.19sub, sort = FALSE) #9 conditions
+  bothHyp2 <- merge(conditionHyp2sub, PRISM.cond.Hyp2sub, sort = FALSE) #14 conditions
+  bothEPF1v2 <- merge(conditionEPF1v2sub, PRISM.cond.EPF1v2sub, sort = FALSE) #12 conditions
   
   #check if bothAMA1 (only 1 condition :( ) is present in all antigens
   ALL <- merge(bothAMA1, bothMSP1.19) #NOT in MSP1.19
@@ -543,6 +543,22 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   ALL.3 <- merge(ALL, bothEPF1v2) #no conditions in common
   ALL <- merge(bothMSP1.19, bothEPF1v2) #1 condition in common
   ALL <- merge(bothHyp2, bothEPF1v2) #3 conditions in common
+  
+#check CP3 alone for common top conditions among all antigens 
+  CP3alone2 <- merge(conditionAMA1sub, conditionMSP1.19sub) #28 conditions
+  CP3alone3 <- merge(conditionHyp2sub, CP3alone2) #15 conditions
+  CP3alone4 <- merge(conditionEPF1v2sub, CP3alone3) #7 conditions
+  write.csv(CP3alone4, file = "CP3Top10ALLantigens.csv")
+
+#check PRISM alone for common top conditions among all antigens
+  PRISMalone2 <- merge(PRISM.cond.AMA1sub, PRISM.cond.MSP1.19sub) #15 conditions
+  PRISMalone3 <- merge(PRISMalone2, PRISM.cond.Hyp2sub) #2 conditions
+  PRISMalone4 <- merge(PRISMalone3, PRISM.cond.EPF1v2sub) #1 condition
+  write.csv(PRISMalone4, file = "PRISMTop10ALLantigens.csv")
+  
+#check that PRISM and CP3 condition is not mutual
+  All <- merge(PRISMalone4, CP3alone4) #0 conditions
+  
    
 #  #old code for plotting positives and negatives on the same plots 
 #   png(filename = paste0("N.CP3.Top.AMA1.100.tif"), width = 8, height = 3, units = "in", res = 1200)
