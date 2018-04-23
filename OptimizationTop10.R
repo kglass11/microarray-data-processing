@@ -559,6 +559,10 @@ conditions <- CP3all[,c(1,9,10,11,48)]
 #check that PRISM and CP3 condition is not mutual
   All <- merge(PRISMalone4, CP3alone4) #0 conditions
   
+#Check if conditions which came up for PRISM and CP3 alone are included in geomean selection
+  All <- merge(CP3alone4, four) #0 conditions
+  All <- merge(PRISMalone4, four) #0 conditions
+  
    
 #  #old code for plotting positives and negatives on the same plots 
 #   png(filename = paste0("N.CP3.Top.AMA1.100.tif"), width = 8, height = 3, units = "in", res = 1200)
