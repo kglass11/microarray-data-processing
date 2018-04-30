@@ -418,6 +418,22 @@ ggplot(geomeanAMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1)) + th
 
 graphics.off()
 
+  #plot the original CP3 and PRISM values instead of the geomean
+  #keep the rowid order from the geomean
+
+  GMcondAMA1 <- conditionsAMA1.100[1:48, c(1,38:41)]
+  DataGM.AMA1 <- merge(GMcondAMA1, AHHsub2, sort=FALSE)
+  
+  png(filename = paste0("AMA1.samples.GM.tif"), width = 8, height = 3.5, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(DataGM.AMA1, aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1, color = sample))  + 
+    geom_point() + theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "AMA1 100 µg/mL")
+  
+  graphics.off()  
+
+
 #MSP1-19, 100 ug/mL; plot data from top 48 geomeans (10%) of conditions;
 colnames(geomean[8])
 geomeanMSP1.19.100 <- geomean[order(geomean$X19_1.PfMSP1.19.100ug.ml_1, decreasing = TRUE),]
@@ -451,6 +467,21 @@ ggplot(geomeanMSP1.19.100[1:48,], aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1)
   ylim(0,8)
 
 graphics.off()
+
+#plot the original CP3 and PRISM values instead of the geomean
+#keep the rowid order from the geomean
+
+GMcondMSP1 <- conditionsMSP1.19.100[1:48, c(1,38:41)]
+DataGM.MSP1 <- merge(GMcondMSP1, AHHsub2, sort=FALSE)
+
+png(filename = paste0("MSP1.19.samples.GM.tif"), width = 8, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(DataGM.MSP1, aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1, color = sample))  + 
+  geom_point() + theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "MSP1-19 100 µg/mL")
+
+graphics.off()  
 
 #Hyp2, 100 ug/mL; plot data from top 48 geomeans (10%) of conditions;
 colnames(geomean[14])
@@ -486,6 +517,21 @@ ggplot(geomeanHyp2.100[1:48,], aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1)) + them
 
 graphics.off()
 
+#plot the original CP3 and PRISM values instead of the geomean
+#keep the rowid order from the geomean
+
+GMcondHyp2 <- conditionsHyp2.100[1:48, c(1,38:41)]
+DataGM.Hyp2 <- merge(GMcondHyp2, AHHsub2, sort=FALSE)
+
+png(filename = paste0("Hyp2.samples.GM.tif"), width = 8, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(DataGM.Hyp2, aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1, color = sample))  + 
+  geom_point() + theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Hyp2 100 µg/mL")
+
+graphics.off()  
+
 #EPF1v2, 100 ug/mL; plot data from top 48 geomeans (10%) of conditions;
 colnames(geomean[26])
 geomeanEPF1v2.100 <- geomean[order(geomean$X37_1.EPF1v2.100ug.ml_1, decreasing = TRUE),]
@@ -520,6 +566,17 @@ ggplot(geomeanEPF1v2.100[1:48,], aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1)) + 
 
 graphics.off()
 
+GMcondEPF1v2 <- conditionsEPF1v2.100[1:48, c(1,38:41)]
+DataGM.EPF1v2 <- merge(GMcondEPF1v2, AHHsub2, sort=FALSE)
+
+png(filename = paste0("EPF1v2.samples.GM.tif"), width = 8, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(DataGM.EPF1v2, aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1, color = sample))  + 
+  geom_point() + theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "EPF1v2 100 µg/mL")
+
+graphics.off()  
 
 #determine which conditions are in the top 10% for AMA1, MSP1-19, Hyp2, and EPF1v2
 
@@ -534,15 +591,20 @@ four <- merge(three, conditionEPF1v2sub, sort = FALSE)
 
 write.csv(four, file = "commontop10.csv")
 
-
 #plot all geometric means for all 4 antigens for common 11 conditions
 #currently row ID are sorted based on the AMA1 geomeans
 
 fourGM <- merge(four, geomean, sort = FALSE)
+fourSamples <- merge(four, AHHsub2, sort = FALSE)
 
 fourmelt <- melt(fourGM)
+foursamplesmelt <- melt(fourSamples)
+
 fourmeltsub <- filter(fourmelt, variable == "X37_1.EPF1v2.100ug.ml_1" | variable == "X25_1.Hyp2.100ug.ml_1"
                       | variable == "X19_1.PfMSP1.19.100ug.ml_1" | variable == "X13_1.PfAMA1.100ug.ml_1" )
+
+foursamplessub <- filter(foursamplesmelt, variable == "X37_1.EPF1v2.100ug.ml_1" | variable == "X25_1.Hyp2.100ug.ml_1"
+                         | variable == "X19_1.PfMSP1.19.100ug.ml_1" | variable == "X13_1.PfAMA1.100ug.ml_1" )
 
 png(filename = paste0("GMfourAgstop10.tif"), width = 5, height = 3.5, units = "in", res = 1200)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
@@ -557,6 +619,7 @@ graphics.off()
 #vertical plot of the same thing
 rowids <- c(as.character(fourGM$rowid))
 fourmeltsub$rowid <- factor(fourmeltsub$rowid, levels = rev(unique(rowids)))
+foursamplessub$rowid <- factor(foursamplessub$rowid, levels = rev(unique(rowids)))
 
 png(filename = paste0("V.GMfourAgstop10.tif"), width = 5, height = 3.5, units = "in", res = 1200)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
@@ -565,6 +628,17 @@ ggplot(fourmeltsub, aes(x = rowid, y = value, color = variable)) + theme_bw() +
   geom_point() + theme(axis.text.y = element_text(size = 10)) +
   labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Geometric mean of common combinations") +
   ylim(0,4) + scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) + coord_flip()
+
+graphics.off()
+
+#Plot the values for CP3 and PRISM for the top combinations rather than geomean
+png(filename = paste0("V.samples.top10.tif"), width = 5, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(foursamplessub, aes(x = rowid, y = value, color = variable, shape = sample)) + theme_bw() + 
+  geom_point() + theme(axis.text.y = element_text(size = 10)) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 and PRISM values for common combinations") +
+  scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) + coord_flip()
 
 graphics.off()
 
