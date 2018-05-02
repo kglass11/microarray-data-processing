@@ -687,7 +687,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   png(filename = paste0("CP3.Top10.noGST.100.tif"), width = 8, height = 3, units = "in", res = 1200)
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
-  ggplot(top10.noGST, aes(x = Number, y = Value, color=Antigen)) + geom_point(shape=18) + theme_bw() + 
+  ggplot(top10.noGST, aes(x = Number, y = Value, color=Antigen)) + geom_point(shape=18, size = 2) + theme_bw() + 
     labs(y = "Normalized Log2(Positive/Negative)", title = "CP3 values for top 10% of conditions, 100 µg/mL") + 
     theme(axis.text.x = element_text(angle = 90, vjust = 1, size = 8)) +
     ylim(0,9)
