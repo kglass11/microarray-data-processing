@@ -667,7 +667,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   rowidorder <- c(as.character(top10.all.melt$rowid))
   top10.all.melt$rowid <- factor(top10.all.melt$rowid, levels = unique(rowidorder))
   
-  #plot with color = variable
+  #plot with color = antigen
   png(filename = paste0("CP3.Top10.ALL.100.tif"), width = 8, height = 3, units = "in", res = 1200)
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
@@ -684,7 +684,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   top10.noGST$Antigen <- factor(top10.noGST$Antigen, levels = unique(antigenorder))
   
   #plot without GST!!!
-  png(filename = paste0("CP3.Top10.ALL.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  png(filename = paste0("CP3.Top10.noGST.100.tif"), width = 8, height = 3, units = "in", res = 1200)
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(top10.noGST, aes(x = Number, y = Value, color=Antigen)) + geom_point(shape=18) + theme_bw() + 
