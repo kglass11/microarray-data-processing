@@ -2,7 +2,7 @@
 
 #Replicates correlation and other correlation analysis
 
-#1. Correlation replicate 1 with replicate 2 for all conditions (480 conditions) 
+###1. Correlation replicate 1 with replicate 2 for all conditions (480 conditions) 
 
   #rep1.matrix and rep2.matrix have the data with negative normalized values set to zero
   #trans.norm.rep1 and trans.norm.rep2 have the data without setting negative normalized values to zero
@@ -85,6 +85,14 @@ colnames(Rep1.df) <- newnames
 newnames <- make.names(colnames(Rep2.df))
 colnames(Rep2.df) <- newnames
 
+###Accidentally removed buffer and ref spots because of the way we did rbind with the print buffer data only!
+#go back and fix this after getting correlations to work
 
-  #calculate pearson's correlation coefficients for replicate 1 vs replicate 2 row-wise
+#calculate pearson's correlation coefficients for replicate 1 vs replicate 2 row-wise
+#read more about the different methods for use!
+repcor <- c(nrow(Rep1.df))
 
+for(i in 1:nrow(Rep1.df)){
+  repcor[i] <- cor(x = c(as.matrix(Rep1.df[i,11:46])), y = c(as.matrix(Rep2.df[i,11:46])), use = "everything")
+}
+remove(i)
