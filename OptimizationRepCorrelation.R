@@ -1,5 +1,7 @@
 #continuing on from optimizationanalysis.R and OptimizationTop10.R
 
+load("RepsCor.RData")
+
 #Replicates correlation and other correlation analysis
 
 ###1. Correlation replicate 1 with replicate 2 for all conditions (480 conditions) 
@@ -9,7 +11,8 @@
   #trans.norm.meta.rep1 and 2 have the data with sample_id as a variable not rownames and have 
     #slide_type, blocking_buffer, and block_dilution as final 3 columns
   #data is not a ratio of positive to negative, nor has GST been subtracted
-  #data includes buffer and ref spots as well
+  #data includes buffer and ref spots as well, but exclude these when separating by print buffer.
+    #We don't want to count those because they are printed in system buffer only, and don't have a specific print buffer
 
   #Separate data by print buffers for replicate 1 and replicate 2.
 
@@ -73,10 +76,12 @@ Rep2.df <- rbind(PB1.2.meta, PB2.2.meta, PB3.2.meta)
 Rep1.df$sample <- "CP3"
 Rep1.df$sample[c(grep("PRISM", Rep1.df$sample_id))] <- "PRISM"
 Rep1.df$sample[c(grep("Swazi", Rep1.df$sample_id))] <- "Swazi"
+Rep1.df$sample[c(grep("Neg", Rep1.df$sample_id))] <- "Neg"
 
 Rep2.df$sample <- "CP3"
 Rep2.df$sample[c(grep("PRISM", Rep2.df$sample_id))] <- "PRISM"
 Rep2.df$sample[c(grep("Swazi", Rep2.df$sample_id))] <- "Swazi"
+Rep2.df$sample[c(grep("Neg", Rep2.df$sample_id))] <- "Neg"
 
 #the names of the columns have spaces. So they cannot be used in lmer and other functions
 newnames <- make.names(colnames(Rep1.df))
@@ -85,14 +90,71 @@ colnames(Rep1.df) <- newnames
 newnames <- make.names(colnames(Rep2.df))
 colnames(Rep2.df) <- newnames
 
-###Accidentally removed buffer and ref spots because of the way we did rbind with the print buffer data only!
-#go back and fix this after getting correlations to work
-
 #calculate pearson's correlation coefficients for replicate 1 vs replicate 2 row-wise
-#read more about the different methods for use!
+#there are 30 rows for which all columns have NA, so correlation matrix also has NA for those conditions
 repcor <- c(nrow(Rep1.df))
 
 for(i in 1:nrow(Rep1.df)){
   repcor[i] <- cor(x = c(as.matrix(Rep1.df[i,11:46])), y = c(as.matrix(Rep2.df[i,11:46])), use = "everything")
 }
 remove(i)
+
+#add correlation coefficients to the metadata, but have correlation coeffs for Neg data as well
+repcor.df <- as.data.frame(repcor)
+repcor.df$sample_id <- Rep1.df$sample_id
+repcor.meta.df <- merge(sample_meta_f.df, repcor.df, sort = TRUE)
+
+#add print buffer and sample - *** need to make sure these are the right print buffer and sample!!
+sortRep1 <- Rep1.df[order(Rep1.df$sample_id),]
+repcor.meta.df$print_buffer <- sortRep1$print_buffer
+repcor.meta.df$sample <- sortRep1$sample
+
+#set factor order for sample
+repcor.meta.df$sample <- factor(repcor.meta.df$sample, levels = as.character(c("CP3", "PRISM", "Swazi", "Neg")))
+
+#plot All correlation coefficients vs Slide number
+png(filename = paste0("RepCor1.tif"), width = 8, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(repcor.meta.df, aes(x = sample_id, y = repcor))  + 
+  geom_point(color = "blue", size = 0.5) + theme_bw() + theme(axis.text.x=element_blank(), axis.ticks.x = element_blank()) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = "Slide", y = "Correlation Coefficient", title = "Correlation between replicates for each condition and sample")
+
+graphics.off()  
+
+#plot correlation coefficient vs. slide type
+png(filename = paste0("RepCor.ST.tif"), width = 8, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(repcor.meta.df, aes(x = slide_type, y = repcor, color = slide_type))  + 
+  geom_jitter(size = 0.5) + theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = "Slide Type", y = "Correlation Coefficient", title = "Correlation between replicates")
+
+graphics.off()  
+
+#plot correlation coefficient vs. slide type and print_buffer
+png(filename = paste0("RepCor.ST.PB.tif"), width = 8, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(repcor.meta.df, aes(x = slide_type, y = repcor, color = print_buffer))  + 
+  geom_jitter(size = 0.5) + theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = "Slide Type", y = "Correlation Coefficient", title = "Correlation between replicates") +
+  geom_violin(aes(x = slide_type, y=repcor))
+
+graphics.off()  
+
+#plot correlation coefficient vs. slide type and sample
+png(filename = paste0("RepCor.ST.Sample.tif"), width = 8, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(repcor.meta.df, aes(x = slide_type, y = repcor, color = sample))  + 
+  geom_jitter(size = 0.5) + theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  labs(x = "Slide Type", y = "Correlation Coefficient", title = "Correlation between replicates") +
+  geom_violin(aes(x = slide_type, y=repcor))
+
+graphics.off() 
+
