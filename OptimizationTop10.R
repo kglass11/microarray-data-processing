@@ -524,7 +524,177 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   
   graphics.off()
   
-###Find the conditions which are present for all antigens!! 
+# GexP18 100 µg/mL  
+  
+  #1. CP3 and PRISM with ratio from positive to negative (CP3all has everything for CP3 samples only)
+  
+  #sort/order by desired column, highest to lowest values
+  colnames(CP3all[30])
+  CP3.GEXP18.100 <- CP3all[order(CP3all$X31_1.GEXP18.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(CP3.GEXP18.100$rowid))
+  CP3.GEXP18.100$rowid <- factor(CP3.GEXP18.100$rowid, levels = unique(rowidorder))
+  
+  PRISM.GEXP18.100 <- PRISMall[order(PRISMall$X31_1.GEXP18.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(PRISM.GEXP18.100$rowid))
+  PRISM.GEXP18.100$rowid <- factor(PRISM.GEXP18.100$rowid, levels = unique(rowidorder))
+  
+  #find top 48 (10%) of conditions and export table of conditions matching top 10% rowid. 
+  conditionsGEXP18.100 <- merge(CP3.GEXP18.100, conditions, sort = FALSE)
+  conditionGEXP18sub <- conditionsGEXP18.100[1:48, 1:5]
+  write.csv(conditionGEXP18sub, file = "CP3top10GEXP18.100.csv")
+  
+  PRISM.cond.GEXP18.100 <- merge(PRISM.GEXP18.100, conditions, sort = FALSE)
+  PRISM.cond.GEXP18sub <- PRISM.cond.GEXP18.100[1:48, 1:5]
+  write.csv(PRISM.cond.GEXP18sub, file = "PRISMtop10GEXP18.100.csv")
+  
+  #make one data frame with PRISM and CP3 best conditions
+  BothGEXP18.100 <- rbind(conditionsGEXP18.100[1:48,], PRISM.cond.GEXP18.100[1:48,])
+  
+  #plot the top 10% values and rowids for both CP3 and PRISM on one plot - this isn't working yet
+  png(filename = paste0("Both.Top.GEXP18.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  base <- ggplot(CP3.GEXP18.100[1:48,]) + geom_point(aes(x = rowid, y = X31_1.GEXP18.100ug.ml_1), col = "red") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions GEXP18 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  base + geom_point(data = PRISM.GEXP18.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1), col= "green")
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for CP3 alone
+  png(filename = paste0("CP3.Top.GEXP18.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(CP3.GEXP18.100[1:48,], aes(x = rowid, y = X31_1.GEXP18.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 GEXP18 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for PRISM alone
+  png(filename = paste0("PRISM.Top.GEXP18.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(PRISM.GEXP18.100[1:48,], aes(x = rowid, y = X31_1.GEXP18.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM GEXP18 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  graphics.off() 
+  
+  
+#GST 100 ug/mL 
+  
+  #1. CP3 and PRISM with ratio from positive to negative (CP3all has everything for CP3 samples only)
+  
+  #sort/order by desired column, highest to lowest values
+  colnames(CP3all[42])
+  CP3.GST.100 <- CP3all[order(CP3all$X43_1.GST.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(CP3.GST.100$rowid))
+  CP3.GST.100$rowid <- factor(CP3.GST.100$rowid, levels = unique(rowidorder))
+  
+  PRISM.GST.100 <- PRISMall[order(PRISMall$X43_1.GST.100ug.ml_1, decreasing = TRUE),]
+  rowidorder <- c(as.character(PRISM.GST.100$rowid))
+  PRISM.GST.100$rowid <- factor(PRISM.GST.100$rowid, levels = unique(rowidorder))
+  
+  #find top 48 (10%) of conditions and export table of conditions matching top 10% rowid. 
+  conditionsGST.100 <- merge(CP3.GST.100, conditions, sort = FALSE)
+  conditionGSTsub <- conditionsGST.100[1:48, 1:5]
+  write.csv(conditionGSTsub, file = "CP3top10GST.100.csv")
+  
+  PRISM.cond.GST.100 <- merge(PRISM.GST.100, conditions, sort = FALSE)
+  PRISM.cond.GSTsub <- PRISM.cond.GST.100[1:48, 1:5]
+  write.csv(PRISM.cond.GSTsub, file = "PRISMtop10GST.100.csv")
+  
+  #make one data frame with PRISM and CP3 best conditions
+  BothGST.100 <- rbind(conditionsGST.100[1:48,], PRISM.cond.GST.100[1:48,])
+  
+  #plot the top 10% values and rowids for both CP3 and PRISM on one plot - this isn't working yet
+  png(filename = paste0("Both.Top.GST.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  base <- ggplot(CP3.GST.100[1:48,]) + geom_point(aes(x = rowid, y = X43_1.GST.100ug.ml_1), col = "red") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions GST 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  base + geom_point(data = PRISM.GST.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1), col= "green")
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for CP3 alone
+  png(filename = paste0("CP3.Top.GST.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(CP3.GST.100[1:48,], aes(x = rowid, y = X43_1.GST.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 GST 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  graphics.off()
+  
+  #plot the top 10% values and rowids for PRISM alone
+  png(filename = paste0("PRISM.Top.GST.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(PRISM.GST.100[1:48,], aes(x = rowid, y = X43_1.GST.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM GST 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+    ylim(0,9)
+  
+  graphics.off() 
+  
+#Plot CP3 only, for all antigens on the same plot, all ranked highest to lowest pos/neg signal
+  #x axis will be 1-48 for all, but this will no longer represent specific conditions
+  
+  #make a data frame with all antigens, 100 ug/mL, top 48 conditions, data for that antigen only
+  #drop the rowid, because have that stored elsewhere
+  top10.all.100 <- as.data.frame(cbind(CP3.AMA1.100[1:48,12],CP3.MSP1.19.100[1:48,18],CP3.Hyp2.100[1:48,24], CP3.GEXP18.100[1:48,30], CP3.EPF1v2.100[1:48,36],CP3.GST.100[1:48,42]))
+  colnames(top10.all.100) <- as.character(c("AMA1", "MSP1-19", "Hyp2", "GEXP18", "EPF1v2", "GST"))
+  
+  #add another column with 1-48
+  top10.all.100 <- tibble::rowid_to_column(top10.all.100)
+  top10.all.100$rowid <- as.factor(top10.all.100$rowid)
+  
+  #melt the data
+  top10.all.melt <- melt(top10.all.100)
+  colnames(top10.all.melt) <- as.character(c("Number", "Antigen", "Value"))
+  
+  #set factor order to 1-48
+  rowidorder <- c(as.character(top10.all.melt$rowid))
+  top10.all.melt$rowid <- factor(top10.all.melt$rowid, levels = unique(rowidorder))
+  
+  #plot with color = variable
+  png(filename = paste0("CP3.Top10.ALL.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(top10.all.melt, aes(x = Number, y = Value, color=Antigen)) + geom_point(shape=23) + theme_bw() + 
+    labs(y = "Normalized Log2(Positive/Negative)", title = "CP3 values for top 10% of conditions for all antigens, 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 1, size = 8)) +
+    ylim(0,9)
+  
+  graphics.off()
+  
+  #take out GST
+  top10.noGST <- top10.all.melt[!top10.all.melt$Antigen == "GST",]
+  antigenorder <- sort(c(as.character((top10.noGST$Antigen))))
+  top10.noGST$Antigen <- factor(top10.noGST$Antigen, levels = unique(antigenorder))
+  
+  #plot without GST!!!
+  png(filename = paste0("CP3.Top10.ALL.100.tif"), width = 8, height = 3, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(top10.noGST, aes(x = Number, y = Value, color=Antigen)) + geom_point(shape=18) + theme_bw() + 
+    labs(y = "Normalized Log2(Positive/Negative)", title = "CP3 values for top 10% of conditions, 100 µg/mL") + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 1, size = 8)) +
+    ylim(0,9)
+  
+  graphics.off()
+  
+  ###Find the conditions which are present for all antigens!! 
   #Ignoring the case without the negative ratio because the plots look terrible
   
   #First find the ones which are present in both CP3 and PRISM for each antigen
