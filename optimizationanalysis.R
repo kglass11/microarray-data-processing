@@ -3,7 +3,7 @@
 
 #"I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation"
 #/Users/Katie/Desktop/R files from work/270717 Optimisation
-setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation")
+setwd("I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation")
 getwd()
 
 # install.packages("lme4")
