@@ -464,30 +464,26 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   
   #merge the conditions with the data to plot
   hello <- merge(CP3alone4, CP3all, sort = TRUE)
+  
+  #melt and subset data for the plot
+  hellomelt <- melt(hello, variable.name = "Antigen")
+  hellosub <- filter(hellomelt, Antigen == "X37_1.EPF1v2.100ug.ml_1" | Antigen == "X25_1.Hyp2.100ug.ml_1"
+                     | Antigen == "X19_1.PfMSP1.19.100ug.ml_1" | Antigen == "X13_1.PfAMA1.100ug.ml_1")
    
-#  #old code for plotting positives and negatives on the same plots 
-#   png(filename = paste0("N.CP3.Top.AMA1.100.tif"), width = 8, height = 3, units = "in", res = 1200)
-#   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
-#   
-#   base <- ggplot(N.CP3.AMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1, color = "CP3")) + geom_point(col = "red") + theme_bw() + 
-#     labs(x = "Row ID", y = "Normalized Log2(MFI)", title = "CP3 AMA1 100 µg/mL") + 
-#     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
-#     ylim(0,10) + scale_color_manual(name="Sample", values=c(CP3 ="red", Neg ="blue"))
-#   
-#   base + geom_point(data = Neg.CP3.AMA1[1:48,], aes(x=rowid, y=X13_1.PfAMA1.100ug.ml_1, color = "Neg"))
-#   
-#   graphics.off()
-#   
-# #old code for vertical plots
-# geomeanAMA1.100$rowid <- factor(geomeanAMA1.100$rowid, levels = rev(unique(rowidorder)))
-# 
-# png(filename = paste0("V.AMA1.100.GM.tif"), width = 3.5, height = 4.5, units = "in", res = 1200)
-# par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
-# 
-# ggplot(geomeanAMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1)) + theme_bw() + 
-#   geom_point() + theme(axis.text.y = element_text(size = 7)) +
-#   coord_flip() + labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "AMA1 100 ?g/mL") +
-#   ylim(0,8)
-# 
-# graphics.off()
-# 
+  #vertical plot of CP3 for "best" 8 conditions
+  rowids <- c(as.character(hello$rowid))
+  hellosub$rowid <- factor(hellosub$rowid, levels = rev(unique(rowids)))
+  
+  png(filename = paste0("V.CP3.Common8.tif"), width = 5, height = 3.5, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  
+  ggplot(hellosub, aes(x = rowid, y = value, color = Antigen)) + theme_bw() + 
+    geom_point() + theme(axis.text.y = element_text(size = 10)) +
+    scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+    ylim(0,9)  + coord_flip()
+  
+  graphics.off()
+  
+  
