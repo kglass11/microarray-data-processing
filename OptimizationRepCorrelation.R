@@ -158,3 +158,9 @@ ggplot(repcor.meta.df, aes(x = slide_type, y = repcor, color = sample))  +
 
 graphics.off() 
 
+#Plot correlation coefficient between replicates for "best" conditions only
+
+
+#Overall correlations between different conditions for the same points
+#CP3 "Best" conditions for 4 antigens only - correlogram
+
