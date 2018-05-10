@@ -4,6 +4,9 @@ load("RepsCor.RData")
 
 #Replicates correlation and other correlation analysis
 
+# install.packages("corrgram")
+library(corrgram)
+
 ###1. Correlation replicate 1 with replicate 2 for all conditions (480 conditions) 
 
   #rep1.matrix and rep2.matrix have the data with negative normalized values set to zero
@@ -187,7 +190,8 @@ repcor.per <- function(threshold, vector){
 repcor.per(0.95, repcor)
 repcor.per(0.9, repcor)
 repcor.per(0.8, repcor)
-repcor.per(0.75, repcor)
+repcor.per(0.7, repcor)
+repcor.per(0.5, repcor)
 
 #repeat calculations but for CP3 only
 CP3repcor.df <- filter(repcor.meta.df, sample == "CP3")
@@ -196,12 +200,18 @@ CP3repcor <- c(CP3repcor.df$repcor)
 repcor.per(0.95, CP3repcor)
 repcor.per(0.9, CP3repcor)
 repcor.per(0.8, CP3repcor)
-repcor.per(0.75, CP3repcor)
+repcor.per(0.7, CP3repcor)
 repcor.per(0.5, CP3repcor)
 
 #Overall correlations between different conditions for the same points
 #CP3 "Best" conditions for 4 antigens only - correlogram
+#data frame hello has all the right data, but may need to transpose and subset
 
+hellocor <- as.data.frame(t(hello[,13:48]))
+colnames(hellocor) <- hello$rowid
 
+corrgram(hellocor, order=NULL, lower.panel=panel.shade,
+         upper.panel=NULL, text.panel=panel.txt,
+         main="Correlation of Best Conditions for CP3")
 
 
