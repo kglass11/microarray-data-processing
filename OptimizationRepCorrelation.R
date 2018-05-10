@@ -158,9 +158,25 @@ ggplot(repcor.meta.df, aes(x = slide_type, y = repcor, color = sample))  +
 
 graphics.off() 
 
-#Plot correlation coefficient between replicates for "best" conditions only
+#Plot correlation coefficient between replicates for "best" conditions for CP3 only
+  #CP3alone4 has the 8 common Top 10% conditions
 
+rep8 <- merge(CP3alone4, repcor.meta.df)
+rep8melt <- melt(rep8)
+rep8sub <- filter(rep8melt, variable == "repcor")
+
+png(filename = paste0("RepCor.Common8.tif"), width = 5, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(rep8sub, aes(x = rowid, y = value, color = sample)) + theme_bw() + 
+  geom_point() + theme(axis.text.y = element_text(size = 10)) +
+  labs(x = "Row ID", y = "Correlation Coefficient") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())  + coord_flip()
+
+graphics.off()
 
 #Overall correlations between different conditions for the same points
 #CP3 "Best" conditions for 4 antigens only - correlogram
+
+
 
