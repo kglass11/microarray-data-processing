@@ -213,7 +213,11 @@ repcor.per(0.5, CP3repcor)
 hellocor <- as.data.frame(t(hello[,13:48]))
 colnames(hellocor) <- hello$rowid
 
+png(filename = paste0("Common8.Correlogram.tif"), width = 3.5, height = 3.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
 corrgram(hellocor, order=NULL, lower.panel=panel.pie,
-         upper.panel=NULL, text.panel=panel.txt,
-         main="Correlation of Best Conditions for CP3")
+         upper.panel=panel.pts, text.panel=panel.txt)
+
+graphics.off()
 
