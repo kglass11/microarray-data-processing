@@ -1,5 +1,8 @@
 #continuing on from optimizationanalysis.R and OptimizationTop10.R
 
+#saved after corrgrams
+save.image("RepsCor.RData")
+
 load("RepsCor.RData")
 
 #Replicates correlation and other correlation analysis
@@ -210,8 +213,7 @@ repcor.per(0.5, CP3repcor)
 hellocor <- as.data.frame(t(hello[,13:48]))
 colnames(hellocor) <- hello$rowid
 
-corrgram(hellocor, order=NULL, lower.panel=panel.shade,
+corrgram(hellocor, order=NULL, lower.panel=panel.pie,
          upper.panel=NULL, text.panel=panel.txt,
          main="Correlation of Best Conditions for CP3")
-
 
