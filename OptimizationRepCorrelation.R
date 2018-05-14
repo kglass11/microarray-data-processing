@@ -171,13 +171,14 @@ rep8 <- merge(CP3alone4, repcor.meta.df)
 rep8melt <- melt(rep8)
 rep8sub <- filter(rep8melt, variable == "repcor")
 
-png(filename = paste0("RepCor.Common8.tif"), width = 5, height = 3.5, units = "in", res = 1200)
-par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+png(filename = paste0("RepCor.Common8.tif"), width = 4.2, height = 2.7, units = "in", res = 1200)
 
 ggplot(rep8sub, aes(x = rowid, y = value, color = sample)) + theme_bw() + 
-  geom_point() + theme(axis.text.y = element_text(size = 10)) +
+  geom_point(shape = 18, size = 2) + theme(axis.text.y = element_text(size = 10)) +
   labs(x = "Row ID", y = "Correlation Coefficient") +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())  + coord_flip()
+  scale_color_hue(name = "Sample") +
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) + 
+  coord_flip()
 
 graphics.off()
 
