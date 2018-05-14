@@ -412,12 +412,12 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   top10.noGST$Antigen <- factor(top10.noGST$Antigen, levels = unique(antigenorder))
   
   #plot without GST!!!
-  png(filename = paste0("CP3.Top10.noGST.100.tif"), width = 8, height = 3, units = "in", res = 1200)
-  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  png(filename = paste0("CP3.Top10.noGST.100.tif"), width = 8, height = 3.3, units = "in", res = 1200)
   
-  ggplot(top10.noGST, aes(x = Number, y = Value, color=Antigen)) + geom_point(shape=18, size = 2) + theme_bw() + 
-    labs(y = "Normalized Log2(Positive/Negative)", title = "CP3 values for top 10% of conditions, 100 ?g/mL") + 
-    theme(axis.text.x = element_text(angle = 90, vjust = 1, size = 8)) +
+  ggplot(top10.noGST, aes(x = Number, y = Value, color=Antigen)) + geom_point(shape = 18, size = 2) + theme_bw() + 
+    labs(y = "Normalized Log2(Positive/Negative)") + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 1, size = 8, color = "black")) +
+    theme(panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
     ylim(0,9)
   
   graphics.off()
@@ -474,14 +474,13 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   rowids <- c(as.character(hello$rowid))
   hellosub$rowid <- factor(hellosub$rowid, levels = rev(unique(rowids)))
   
-  png(filename = paste0("V.CP3.Common8.tif"), width = 5, height = 3.5, units = "in", res = 1200)
-  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  png(filename = paste0("V.CP3.Common8.tif"), width = 4.2, height = 2.7, units = "in", res = 1200)
   
   ggplot(hellosub, aes(x = rowid, y = value, color = Antigen)) + theme_bw() + 
-    geom_point() + theme(axis.text.y = element_text(size = 10)) +
+    geom_point(shape = 18, size = 2) + theme(axis.text.y = element_text(size = 10)) +
     scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
     labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
-    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+    theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
     ylim(0,9)  + coord_flip()
   
   graphics.off()
