@@ -39,7 +39,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   base <- ggplot(CP3.AMA1.100[1:48,]) + geom_point(aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1), col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions AMA1 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions AMA1 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -52,7 +52,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
   ggplot(CP3.AMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
-  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 AMA1 100 µg/mL") + 
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 AMA1 100 ????g/mL") + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
   ylim(0,9)
 
@@ -63,13 +63,13 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(PRISM.AMA1.100[1:48,], aes(x = rowid, y = X13_1.PfAMA1.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM AMA1 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM AMA1 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
   graphics.off()
   
-# MSP1.19 100 µg/mL  
+# MSP1.19 100 ????g/mL  
   
   #1. CP3 and PRISM with ratio from positive to negative (CP3all has everything for CP3 samples only)
   
@@ -100,7 +100,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   base <- ggplot(CP3.MSP1.19.100[1:48,]) + geom_point(aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1), col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions MSP1.19 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions MSP1.19 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -113,7 +113,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(CP3.MSP1.19.100[1:48,], aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 MSP1.19 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 MSP1.19 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -124,13 +124,13 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(PRISM.MSP1.19.100[1:48,], aes(x = rowid, y = X19_1.PfMSP1.19.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM MSP1.19 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM MSP1.19 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
   graphics.off() 
   
-# Hyp2 100 µg/mL  
+# Hyp2 100 ????g/mL  
   
   #1. CP3 and PRISM with ratio from positive to negative (CP3all has everything for CP3 samples only)
   
@@ -161,7 +161,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   base <- ggplot(CP3.Hyp2.100[1:48,]) + geom_point(aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1), col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions Hyp2 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions Hyp2 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -174,7 +174,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(CP3.Hyp2.100[1:48,], aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 Hyp2 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 Hyp2 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -185,13 +185,13 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(PRISM.Hyp2.100[1:48,], aes(x = rowid, y = X25_1.Hyp2.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM Hyp2 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM Hyp2 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
   graphics.off() 
   
-# EPF1v2 100 µg/mL  
+# EPF1v2 100 ????g/mL  
   
   #1. CP3 and PRISM with ratio from positive to negative (CP3all has everything for CP3 samples only)
   
@@ -222,7 +222,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   base <- ggplot(CP3.EPF1v2.100[1:48,]) + geom_point(aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1), col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions EPF1v2 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions EPF1v2 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -235,7 +235,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(CP3.EPF1v2.100[1:48,], aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 EPF1v2 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 EPF1v2 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -246,14 +246,14 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(PRISM.EPF1v2.100[1:48,], aes(x = rowid, y = X37_1.EPF1v2.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM EPF1v2 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM EPF1v2 100 ????g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
   graphics.off() 
   
   
-# GexP18 100 µg/mL  
+# GexP18 100 ????g/mL  
   
   #1. CP3 and PRISM with ratio from positive to negative (CP3all has everything for CP3 samples only)
   
@@ -499,9 +499,40 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   targethello$Name <- targetnames
   
   #merge target metadata with data for the 8 conditions
+  #Note: The print buffer column is meaningless at this point, ignore it!! Print buffer is part of the condition number
   hellocon <- merge(targethello, helloT, all.x = FALSE, all.y = FALSE, by.x = "Name", by.y = "row.names", sort = FALSE)
   
+  helloconmelt <- melt(hellocon, measure.vars = c(colnames(helloT)))
   
+  #FYI - getting a warning message: attributes are not identical across measure variables; they will be dropped,
+  #but the data looks fine, 
+  
+  #FOR EACH ANTIGEN SEPARATELY - plot the concentration vs. condition
+  aglist <- c("AMA1", "MSP1.19", "Hyp2", "EPF1v2", "GEXP18", "GST")
+  
+  #need to set value to numeric and concentration to factor, for some reason they aren't
+  for(i in 1:length(aglist)){
+    
+    antigen <- aglist[[i]]
+    
+    agnums <- grep(antigen, helloconmelt$Name)
+    oneantigen <- helloconmelt[agnums,]
+    
+    png(filename = paste0("CP3.",antigen, ".Dilutions.tif"), width = 4, height = 3.3, units = "in", res = 1200)
+    
+    print(ggplot(oneantigen, aes(x = as.factor(Concentration), y = as.numeric(value), color = variable)) + geom_point(shape=18, size = 2) +
+      geom_line(aes(group = variable)) + theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (??g/mL)", title = antigen) + 
+      theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+      scale_color_hue(name = "Condition"))
+    
+    graphics.off()
+    
+  }
+  
+  remove(i)
+  
+
+
   
   
   
