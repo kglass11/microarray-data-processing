@@ -486,4 +486,22 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   
   graphics.off()
   
+#Plot the antigen dilution curves for the best 8 conditions, 4 antigens (and GST?!?! or ALL antigens?!?!?!)
+  
+  #prepare transposed hello data frame
+  hello2 <- tibble::column_to_rownames(hello, var = "rowid")
+  helloT <- t(hello2) 
+  colnames(helloT) <- c(as.character(rownames(hello2)))
+  
+  #make a target data frame with the new names because the current names don't match
+  targetnames <- make.names(target_meta.df$Name)
+  targethello <- target_meta.df
+  targethello$Name <- targetnames
+  
+  #merge target metadata with data for the 8 conditions
+  hellocon <- merge(targethello, helloT, all.x = FALSE, all.y = FALSE, by.x = "Name", by.y = "row.names", sort = FALSE)
+  
+  
+  
+  
   
