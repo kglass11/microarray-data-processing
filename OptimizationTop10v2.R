@@ -416,7 +416,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   
   ggplot(top10.noGST, aes(x = Number, y = Value, color=Antigen)) + geom_point(shape = 18, size = 2) + theme_bw() + 
     labs(y = "Normalized Log2(Positive/Negative)") + 
-    theme(axis.text.x = element_text(angle = 90, vjust = 1, size = 8, color = "black")) +
+    theme(axis.text.x = element_text(angle = 90, size = 8.5, vjust = 0.5, color = "black")) +
     theme(panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
     ylim(0,9)
   
@@ -469,14 +469,11 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   hellomelt <- melt(hello, variable.name = "Antigen")
   hellosub <- filter(hellomelt, Antigen == "X37_1.EPF1v2.100ug.ml_1" | Antigen == "X25_1.Hyp2.100ug.ml_1"
                      | Antigen == "X19_1.PfMSP1.19.100ug.ml_1" | Antigen == "X13_1.PfAMA1.100ug.ml_1")
-   
-  #vertical plot of CP3 for "best" 8 conditions
-  rowids <- c(as.character(hello$rowid))
-  hellosub$rowid <- factor(hellosub$rowid, levels = rev(unique(rowids)))
   
+  #vertical plot of CP3 for "best" 8 conditions - organized by highest to lowest minimum value
   png(filename = paste0("V.CP3.Common8.tif"), width = 4.2, height = 2.7, units = "in", res = 1200)
   
-  ggplot(hellosub, aes(x = rowid, y = value, color = Antigen)) + theme_bw() + 
+  ggplot(hellosub, aes(x = reorder(rowid, value, min), y = value, color = Antigen)) + theme_bw() + 
     geom_point(shape = 18, size = 2) + theme(axis.text.y = element_text(size = 10)) +
     scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
     labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
@@ -484,6 +481,10 @@ conditions <- CP3all[,c(1,9,10,11,48)]
     ylim(0,9)  + coord_flip()
   
   graphics.off()
+  
+  #Need to save the factor order for these row IDs so that can use the same factor order for all plots of top 8
+  #not sure how to do the factor order outside the plot...reorder function was not working
+  Top8rowidorder <- c("318", "98", "137", "142", "102", "432", "478", "112")
   
 #Plot the antigen dilution curves for the best 8 conditions, 4 antigens (and GST?!?! or ALL antigens?!?!?!)
   
@@ -517,10 +518,13 @@ conditions <- CP3all[,c(1,9,10,11,48)]
     agnums <- grep(antigen, helloconmelt$Name)
     oneantigen <- helloconmelt[agnums,]
     
+    #explicitly factor level to match above
+    oneantigen$variable <- factor(oneantigen$variable, levels = unique(Top8rowidorder))
+    
     png(filename = paste0("CP3.",antigen, ".Dilutions.tif"), width = 4, height = 3.3, units = "in", res = 1200)
     
     print(ggplot(oneantigen, aes(x = as.factor(Concentration), y = as.numeric(value), color = variable)) + geom_point(shape=18, size = 2) +
-      geom_line(aes(group = variable)) + theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (??g/mL)", title = antigen) + 
+      geom_line(aes(group = variable)) + theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)", title = antigen) + 
       theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
       scale_color_hue(name = "Condition"))
     
