@@ -8,7 +8,9 @@ load("RepsCor.RData")
 #Replicates correlation and other correlation analysis
 
 # install.packages("corrgram")
+# install.packages("corrplot")
 library(corrgram)
+library(corrplot)
 
 ###1. Correlation replicate 1 with replicate 2 for all conditions (480 conditions) 
 
@@ -135,8 +137,8 @@ par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
 ggplot(repcor.meta.df, aes(x = slide_type, y = repcor, color = slide_type))  + 
   geom_jitter(size = 0.5) + theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  labs(x = "Slide Type", y = "Correlation Coefficient", title = "Correlation between replicates")
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) + 
+  labs(x = "Slide Type", y = "Correlation Coefficient")
 
 graphics.off()  
 
@@ -216,10 +218,24 @@ repcor.per(0.5, CP3repcor)
 hellocor <- as.data.frame(t(hello[,13:48]))
 colnames(hellocor) <- hello$rowid
 
+#reorder the columns in hellocor to match Top8rowidorder
+corOrd <- hellocor[,Top8rowidorder]
+
+#plot with corrgram package - can't figure out how to change the point size :/
 png(filename = paste0("Common8.Correlogram.tif"), width = 3.5, height = 3.5, units = "in", res = 1200)
 par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 
-corrgram(hellocor, order=NULL, lower.panel=panel.pie,
+corrgram(corOrd, order=NULL, lower.panel=panel.pie,
          upper.panel=panel.pts, text.panel=panel.txt)
 
 graphics.off()
+
+#plot with corrplot package
+png(filename = paste0("Common8.CorrelogramV2.tif"), width = 5, height = 5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+corrplot.mixed(cor(corOrd, use = "complete.obs"), tl.col="black")
+
+graphics.off()
+
+
