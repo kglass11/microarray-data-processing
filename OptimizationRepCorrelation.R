@@ -171,11 +171,13 @@ rep8 <- merge(CP3alone4, repcor.meta.df)
 rep8melt <- melt(rep8)
 rep8sub <- filter(rep8melt, variable == "repcor")
 
+rep8sub$rowid <- factor(rep8sub$rowid, levels = rev(unique(Top8rowidorder)))
+
 png(filename = paste0("RepCor.Common8.tif"), width = 4.2, height = 2.7, units = "in", res = 1200)
 
 ggplot(rep8sub, aes(x = rowid, y = value, color = sample)) + theme_bw() + 
   geom_point(shape = 18, size = 2) + theme(axis.text.y = element_text(size = 10)) +
-  labs(x = "Row ID", y = "Correlation Coefficient") +
+  labs(x = "Condition", y = "Correlation Coefficient") +
   scale_color_hue(name = "Sample") +
   theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) + 
   coord_flip()
@@ -221,4 +223,3 @@ corrgram(hellocor, order=NULL, lower.panel=panel.pie,
          upper.panel=panel.pts, text.panel=panel.txt)
 
 graphics.off()
-
