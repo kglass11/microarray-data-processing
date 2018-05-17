@@ -186,8 +186,21 @@ ggplot(rep8sub, aes(x = rowid, y = value, color = sample)) + theme_bw() +
 
 graphics.off()
 
-#calculate how many arrays have correlation coefficients above certain thresholds
+#Updated Figure 4A. Plot correlation coefficients vs. slide type, CP3 ONLY + points for Top 8 Conditions
+repcor.CP3 <- filter(repcor.meta.df, sample == "CP3")
+rep8CP3 <- filter(rep8sub, sample == "CP3")
 
+png(filename = paste0("Fig4A.CP3repcor.tif"), width = 8, height = 3.5, units = "in", res = 1200)
+
+ggplot(data = repcor.CP3, aes(x = slide_type, y=repcor)) + geom_jitter(size = 0.6, height = 0, width = 0.33, aes(color = slide_type)) + 
+  geom_jitter(data = rep8CP3, aes(x=slide_type, y = value), size = 0.6, width = 0.45, height = 0, color = "black") +
+  theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) + 
+  labs(x = "Slide Type", y = "Pearson's Correlation Coefficient")
+  
+graphics.off() 
+
+#calculate how many arrays have correlation coefficients above certain thresholds
 #function to calculate the percent of correlation coefficients above a certain threshold
 repcor.per <- function(threshold, vector){
   pepper <- (vector > threshold) + 0
