@@ -535,7 +535,59 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   remove(i)
   
 
-
+#for all 480 conditions, CP3 only, plot the antigen dilutions versus log2(pos/neg), all antigens on one plot
+  
+  #test plot without specifying dilution and antigen - looks good, go ahead and do it properly
+  CP3allmelt <- melt(CP3all)
+  
+  ggplot(CP3allmelt, aes(x = variable, y = value)) + geom_boxplot() +
+          theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration/Antigen (µg/mL)") + 
+          theme(panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+          ylim(-2,10) + theme(axis.text.x = element_text(angle = 90, size = 8.5, vjust = 0.5, color = "black"))
+  
+  #base data is CP3all - need to link targets with dilutions - prepare transposed DF
+  CP3all2 <- tibble::column_to_rownames(CP3all, var = "rowid")
+  CP3allT <- t(CP3all2) 
+  colnames(CP3allT) <- c(as.character(rownames(CP3all2)))
+  
+  #updated target_metadata is targethello
+  CP3alltarget <- merge(targethello, CP3allT, all.x = FALSE, all.y = FALSE, by.x = "Name", by.y = "row.names", sort = FALSE)
+  
+  #need to add antigen labels to the data frame, this is column number 486
+  CP3alltarget$Antigen <- c("AMA1")
+  #use aglist created above to label antigens
+  for(i in 1:length(aglist)){
+    antigen <- aglist[[i]]
+    nums <- grep(antigen, CP3alltarget$Name)
+    CP3alltarget[nums, 486] <- antigen
+  }
+  
+  #melt the data - getting Warning message: attributes are not identical across measure variables; they will be dropped, but data looks fine :/
+  CP3antmelt <- melt(CP3alltarget, id.vars = c("Name", "Category", "Concentration", "Antigen", "Print_Buffer", "Expression_Tag"))
+  
+  #plot - this is all already GST subtracted data and is pos/neg ratio
+  png(filename = paste0("CP3.ALL.Dilutions.tif"), width = 7, height = 3.5, units = "in", res = 1200)
+  
+  ggplot(CP3antmelt, aes(x = as.factor(Antigen), y = as.numeric(value), fill = as.factor(Concentration))) + geom_boxplot(outlier.size = 0.3) +
+    theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Antigen") + 
+    theme(panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+    theme(axis.text.x = element_text(color = "black")) + ylim(0,10) +
+    scale_fill_hue(name = "Concentration (µg/mL)")
+  
+  graphics.off()
+  
+  #plot without GST
+  CP3noGST <- filter(CP3antmelt, !(Antigen == "GST"))
+  
+  png(filename = paste0("CP3.noGST.Dilutions.tif"), width = 7, height = 3.5, units = "in", res = 1200)
+  
+  ggplot(CP3noGST, aes(x = as.factor(Antigen), y = as.numeric(value), fill = as.factor(Concentration))) + geom_boxplot(outlier.size = 0.3) +
+    theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Antigen") + 
+    theme(panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+    theme(axis.text.x = element_text(color = "black")) + ylim(0,10) +
+    scale_fill_hue(name = "Concentration (µg/mL)")
+  
+  graphics.off()
   
   
   
