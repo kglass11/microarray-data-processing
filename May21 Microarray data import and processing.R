@@ -109,12 +109,7 @@ samples.df <- read.csv(sample_file, header=T, na.strings = " ", check.names = FA
 sample_meta1.df <- read.csv(meta_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
 
 ###Read in target metadata file
-U_target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
-
-  #merge target metadata file with protein Key to get additional information about targets, including expression tags
-  proteinKEY <- read.csv("Protein microarray key_2017.csv")
-  
-  target_meta.df <- merge(U_target_meta.df, proteinKEY, by.x = "name", by.y="Protein", sort = FALSE)
+target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
 
 ###Processing sample list:
 ###Create a vector listing all of your samples, in the order they appear in your samples_list file
@@ -237,20 +232,6 @@ cor.matrix <- backgroundCorrect.matrix(fore.matrix, back.matrix, method = "norme
 
 #Export this for reference
 write.csv(cor.matrix, file=paste0(study,"_background_corrected_MFI.csv"))
-
-#plots comparing normexp background correction to the background subtraction method
-#plots of log data, normexp method (it looked terrible not log transformed)
-hist(c(log.cor.matrix), breaks = 200)
-
-subtracted = fore.matrix - back.matrix
-log.subtracted = log2(subtracted)
-hist(c(log.subtracted), breaks = 200)
-
-#This isn't really working how I want it to look yet
-plot(density(c(log.cor.matrix), na.rm = TRUE), cex = 1.5, col = "red", xlim = c(0,16), ylim = c(0, 2.2))
-par(new = TRUE)
-plot(density(c(log.subtracted), na.rm = TRUE), col = "blue", xlim = c(0,16), ylim = c(0, 2.2), ylab = "", axes = FALSE)
-title(line=0.5)
 
 ###Assign target names to groups of your array targets to identify their 'type'
 targets_blank = c(grep("BLANK", annotation_targets.df$Name))
