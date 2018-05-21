@@ -42,22 +42,22 @@ library(reshape2)
 
 ### Define variables based on your study that will be used later in the script
 # define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-workdir <- "/Users/Katie/Desktop/R files from work/100817 Sanger/Sanger Data Processing KG"
+workdir <- "I:/Drakeley Group/Protein microarrays/Experiments/030417 Ghanaian samples/RepeatProcessingMay21KG"
 
 # define a shorthand name for your study which will be appended in the file name of all exported files
-study <- "Sanger"
+study <- "Ghana.v2"
 
 #define file name for sample IDs character vector, example "Analysis sample list 2.csv"
-sample_file <- "Sample list Sanger for merge v2.csv"
+sample_file <- "Sample list.csv"
 
 #define file name for sample file + additional metadata (character vector)
-meta_file <- "Sanger metadata corrected for merge Feb8.csv"
+meta_file <- "Sample metadata.csv"
 
 #define file name for antigen list file with additional info about targets.
-target_file <- "sanger_target_metadata_KT_v2.csv" 
+target_file <- "Target metadata with Tags.csv" 
 
 #number of technical replicates for the study (usually 1 or 2)
-reps <- 1
+reps <- 2
 
 #define number of blocks per slide
 index_block <- 32
@@ -65,6 +65,7 @@ index_block <- 32
 ### Set the working directory for the folder where .gpr files are. Can check working
 #directory after with getwd()
 setwd(workdir)
+getwd()
 
 #####################################
 ###READING IN YOUR MICROARRAY DATA###
@@ -93,6 +94,7 @@ remove(i)
 names(slides_list) <- slide_ids
 
 ###Bind all data from the slide data list (slides.list) into a single dataframe
+#you may get a warning after this step, invalid factor level, this is not a problem!
 slides_all.df <- c()
 for(i in 1:length(slides_list)) { 
   
@@ -107,7 +109,12 @@ samples.df <- read.csv(sample_file, header=T, na.strings = " ", check.names = FA
 sample_meta1.df <- read.csv(meta_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
 
 ###Read in target metadata file
-target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
+U_target_meta.df <- read.csv(target_file, header=T, na.strings = " ", check.names = FALSE, stringsAsFactors = FALSE)
+
+  #merge target metadata file with protein Key to get additional information about targets, including expression tags
+  proteinKEY <- read.csv("Protein microarray key_2017.csv")
+  
+  target_meta.df <- merge(U_target_meta.df, proteinKEY, by.x = "name", by.y="Protein", sort = FALSE)
 
 ###Processing sample list:
 ###Create a vector listing all of your samples, in the order they appear in your samples_list file
