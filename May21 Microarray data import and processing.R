@@ -599,84 +599,67 @@ for(i in 1:ncol(norm.matrix))
 
 write.csv(t(norm.matrix), file = paste0(study,"_normalized_log_data.csv"))
 
-### Plot standard values for each sample and assess variation - with negative values
+### Plot standard values for each sample and assess variation - with negative normalized values
+### Update this section once we have settled on names for IgG, IgA, and IgM standard curves to use in the protein key 
 
-#isolate data for standards, normalized and not normalized
-stds_norm <- norm.matrix[targets_std,]
-stds_pre <- log.cor.matrix[targets_std,]
+  #isolate data for standards, normalized and not normalized
+  stds_norm <- norm.matrix[targets_std,]
+  stds_pre <- log.cor.matrix[targets_std,]
 
-#Plot Std 3 in Levey Jennings Style plot
-#KG - I don't know if these column numbers will hold up every time...switch to using grep?
-#average replicates for reps == 2, arithmetic mean!
-if (reps == 1){
-  std_3_norm <- stds_norm[c(3),]
-  std_3_pre <- stds_pre[c(3),]
+  #Plot Std 3 in Levey Jennings Style plot
+  #KG - I don't know if these column numbers will hold up every time...switch to using grep?
+  #average replicates for reps == 2, arithmetic mean!
+  if (reps == 1){
+    std_3_norm <- stds_norm[c(3),]
+    std_3_pre <- stds_pre[c(3),]
+    }
+
+  if (reps == 2){
+    std_3_norm <- stds_norm[c(3,9),]
+    std_3_norm <- log2(apply((2^std_3_norm), 2, mean))
+  
+    std_3_pre <- stds_pre[c(3,9),]
+    std_3_pre <- log2(apply((2^std_3_pre), 2, mean))
   }
 
-if (reps == 2){
-  std_3_norm <- stds_norm[c(3,9),]
-  std_3_norm <- log2(apply((2^std_3_norm), 2, mean))
-  
-  std_3_pre <- stds_pre[c(3,9),]
-  std_3_pre <- log2(apply((2^std_3_pre), 2, mean))
-}
+  #calculate geometric (not arithmetic) mean, SD and CV
+  #normalized:
+  std3mean <- mean(c(std_3_norm), na.rm = TRUE)
+  std3sd <- sd(c(std_3_norm), na.rm = TRUE)
+  e_std3sd <- std3sd*log(2)
+  std3cv <- sqrt(exp(e_std3sd^2)-1)*100
 
-#need to determine best way to calculate mean and SD for log2 data!!
-#for now, am doing geometric, not arithmetic mean, SD and CV
-#normalized:
-std3mean <- mean(c(std_3_norm), na.rm = TRUE)
-std3sd <- sd(c(std_3_norm), na.rm = TRUE)
-e_std3sd <- std3sd*log(2)
-std3cv <- sqrt(exp(e_std3sd^2)-1)*100
+  #pre-normalized:
+  std3mean1 <- mean(c(std_3_pre), na.rm = TRUE)
+  std3sd1 <-sd(c(std_3_pre), na.rm = TRUE)
+  e_std3sd1 <- std3sd1*log(2)
+  std3cv1 <- sqrt(exp(e_std3sd1^2)-1)*100
 
-#pre-normalized:
-std3mean1 <- mean(c(std_3_pre), na.rm = TRUE)
-std3sd1 <-sd(c(std_3_pre), na.rm = TRUE)
-e_std3sd1 <- std3sd1*log(2)
-std3cv1 <- sqrt(exp(e_std3sd1^2)-1)*100
-
-#Plotting Std 3 Levey Jennings Style
-png(filename = paste0(study, "_std_3_LJ.tif"), width = 5, height = 7.5, units = "in", res = 1200)
-par(mfrow=c(2,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
-plot(c(std_3_norm), pch='*', col = "blue", ylim=c(min(std_3_norm, na.rm = TRUE),max(std_3_norm, na.rm=TRUE)*1.25),
+  #Plotting Std 3 Levey Jennings Style
+  png(filename = paste0(study, "_std_3_LJ.tif"), width = 5, height = 7.5, units = "in", res = 1200)
+  par(mfrow=c(2,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+  plot(c(std_3_norm), pch='*', col = "blue", ylim=c(min(std_3_norm, na.rm = TRUE),max(std_3_norm, na.rm=TRUE)*1.25),
      ylab="Normalized log2(MFI)", xlab="Sample (Array)")
 
-abline(h=std3mean)
-abline(h=std3mean+2*std3sd,lty=2)
-abline(h=std3mean-2*std3sd,lty=2)
-abline(h=std3mean+std3sd,lty=3)
-abline(h=std3mean-std3sd,lty=3) 
+  abline(h=std3mean)
+  abline(h=std3mean+2*std3sd,lty=2)
+  abline(h=std3mean-2*std3sd,lty=2)
+  abline(h=std3mean+std3sd,lty=3)
+  abline(h=std3mean-std3sd,lty=3) 
 
-plot(c(std_3_pre), pch='*', col = "darkblue", ylim=c(min(std_3_pre, na.rm = TRUE),max(std_3_pre, na.rm=TRUE)*1.25),
+  plot(c(std_3_pre), pch='*', col = "darkblue", ylim=c(min(std_3_pre, na.rm = TRUE),max(std_3_pre, na.rm=TRUE)*1.25),
      ylab="log2(MFI) (NOT normalized)", xlab="Sample (Array)")
 
-abline(h=std3mean1)
-abline(h=std3mean1+2*std3sd1,lty=2)
-abline(h=std3mean1-2*std3sd1,lty=2)
-abline(h=std3mean1+std3sd1,lty=3)
-abline(h=std3mean1-std3sd1,lty=3)
+  abline(h=std3mean1)
+  abline(h=std3mean1+2*std3sd1,lty=2)
+  abline(h=std3mean1-2*std3sd1,lty=2)
+  abline(h=std3mean1+std3sd1,lty=3)
+  abline(h=std3mean1-std3sd1,lty=3)
 
-mtext(paste("Geometric CV, Normalized:", round(std3cv, digits=2), "%" ), side=1, cex=0.8, line=0.5, outer=TRUE, xpd=NA, adj=0)
-mtext(paste("Geometric CV, NOT Normalized:", round(std3cv1, digits=2), "%"), side=1, cex=0.8, line=1.5, outer=TRUE, xpd=NA, adj=0)
+  mtext(paste("Geometric CV, Normalized:", round(std3cv, digits=2), "%" ), side=1, cex=0.8, line=0.5, outer=TRUE, xpd=NA, adj=0)
+  mtext(paste("Geometric CV, NOT Normalized:", round(std3cv1, digits=2), "%"), side=1, cex=0.8, line=1.5, outer=TRUE, xpd=NA, adj=0)
 
-graphics.off()
-
-#Calculate Geometric CV for all standards - this isn't done at all yet
-#this needs to be fixed so that replicates are averaged!
-stds_norm1 <- 2^stds_norm
-CV_stds_norm <- apply(stds_norm1, 1, sd, na.rm = TRUE)/apply(stds_norm1, 1, mean, na.rm = TRUE)
-
-stds_pre1 <- 2^stds_pre
-CV_stds_pre <- apply(stds_pre1, 1, sd, na.rm = TRUE)/apply(stds_pre1, 1, mean, na.rm = TRUE)
-
-#plot all standards - this isn't working yet
-png(filename = paste0(study, "_stds_by_sample.tif"), width = 5, height = 4, units = "in", res = 600)
-
-g <- ggplot(stds_norm, aes(x="", y = "164_Std 1 (200ug/ml)_1")+geom_point())
-
-plot(c(stds_norm), pch = 20, col = "darkblue")
-
-graphics.off()
+  graphics.off()
 
 # Set negative normalized log values to zero. This will be used for some analyses. 
 # For other analyses, including sending data to Nuno, the data will be input without setting values to 0. 
