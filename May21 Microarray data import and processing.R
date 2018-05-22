@@ -665,7 +665,7 @@ write.csv(t(norm.matrix), file = paste0(study,"_normalized_log_data.csv"))
 # For other analyses, including sending data to Nuno, the data will be input without setting values to 0. 
 # From now on, the norm.matrix has negative values, and norm2.matrix does not. 
 norm2.matrix <- norm.matrix
-i = 1
+
 for (i in 1:length(norm2.matrix))
 {
   if (is.na(norm2.matrix[[i]]) | norm2.matrix[[i]] > 0) 
@@ -677,6 +677,7 @@ for (i in 1:length(norm2.matrix))
     i = i+1
   }
 }
+remove(i)
 
 write.csv(t(norm2.matrix), file = paste0(study,"_normalized_log_data_0s.csv"))
 
@@ -698,19 +699,19 @@ if (reps == 2)
 }
 
 ### Check for deviant technical replicates, automatically exclude (set to NA)
-# Use Patrick’s formula for ELISA to compare replicates within one array
-# if rep1 or rep2 is more than 1.5 times rep2 or rep1, respectively, exclude that pair
-# Also, can redo this using the subsetted matrices (rep1 and rep2) and it should be shorter
+# Use a modified Patrick's formula for ELISA called Katie's formula for microarray ;) to compare replicates within one array
+  # if rep1 or rep2 is more than 2 times rep2 or rep1, respectively, exclude that pair
+  # only apply the test if the values for both rep1 and rep2 are above 2 (on log2 scale)
+  # Also, can redo this using the subsetted matrices (rep1 and rep2) and it should be shorter
 if (reps == 2)
 { 
-  for (k in 1:ncol(norm.matrix))
+  for (k in 1:ncol(rep1))
   {
-    for(j in 1:n) 
+    for(j in 1:nrow(rep1)) 
     {
-      if (is.na(norm.matrix[j,k])|is.na(norm.matrix[(j+n),k]))
-      { 
+      if(is.na(rep1[j,k]) | is.na(rep2[j,k]) | (rep1[j,k]<2 & rep2[j,k]<2)){
         j+1
-      } else if (norm.matrix[j,k] > (log2(1.5) + norm.matrix[(j+n),k]) | (norm.matrix[(j+n),k] > (log2(1.5) + norm.matrix[j,k])) == TRUE) 
+      } else if (rep1[j,k] > (log2(2) + rep2[j,k]) | (rep2[j,k] > (log2(2) + rep1[j,k])) == TRUE) 
       {
         normaverage.matrix[j,k] <- NA
       }
