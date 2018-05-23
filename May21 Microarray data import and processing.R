@@ -1,5 +1,5 @@
 ###Combined script for reading in and processing microarray data to prepare for analysis
-  #Last updated May 21, 2018, KG
+  #Last updated May 23, 2018, KG
 
 ###Create a folder, into which you should copy this script, your .gpr files (named 'Slide 1.gpr', 'Slide 2.gpr' etc.), 
 # and your sample list, sample metadata, and target (antigen) metadata csv files.
@@ -41,8 +41,8 @@ library(dplyr)
 library(reshape2)
 
 ### Define variables based on your study that will be used later in the script
-# define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/310817 Bijagos Islands/Screen 2"
-workdir <- "I:/Drakeley Group/Protein microarrays/Experiments/030417 Ghanaian samples/RepeatProcessingMay21KG"
+# define working directory character vector, example "I:/Drakeley Group/Protein microarrays/Experiments/030417 Ghanaian samples/RepeatProcessingMay21KG"
+workdir <- "/Users/Katie/Desktop/R files from work/GhanaProcessingMay21KG"
 
 # define a shorthand name for your study which will be appended in the file name of all exported files
 study <- "Ghana.v2"
@@ -759,14 +759,13 @@ if (reps == 2)
 # Also, can redo this using the subsetted matrices (rep1 and rep2) and it should be shorter
 if (reps == 2)
 { 
-  for (k in 1:ncol(norm2.matrix))
+  for (k in 1:ncol(rep1))
   {
-    for(j in 1:n) 
+    for(j in 1:nrow(rep1)) 
     {
-      if (is.na(norm2.matrix[j,k])|is.na(norm2.matrix[(j+n),k]))
-      { 
+      if(is.na(rep1[j,k]) | is.na(rep2[j,k]) | (rep1[j,k]<2 & rep2[j,k]<2)){
         j+1
-      } else if (norm2.matrix[j,k] > (log2(1.5) + norm2.matrix[(j+n),k]) | (norm2.matrix[(j+n),k] > (log2(1.5) + norm2.matrix[j,k])) == TRUE) 
+      } else if (rep1[j,k] > (log2(2) + rep2[j,k]) | (rep2[j,k] > (log2(2) + rep1[j,k])) == TRUE) 
       {
         norm2average.matrix[j,k] <- NA
       }
@@ -851,5 +850,100 @@ samples_exclude <- sample_meta.df$sample_id_unique[which(sample_meta.df$exclude 
   #Export file
   write.csv(target_meta.df, file = paste0(study, "_target_metadata.csv"))
 
+#Prepare final data with GST subtracted, control targets removed - For Negs set to 0 ONLY! (norm4.matrix)
+  #Assign sample type names, to identify control and test samples (logical)
+  samples_test <- sample_meta.df$sample_id_unique[which(sample_meta.df$sample_type =="test")]
+  samples_control <- sample_meta.df$sample_id_unique[which(sample_meta.df$sample_type =="control")]
+  
+  #Define a list of targets to be removed from further analysis (controls)
+  rmsamp_all <- unique(c(targets_blank, targets_buffer, targets_ref, targets_std, high_targets_disinclude))
+  
+  #Remove control protein targets - Don't remove control samples yet, need to do tag subtraction 
+  #from those samples as well, and want them included in some exported data.
+  #Do remove samples that should be excluded
+  norm_sub.matrix <- norm4.matrix[-rmsamp_all,(!colnames(norm4.matrix) %in% samples_exclude)]
+  
+  #Replace current target names with original target names now that control targets are removed
+  #might be useful to merge this instead with the target dataframe?
+  norm_sub3.df <- merge(norm_sub.matrix, annotation_targets.df, by ="row.names", sort = FALSE)
+  norm_sub3.df <- tibble::column_to_rownames(norm_sub3.df, var="Row.names")
+  row.names(norm_sub3.df) <- norm_sub3.df$Name
+  norm_sub4.df <- norm_sub3.df[,1:ncol(norm_sub.matrix)]
+  
+  #Make the dilution column of target_meta.df a character type
+  target_meta.df$Concentration <- as.character(target_meta.df$Concentration)
+  
+  #Merge with target metadata to filter based on expression tag etc.
+  target.df <- merge(target_meta.df, norm_sub4.df, by.x = "Name", by.y ="row.names", all.y = TRUE, sort = FALSE)
+  
+  #GST subtraction - only for data with negative values set to 0 (norm4.matrix)
+  ### Subtracting Protein Tag Signal from tagged antigens - only for norm4.matrix (no negative values)
+  #Prepare data frame with GST tagged proteins only for subtraction
+  GST_antigens.df <- filter(target.df, Expression_Tag == "GST" | Expression_Tag == "GST/His")
+  GST_antigens.df <- tibble::column_to_rownames(GST_antigens.df, var="Name")
+  GST_antigens.df <- GST_antigens.df[,sapply(GST_antigens.df, is.numeric)]
+  
+  GST <- c(grep("GST", rownames(norm_sub4.df), fixed = TRUE))
+  GST_val <- c(as.matrix(norm_sub4.df[GST,]))
+  
+  #Plot GST values
+  png(filename = paste0(study, "_GST.tif"), width = 5, height = 3.5, units = "in", res = 1200)
+  par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(2.1,4.1,2.1,2.1))
+  plot(GST_val, pch='*', col = "blue", ylim=c(0,max(GST_val, na.rm = TRUE)*1.25), main = "GST",
+       ylab="Normalized log2(MFI)", xlab="Sample (Array)", cex.main=1, cex.lab=1, cex.axis=0.7)
+  
+  #print text on the plots for number of samples where GST and CD4 are above buffer
+  mtext(paste("Total Samples with GST > 0:", round(sum(norm_sub4.df[GST,] > 0, na.rm = TRUE), digits=2), 
+              "(", round(sum(norm_sub4.df[GST,] > 0, na.rm = TRUE)/length(GST_val)*100, digits=2), "%)"), side=1, cex=0.8, line=0.5, outer=TRUE, xpd=NA, adj=0)
+  
+  graphics.off()
+  
+  #Subtract GST signal from GST tagged proteins
+  sub_GST_antigens.df <- data.frame(matrix(0, nrow = nrow(GST_antigens.df), ncol = ncol(GST_antigens.df)))
+  rownames(sub_GST_antigens.df) <- rownames(GST_antigens.df)
+  colnames(sub_GST_antigens.df) <- colnames(GST_antigens.df)
+  
+  #subtract GST! There might be NA values if reps = 2.
+  for(b in 1:ncol(GST_antigens.df)){
+    for(a in 1:nrow(GST_antigens.df)){
+      #if GST value is NA or main value is NA, then cannot do subtraction and cannot compare with other data
+      #so set those values to NA
+      if(is.na(norm_sub4.df[GST,b])|is.na(GST_antigens.df[a,b])){
+        sub_GST_antigens.df[a,b] <- NA
+        # when the GST value is positive only, subtract GST value, 
+        #otherwise want to leave as whatever the value was before (because GST was at or below buffer mean for that sample)
+      } else if (norm_sub4.df[GST,b] > 0){
+        #calculate difference in original MFI form (not log2)
+        sub_GST_antigens.df[a,b] <- 2^GST_antigens.df[a,b] - 2^norm_sub4.df[GST,b]
+        #can only do log2 if the difference is greater than 0, otherwise set to 0 (normalized log2 value is not above buffer)
+        if (sub_GST_antigens.df[a,b] > 0) {
+          sub_GST_antigens.df[a,b] <- log2(sub_GST_antigens.df[a,b])
+          #if the log2 tag-subtracted value is negative, means normalized value is below buffer mean,
+          #so also need to set those negatives to 0 again.
+          if(sub_GST_antigens.df[a,b] < 0){
+            sub_GST_antigens.df[a,b] <- 0
+          }
+        } else { 
+          sub_GST_antigens.df[a,b] <- 0
+        }
+      } else {
+        sub_GST_antigens.df[a,b] <- GST_antigens.df[a,b]
+      }
+    }
+  }
+  remove(a,b)
+  
+  #Make another data frame where the tagged protein values are replaced by their subtracted values
+  #filter out the GST tagged targets
+  no_tags.df <- filter(target.df, !(Expression_Tag == "GST" | Expression_Tag == "GST/His"))
+  no_tags.df <- tibble::column_to_rownames(no_tags.df, var="Name")
+  no_tags.df <- no_tags.df[,sapply(no_tags.df, is.numeric)]
+  #then rbind the GST and the CD4 data frames to that one. The order of the targets
+  #shouldn't matter anymore
+  norm_sub5.df <- rbind(no_tags.df, sub_GST_antigens.df)
+  
+  #save ALL GST subtracted data in another file
+  write.csv(norm_sub5.df, paste0(study, "_GST_subtracted_Final.csv"))
+  
 #Save R workspace so that can load prior to analysis 
-  save.image(file="SangerAfterProcessing.RData")
+  save.image(file= paste0(study,"_AfterProcessing.RData"))
