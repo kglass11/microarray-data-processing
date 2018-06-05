@@ -3,7 +3,7 @@
 
 #"I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation"
 #/Users/Katie/Desktop/R files from work/270717 Optimisation
-setwd("I:/Drakeley Group/Protein microarrays/Experiments/270717 Optimisation")
+setwd("/Users/Katie/Desktop/R files from work/270717 Optimisation")
 getwd()
 
 # install.packages("lme4")
@@ -66,6 +66,7 @@ for (i in 1:length(rep1.matrix))
     rep1.matrix[[i]] <- 0
   }
 }
+remove(i)
 
 rep2.matrix <- as.matrix(trans.norm.rep2)
 
@@ -79,6 +80,7 @@ for (i in 1:length(rep2.matrix))
     rep2.matrix[[i]] <- 0
   }
 }
+remove(i)
 
 ### Average duplicates
   trans.norm.avg <- matrix(nrow = nrow(trans.norm.rep1), ncol = ncol(trans.norm.rep1))
@@ -149,7 +151,7 @@ sum(is.na(c(trans.norm.avg[above2])))/length(above2)
   
 #subtract GST - subtract GST at the same dilution as the other antigen was diluted
 #need to deal with NAs this time
-  # subtract GST from all except AMA1; that means MSP1-19, Hyp2, GEXP18,
+  #subtract GST from all except AMA1; that means MSP1-19, Hyp2, GEXP18, EPF1v2
 
 #merge target metadata with trans.norm.avg (transposed)
 target.df <- merge(target_meta.df, t(trans.norm.avg), by.x = "Name", by.y = "row.names", sort = FALSE)
@@ -359,7 +361,7 @@ PB3_meta <- merge(sample_meta_f.df, PB3, by.x = "sample_id", by.y = "row.names",
 
 AHHHH.df <- rbind(PB1_meta, PB2_meta, PB3_meta)
 
-#need to change the sample_id to only CP3, PRISM, and Swazi 
+#need to add a sample identifier of only CP3, PRISM, and Swazi 
 #so that the model knows they are the same sample
 AHHHH.df$sample <- "CP3"
 AHHHH.df$sample[c(grep("PRISM", AHHHH.df$sample_id))] <- "PRISM"
