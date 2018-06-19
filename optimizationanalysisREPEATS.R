@@ -49,9 +49,9 @@ optimization.df <- t(optimization.df)
 
 Neg <- optimization.df[c(grep("Neg", rownames(optimization.df))),]
 CP3 <- optimization.df[c(grep("CP3", rownames(optimization.df))),]
-PRISM <- optimization.df[c(grep("PRISM", rownames(optimization.df))),]
-Swazi <- optimization.df[c(grep("Swazi", rownames(optimization.df))),]
+NIBSC <- optimization.df[c(grep("10/198", rownames(optimization.df))),]
 
+#there is one sample missing from NIBSC - need to modify this because the rows might not match 
 subtractNeg <- function(x){
 for(i in 1:nrow(Neg)){
   for(k in 1:ncol(Neg)){
