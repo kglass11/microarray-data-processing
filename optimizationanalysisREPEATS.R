@@ -169,6 +169,9 @@ melt1 <- melt(AHHsub3, variable.name = "Antigen")
 meltsub <- filter(melt1, Antigen == "X1.PfAMA1.100ug.ml" | Antigen == "X1.PfMSP1.19.100ug.ml"
                    | Antigen == "X1.Hyp2.100ug.ml" | Antigen == "X1.EPF1v2.100ug.ml")
 
+#set rowid order to 1-18
+meltsub$rowid <- factor(meltsub$rowid, levels = 1:18)
+
 #plot of CP3 and NIBSC separately for all repeated conditions (not ordered)
 
 #CP3 - boxplot
@@ -176,30 +179,27 @@ png(filename = paste0("CP3.condbyantigen.BOX.tif"), width = 7.5, height = 3, uni
 
 ggplot(filter(meltsub, sample == "CP3"), aes(x = rowid, y = value, fill = Antigen, color = Antigen)) + theme_bw() + 
   geom_boxplot(outlier.size = 0) + theme(axis.text.y = element_text(size = 10)) +
-  #scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
+  scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
   labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
   theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
   ylim(0,9)
 
 graphics.off()
 
-#CP3 - bar graph
+#CP3 - bar graph - need to figure out error bars! 
 
 png(filename = paste0("CP3.condbyantigen.BAR.tif"), width = 7.5, height = 3, units = "in", res = 1200)
 
 ggplot(filter(meltsub, sample == "CP3"), aes(x = rowid, y = value, fill = Antigen)) + theme_bw() + 
-  geom_bar(position=position_dodge(), stat="identity") +
+  geom_bar(position=position_dodge(), stat = "summary", fun.y = "mean") +
   #geom_errorbar(aes(ymin=value-se, ymax=value+se),
                 #width=.2,                    # Width of the error bars
                 #position=position_dodge(.9)) + 
   theme(axis.text.y = element_text(size = 10)) +
-  #scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
+  scale_fill_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
   labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
   theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
   ylim(0,9)
 
 graphics.off()
-geom_bar(position=position_dodge(), stat="identity") +
-  geom_errorbar(aes(ymin=len-se, ymax=len+se),
-                width=.2,                    # Width of the error bars
-                position=position_dodge(.9))
+
