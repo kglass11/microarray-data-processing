@@ -47,14 +47,16 @@ load("OptRepeats_AfterProcessing.RData")
 # ratio of positive to negative - subtract the negative log2 value for each condition
 optimization.df <- t(optimization.df)
 
+#make individual data frames for each sample
 Neg <- optimization.df[c(grep("Neg", rownames(optimization.df))),]
 CP3 <- optimization.df[c(grep("CP3", rownames(optimization.df))),]
 NIBSC <- optimization.df[c(grep("10/198", rownames(optimization.df))),]
 
-#there is one sample missing from NIBSC - need to modify this because the rows might not match 
+#Function for subtracting negatives to get ratio 
+#Note: there is one sample missing from NIBSC - but it's the last sample (#24), so the function should still work correctly 
 subtractNeg <- function(x){
-for(i in 1:nrow(Neg)){
-  for(k in 1:ncol(Neg)){
+for(i in 1:nrow(x)){
+  for(k in 1:ncol(x)){
     if(is.na(Neg[i,k])|is.na(x[i,k])){
       x[i,k] <- NA
     } else {
@@ -68,32 +70,26 @@ return(x)
 
 #Plot GST values for each sample
 CP3.GST <- CP3[,c(grep("GST", colnames(CP3)))]
-PRISM.GST <- PRISM[,c(grep("GST", colnames(PRISM)))]
-Swazi.GST <- Swazi[,c(grep("GST", colnames(Swazi)))]
-Neg.GST <- Neg[,c(grep("GST", colnames(Swazi)))]
+NIBSC.GST <- NIBSC[,c(grep("GST", colnames(NIBSC)))]
+Neg.GST <- Neg[,c(grep("GST", colnames(Neg)))]
 
 png(filename = paste0(study, "_GST_Sample.tif"), width = 7.5, height = 9, units = "in", res = 600)
 par(mfrow=c(2,2), oma=c(4,1,1,1),mar=c(6.1,4.1,1.1,1.1))
-boxplot(CP3.GST, pch='*', col = "light blue", ylim=c(0,7), main = "CP3 GST",
+boxplot(CP3.GST, pch='*', col = "light blue", ylim=c(0,1.5), main = "CP3 GST",
      ylab="Normalized log2(MFI)", las=2, cex.axis = 0.5)
 
-boxplot(PRISM.GST, pch='*', col = "light blue", ylim=c(0,7), main = "PRISM GST",
+boxplot(NIBSC.GST, pch='*', col = "light blue", ylim=c(0,1.5), main = "NIBSC GST",
      ylab="Normalized log2(MFI)", las=2, cex.axis = 0.5)
 
-boxplot(Swazi.GST, pch='*', col = "light blue", ylim=c(0,7), main = "Swazi GST",
-     ylab="Normalized log2(MFI)",las=2, cex.axis = 0.5)
-
-boxplot(Neg.GST, pch='*', col = "light blue", ylim=c(0,7), main = "Neg GST",
+boxplot(Neg.GST, pch='*', col = "light blue", ylim=c(0,1.5), main = "Neg GST",
      ylab="Normalized log2(MFI)", las=2, cex.axis = 0.5)
 
-#print text on the plots for number of samples where GST and CD4 are above buffer
+#print text on the plots for number of samples where GST is above buffer (0)
 mtext(paste("GST > 0: CP3 =", round(sum(CP3.GST > 0, na.rm = TRUE), digits=2), 
-    "(", round(sum(CP3.GST > 0, na.rm = TRUE)/length(CP3.GST)*100, digits=2), "%), PRISM = ",
-    round(sum(PRISM.GST > 0, na.rm = TRUE), digits=2), 
-    "(", round(sum(PRISM.GST > 0, na.rm = TRUE)/length(PRISM.GST)*100, digits=2), "%), Swazi =",
-    round(sum(Swazi.GST > 0, na.rm = TRUE), digits=2), 
-    "(", round(sum(Swazi.GST > 0, na.rm = TRUE)/length(Swazi.GST)*100, digits=2), "%), Neg = ",
-    round(sum(Neg.GST > 0, na.rm = TRUE), digits=2), 
+    "(", round(sum(CP3.GST > 0, na.rm = TRUE)/length(CP3.GST)*100, digits=2), "%), NIBSC = ",
+    round(sum(NIBSC.GST > 0, na.rm = TRUE), digits=2), 
+    "(", round(sum(NIBSC.GST > 0, na.rm = TRUE)/length(NIBSC.GST)*100, digits=2), "%), Neg = ",
+    round(sum(Neg.GST > 0, na.rm = TRUE), digits=2),
     "(", round(sum(Neg.GST > 0, na.rm = TRUE)/length(Neg.GST)*100, digits=2), "%)"), 
     side=1, cex=0.8, line=1.5, outer=TRUE, xpd=NA, adj=0)
 
@@ -102,10 +98,9 @@ graphics.off()
 #Now a negative value means the positive is less than the negative control
 #Do not set these values to 0
 CP3neg <- subtractNeg(CP3)
-PRISMneg <- subtractNeg(PRISM)
-Swazineg <- subtractNeg(Swazi)
+NIBSCneg <- subtractNeg(NIBSC)
 
-Finaldata <- rbind(CP3neg,PRISMneg,Swazineg)
+Finaldata <- rbind(CP3neg,NIBSCneg)
 
 #get the data in the right format for ggplot2 and linear mixed models
 
