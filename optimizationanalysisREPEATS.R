@@ -102,9 +102,9 @@ NIBSCneg <- subtractNeg(NIBSC)
 
 Finaldata <- rbind(CP3neg,NIBSCneg)
 
-#get the data in the right format for ggplot2 and linear mixed models
+#get the data in the right format for ggplot2 (also for linear mixed models, but we aren't doing this right now)
 
-#how to get print buffer as a factor for each antigen
+#how to get print buffer as a factor for each antigen:
 #merge transposed final data with target metadata again
 #separate data by print buffer in three data frames
 #replace row names with new rownames that are the same for all print buffers, don't include spaces
@@ -127,17 +127,16 @@ PB3 <- as.data.frame(t(PB3[,6:ncol(PB3)]))
   PB3$print_buffer <- "Nexterion_Spot"
 
 #merge these with sample_meta_f to get other columns, then rbind all together
-PB1_meta <- merge(sample_meta_f.df, PB1, by.x = "sample_id", by.y = "row.names",sort=FALSE)
-PB2_meta <- merge(sample_meta_f.df, PB2, by.x = "sample_id", by.y = "row.names",sort=FALSE)
-PB3_meta <- merge(sample_meta_f.df, PB3, by.x = "sample_id", by.y = "row.names",sort=FALSE)
+PB1_meta <- merge(sample_meta_f.df, PB1, by.x = "sample_id_unique", by.y = "row.names",sort=FALSE)
+PB2_meta <- merge(sample_meta_f.df, PB2, by.x = "sample_id_unique", by.y = "row.names",sort=FALSE)
+PB3_meta <- merge(sample_meta_f.df, PB3, by.x = "sample_id_unique", by.y = "row.names",sort=FALSE)
 
 AHHHH.df <- rbind(PB1_meta, PB2_meta, PB3_meta)
 
-#need to add a sample identifier of only CP3, PRISM, and Swazi 
+#need to add a sample identifier of only CP3 and NIBSC (10/198)
 #so that the model knows they are the same sample
 AHHHH.df$sample <- "CP3"
-AHHHH.df$sample[c(grep("PRISM", AHHHH.df$sample_id))] <- "PRISM"
-AHHHH.df$sample[c(grep("Swazi", AHHHH.df$sample_id))] <- "Swazi"
+AHHHH.df$sample[c(grep("10/198", AHHHH.df$sample_id))] <- "NIBSC"
 
 #the names of the columns have spaces. So they cannot be used in lmer and other functions
 newnames <- make.names(colnames(AHHHH.df))
