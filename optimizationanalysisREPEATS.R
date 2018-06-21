@@ -18,6 +18,7 @@ getwd()
 # install.packages("multcompView")
 # install.packages("MuMIn")
 # install.packages("NeatMap")
+# install.packages('Rmisc', dependencies = TRUE)
 
 library(broom)
 library(lme4)
@@ -31,6 +32,7 @@ library(MuMIn)
 
 require("gtools")
 
+library(Rmisc)
 library(limma)
 library(contrast)
 library(beeswarm)
@@ -172,7 +174,11 @@ meltsub <- filter(melt1, Antigen == "X1.PfAMA1.100ug.ml" | Antigen == "X1.PfMSP1
 #set rowid order to 1-18
 meltsub$rowid <- factor(meltsub$rowid, levels = 1:18)
 
-#plot of CP3 and NIBSC separately for all repeated conditions (not ordered)
+#Calculate SEM, SD, and 95% confidence intervals to use in error bars
+meltsumm <- summarySE(meltsub, na.rm=TRUE, measurevar = "value", groupvars = c("Antigen", "sample", "rowid"))
+
+#1. plots of CP3 and NIBSC separately for all repeated conditions (not ordered)
+#FOR ALL 4 ANTIGENS
 
 #CP3 - boxplot
 png(filename = paste0("CP3.condbyantigen.BOX.tif"), width = 7.5, height = 3, units = "in", res = 1200)
@@ -182,24 +188,90 @@ ggplot(filter(meltsub, sample == "CP3"), aes(x = rowid, y = value, fill = Antige
   scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
   labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
   theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
-  ylim(0,9)
+  ylim(0,8)
 
 graphics.off()
 
-#CP3 - bar graph - need to figure out error bars! 
-
+#CP3 - bar graph - error bars are SEM
 png(filename = paste0("CP3.condbyantigen.BAR.tif"), width = 7.5, height = 3, units = "in", res = 1200)
 
-ggplot(filter(meltsub, sample == "CP3"), aes(x = rowid, y = value, fill = Antigen)) + theme_bw() + 
-  geom_bar(position=position_dodge(), stat = "summary", fun.y = "mean") +
-  #geom_errorbar(aes(ymin=value-se, ymax=value+se),
-                #width=.2,                    # Width of the error bars
-                #position=position_dodge(.9)) + 
+ggplot(filter(meltsumm, sample == "CP3"), aes(x = rowid, y = value, fill = Antigen)) + theme_bw() + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=value-se, ymax=value+se),
+                width=.2, color = "black",                 # Width of the error bars
+                position=position_dodge(.9)) + 
   theme(axis.text.y = element_text(size = 10)) +
   scale_fill_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
   labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
   theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
-  ylim(0,9)
+  ylim(0,8)
 
 graphics.off()
+
+#CP3 - point plot - error bars are SEM
+png(filename = paste0("CP3.condbyantigen.Point.tif"), width = 7.5, height = 3, units = "in", res = 1200)
+
+ggplot(filter(meltsumm, sample == "CP3"), aes(x = rowid, y = value, color = Antigen)) + theme_bw() + 
+  geom_point() +
+  geom_errorbar(aes(ymin=value-se, ymax=value+se),
+                width=.2, color = "black") + 
+  theme(axis.text.y = element_text(size = 10)) +
+  scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+  ylim(0,8)
+
+graphics.off()
+
+#NIBSC - bar plot with SEM error bars
+
+png(filename = paste0("NIBSC.condbyantigen.BAR.tif"), width = 7.5, height = 3, units = "in", res = 1200)
+
+ggplot(filter(meltsumm, sample == "NIBSC"), aes(x = rowid, y = value, fill = Antigen)) + theme_bw() + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=value-se, ymax=value+se),
+                width=.2, color = "black",                 # Width of the error bars
+                position=position_dodge(.9)) + 
+  theme(axis.text.y = element_text(size = 10)) +
+  scale_fill_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+  ylim(0,8)
+
+graphics.off()
+
+#Repeat Bar plots of AMA1 and MSP1-19 ONLY for CP3 and NIBSC
+png(filename = paste0("NIBSC.cond2antigen.BAR.tif"), width = 7.5, height = 3, units = "in", res = 1200)
+
+ggplot(filter(meltsumm, sample == "NIBSC", Antigen == "X1.PfAMA1.100ug.ml" | Antigen == "X1.PfMSP1.19.100ug.ml"), aes(x = rowid, y = value, fill = Antigen)) + theme_bw() + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=value-se, ymax=value+se),
+                width=.2, color = "black",                 # Width of the error bars
+                position=position_dodge(.9)) + 
+  theme(axis.text.y = element_text(size = 10)) +
+  scale_fill_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+  ylim(0,8)
+
+graphics.off()
+
+png(filename = paste0("CP3.cond2antigen.BAR.tif"), width = 7.5, height = 3, units = "in", res = 1200)
+
+ggplot(filter(meltsumm, sample == "CP3", Antigen == "X1.PfAMA1.100ug.ml" | Antigen == "X1.PfMSP1.19.100ug.ml"), aes(x = rowid, y = value, fill = Antigen)) + theme_bw() + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=value-se, ymax=value+se),
+                width=.2, color = "black",                 # Width of the error bars
+                position=position_dodge(.9)) + 
+  theme(axis.text.y = element_text(size = 10)) +
+  scale_fill_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+  ylim(0,8)
+
+graphics.off()
+
+#2. Dilution curve plots with error bars! 
+
+
 
