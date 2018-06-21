@@ -271,6 +271,39 @@ ggplot(filter(meltsumm, sample == "CP3", Antigen == "X1.PfAMA1.100ug.ml" | Antig
 
 graphics.off()
 
+
+#For 1 antigen then the other, plot samples next to each other for each condition
+
+#AMA1
+png(filename = paste0("AMA1.condbysample.BAR.tif"), width = 7.5, height = 3, units = "in", res = 1200)
+
+ggplot(filter(meltsumm, Antigen == "X1.PfAMA1.100ug.ml"), aes(x = rowid, y = value, fill = sample)) + theme_bw() + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=value-se, ymax=value+se),
+                width=.2, color = "black",                 # Width of the error bars
+                position=position_dodge(.9)) + 
+  theme(axis.text.y = element_text(size = 10)) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+  ylim(0,8)
+
+graphics.off()
+
+#MSP1-19
+png(filename = paste0("MSP1.19.condbysample.BAR.tif"), width = 7.5, height = 3, units = "in", res = 1200)
+
+ggplot(filter(meltsumm, Antigen == "X1.PfMSP1.19.100ug.ml"), aes(x = rowid, y = value, fill = sample)) + theme_bw() + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=value-se, ymax=value+se),
+                width=.2, color = "black",                 # Width of the error bars
+                position=position_dodge(.9)) + 
+  theme(axis.text.y = element_text(size = 10)) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+  ylim(0,8)
+
+graphics.off()
+
 #2. Dilution curve plots with error bars! 
 
 
