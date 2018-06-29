@@ -161,6 +161,9 @@ cond.unique <- unique(conditions)
 #get an identifying number for each condition
 cond.unique <- tibble::rowid_to_column(cond.unique)
 
+#export conditions and identifying numbers
+write.csv(cond.unique,file = "RowIDKey.csv")
+
 #get a data frame with all of the data and the cond.unique info + the sample column
 AHHsub3 <- merge(cond.unique, AHHsub2[,c(2,9:49)], sort = FALSE)
 AHHsub3$rowid <- as.character(AHHsub3$rowid)
@@ -305,6 +308,144 @@ ggplot(filter(meltsumm, Antigen == "X1.PfMSP1.19.100ug.ml"), aes(x = rowid, y = 
 graphics.off()
 
 #2. Dilution curve plots with error bars! 
+
+#Prepare data frame with concentration information
+meltcon <- melt1
+meltcon$concentration <- 100
+
+meltcon$concentration[c(grep("25", meltcon$Antigen))] <- 25
+meltcon$concentration[c(grep("6.25", meltcon$Antigen))] <- 6.25
+meltcon$concentration[c(grep("1.56", meltcon$Antigen))] <- 1.56
+meltcon$concentration[c(grep("0.39", meltcon$Antigen))] <- 0.39
+meltcon$concentration[c(grep("0.1", meltcon$Antigen))] <- 0.1
+
+#Prepare summary data frame for error bars
+meltconsum <- summarySE(meltcon, na.rm=TRUE, measurevar = "value", groupvars = c("Antigen", "sample", "rowid", "concentration"))
+
+#AMA1 - CP3
+meltAMA1 <- meltconsum[c(grep("AMA1", meltconsum$Antigen)),]
+meltAMA1$rowid <- factor(meltAMA1$rowid, levels = 1:18)
+
+#ALL Conditions - this is too many!!! 
+png(filename = "CP3.AMA1.Dilutions.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltAMA1, sample=="CP3"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
+
+#best half of conditions based on eyeballing previous bar graphs for AMA1 and MSP1-19
+meltAMA1sub <- filter(meltAMA1, rowid %in% c(1,4,6,7,10,12,13,18))
+
+png(filename = "CP3.AMA1.HalfDilutions.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltAMA1sub, sample == "CP3"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + 
+        geom_errorbar(aes(ymin=value-se, ymax=value+se), color="black", width=.1) +
+        geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + 
+        theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
+
+#AMA1 - NIBSC
+#ALL Conditions - this is too many!!! 
+png(filename = "NIBSC.AMA1.Dilutions.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltAMA1, sample=="NIBSC"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
+
+#best half of conditions based on eyeballing previous bar graphs for AMA1 and MSP1-19
+meltAMA1sub <- filter(meltAMA1, rowid %in% c(1,4,6,7,10,12,13,18))
+
+png(filename = "NIBSC.AMA1.HalfDilutions.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltAMA1sub, sample == "NIBSC"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + 
+        geom_errorbar(aes(ymin=value-se, ymax=value+se), color="black", width=.1) +
+        geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + 
+        theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
+
+
+#MSP1-19
+meltMSP <- meltconsum[c(grep("MSP1", meltconsum$Antigen)),]
+meltMSP$rowid <- factor(meltMSP$rowid, levels = 1:18)
+
+#ALL Conditions - this is too many!!! 
+png(filename = "CP3.MSP.Dilutions.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltMSP, sample=="CP3"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
+
+#best half of conditions based on eyeballing previous bar graphs for AMA1 and MSP1-19
+meltMSPsub <- filter(meltMSP, rowid %in% c(1,4,6,7,10,12,13,18))
+
+png(filename = "CP3.MSP.HalfDilutions.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltMSPsub, sample == "CP3"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + 
+        geom_errorbar(aes(ymin=value-se, ymax=value+se), color="black", width=.1) +
+        geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + 
+        theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
+
+#MSP1-19, NIBSC!!
+#ALL Conditions - this is too many!!! 
+png(filename = "NIBSC.MSP.Dilutions.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltMSP, sample=="NIBSC"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
+
+#best half of conditions based on eyeballing previous bar graphs for AMA1 and MSP1-19
+meltMSPsub <- filter(meltMSP, rowid %in% c(1,4,6,7,10,12,13,18))
+
+png(filename = "NIBSC.MSP.HalfDilutions.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltMSPsub, sample == "NIBSC"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + 
+        geom_errorbar(aes(ymin=value-se, ymax=value+se), color="black", width=.1) +
+        geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + 
+        theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
+
+#try to plot both CP3 and NIBSC for "best" conditions on same plot
+#not working yet - this is not working with shape = sample or linetype = sample!
+png(filename = "MSP.HalfDilutions.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltMSPsub), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + 
+        geom_errorbar(aes(ymin=value-se, ymax=value+se), color="black", width=.1) +
+        geom_point(size = 2, shape = 18) +
+        geom_line(aes(group = rowid)) + 
+        theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
 
 
 
