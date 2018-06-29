@@ -447,5 +447,12 @@ print(ggplot(filter(meltMSPsub), aes(x = as.factor(concentration), y = as.numeri
 
 graphics.off()
 
+#paper figure 5 - AMA1 and MSP1 dilutions for the previously selected 8 conditions
+#condition numbers from this study: 2,3,4,5,7,13,15
+#Later, am going to have rename the conditions for all the figures to 1-8, once we decide what order we want them in
+
+
+
+
 
 
