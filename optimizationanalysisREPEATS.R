@@ -448,11 +448,57 @@ print(ggplot(filter(meltMSPsub), aes(x = as.factor(concentration), y = as.numeri
 graphics.off()
 
 #paper figure 5 - AMA1 and MSP1 dilutions for the previously selected 8 conditions
-#condition numbers from this study: 2,3,4,5,7,13,15
+#condition numbers from this study: 2,3,4,5,6,7,13,15
 #Later, am going to have rename the conditions for all the figures to 1-8, once we decide what order we want them in
 
+meltMSPsub2 <- filter(meltMSP, rowid %in% c(2,3,4,5,6,7,13,15))
 
+png(filename = "NIBSC.MSP.Dil.Fig5.tif", width = 4, height = 3.3, units = "in", res = 1200)
 
+print(ggplot(filter(meltMSPsub2, sample == "NIBSC"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + 
+        geom_errorbar(aes(ymin=value-se, ymax=value+se), color="black", width=.1) +
+        geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + 
+        theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
 
+graphics.off()
 
+png(filename = "CP3.MSP.Dil.Fig5.tif", width = 4, height = 3.3, units = "in", res = 1200)
 
+print(ggplot(filter(meltMSPsub2, sample == "CP3"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + 
+        geom_errorbar(aes(ymin=value-se, ymax=value+se), color="black", width=.1) +
+        geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + 
+        theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
+
+meltAMA1sub2 <- filter(meltAMA1, rowid %in% c(2,3,4,5,6,7,13,15))
+
+png(filename = "NIBSC.AMA1.DilFig5.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltAMA1sub2, sample == "NIBSC"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + 
+        geom_errorbar(aes(ymin=value-se, ymax=value+se), color="black", width=.1) +
+        geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + 
+        theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
+
+png(filename = "CP3.AMA1.DilFig5.tif", width = 4, height = 3.3, units = "in", res = 1200)
+
+print(ggplot(filter(meltAMA1sub2, sample == "CP3"), aes(x = as.factor(concentration), y = as.numeric(value), color = rowid)) + 
+        geom_errorbar(aes(ymin=value-se, ymax=value+se), color="black", width=.1) +
+        geom_point(shape=18, size = 2) +
+        geom_line(aes(group = rowid)) + 
+        theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration (µg/mL)") + 
+        theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+        scale_color_hue(name = "Condition"))
+
+graphics.off()
