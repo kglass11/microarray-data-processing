@@ -4,8 +4,8 @@
 #This is an updated version which only has the analysis for the positive/negative ratio method
 
 #Top 10% conditions based on signal from CP3 and PRISM separately,
-  #once with and once without the ratio from positive to negative
-  #all will have GST subtraction the same way
+  #all have GST subtraction the same way
+  #all ratio of positive / negative
 
 conditions <- CP3all[,c(1,9,10,11,48)]
 
@@ -541,7 +541,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   CP3allmelt <- melt(CP3all)
   
   ggplot(CP3allmelt, aes(x = variable, y = value)) + geom_boxplot() +
-          theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration/Antigen (µg/mL)") + 
+          theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Concentration/Antigen (?g/mL)") + 
           theme(panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
           ylim(-2,10) + theme(axis.text.x = element_text(angle = 90, size = 8.5, vjust = 0.5, color = "black"))
   
@@ -572,7 +572,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
     theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Antigen") + 
     theme(panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
     theme(axis.text.x = element_text(color = "black")) + ylim(0,10) +
-    scale_fill_hue(name = "Concentration (µg/mL)")
+    scale_fill_hue(name = "Concentration (?g/mL)")
   
   graphics.off()
   
@@ -585,7 +585,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
     theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Antigen") + 
     theme(panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
     theme(axis.text.x = element_text(color = "black")) + ylim(0,10) +
-    scale_fill_hue(name = "Concentration (µg/mL)")
+    scale_fill_hue(name = "Concentration (?g/mL)")
   
   graphics.off()
   

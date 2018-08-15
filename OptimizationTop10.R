@@ -524,7 +524,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   
   graphics.off()
   
-# GexP18 100 µg/mL  
+# GexP18 100 ?g/mL  
   
   #1. CP3 and PRISM with ratio from positive to negative (CP3all has everything for CP3 samples only)
   
@@ -555,7 +555,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   base <- ggplot(CP3.GEXP18.100[1:48,]) + geom_point(aes(x = rowid, y = X31_1.GEXP18.100ug.ml_1), col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions GEXP18 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions GEXP18 100 ?g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -568,7 +568,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(CP3.GEXP18.100[1:48,], aes(x = rowid, y = X31_1.GEXP18.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 GEXP18 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 GEXP18 100 ?g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -579,7 +579,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(PRISM.GEXP18.100[1:48,], aes(x = rowid, y = X31_1.GEXP18.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM GEXP18 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM GEXP18 100 ?g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -617,7 +617,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   base <- ggplot(CP3.GST.100[1:48,]) + geom_point(aes(x = rowid, y = X43_1.GST.100ug.ml_1), col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions GST 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "Best Conditions GST 100 ?g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -630,7 +630,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(CP3.GST.100[1:48,], aes(x = rowid, y = X43_1.GST.100ug.ml_1)) + geom_point(col = "red") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 GST 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "CP3 GST 100 ?g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -641,7 +641,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(PRISM.GST.100[1:48,], aes(x = rowid, y = X43_1.GST.100ug.ml_1)) + geom_point(col = "blue") + theme_bw() + 
-    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM GST 100 µg/mL") + 
+    labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)", title = "PRISM GST 100 ?g/mL") + 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
     ylim(0,9)
   
@@ -672,7 +672,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(top10.all.melt, aes(x = Number, y = Value, color=Antigen)) + geom_point(shape=23) + theme_bw() + 
-    labs(y = "Normalized Log2(Positive/Negative)", title = "CP3 values for top 10% of conditions for all antigens, 100 µg/mL") + 
+    labs(y = "Normalized Log2(Positive/Negative)", title = "CP3 values for top 10% of conditions for all antigens, 100 ?g/mL") + 
     theme(axis.text.x = element_text(angle = 90, vjust = 1, size = 8)) +
     ylim(0,9)
   
@@ -688,7 +688,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
   
   ggplot(top10.noGST, aes(x = Number, y = Value, color=Antigen)) + geom_point(shape=18, size = 2) + theme_bw() + 
-    labs(y = "Normalized Log2(Positive/Negative)", title = "CP3 values for top 10% of conditions, 100 µg/mL") + 
+    labs(y = "Normalized Log2(Positive/Negative)", title = "CP3 values for top 10% of conditions, 100 ?g/mL") + 
     theme(axis.text.x = element_text(angle = 90, vjust = 1, size = 8)) +
     ylim(0,9)
   
@@ -733,6 +733,10 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   All <- merge(CP3alone4, four) #0 conditions
   All <- merge(PRISMalone4, four) #0 conditions
   
+#Plot CP3 data for all antigens for the 7 common conditions ("best" conditions)
+  
+  #merge the conditions with the data to plot
+  hello <- merge(CP3alone4, CP3all, sort = TRUE)
    
 #  #old code for plotting positives and negatives on the same plots 
 #   png(filename = paste0("N.CP3.Top.AMA1.100.tif"), width = 8, height = 3, units = "in", res = 1200)
