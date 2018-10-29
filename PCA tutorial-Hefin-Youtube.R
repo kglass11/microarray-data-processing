@@ -1,3 +1,5 @@
+#Hefin Rhys youtube tutorial
+
 #PCA tutorial 
 
 setwd("/Users/Katie/Desktop/R Programming - Coursera")
@@ -81,4 +83,57 @@ for(i in 1:4){
 }
 
 ###### Hierarchical clustering
-#stopped video at 20 minutes into it.
+
+#starts by putting each point in it's own cluster, then merges clusters
+#gives information about how clusters are similar to each other
+
+#need to supply a distance matrix, which is the distance of every point to every other point
+
+d <- dist(irisScaled)
+
+#usually need to try different algorithms, ward.D2 pre-selected dunno why though
+fitH <- hclust(d, "ward.D2")
+plot(fitH)
+rect.hclust(fitH, k = 3, border = "red")
+
+clusters <- cutree(fitH, k = 3)
+clusters
+plot(iris, col = clusters)
+
+####### model-based clustering 
+#this package looks at many models and uses maximizing BIC to select model type and number of clusters
+install.packages("mclust")
+library(mclust)
+
+fitM <- Mclust(irisScaled)
+fitM
+plot(fitM)
+#select plots in the console - see BIC to see how the model was chosen
+
+####### density based clustering 
+install.packages("dbscan")
+library(dbscan)
+
+#"A point p is a core point if at least minPts points are within distance ε 
+#(ε is the maximum radius of the neighborhood from p) of it (including p). 
+#Those points are said to be directly reachable from p." - wikipedia, DBSCAN
+
+#minpts often the number of dimensions (variables) in data + 1
+
+#work out input for eps parameter with kNNdist - look for knee / elbow in data
+#look for more directions on choosing these parameters in dbscan info
+kNNdistplot(irisScaled, k=3)
+abline(h= 0.7, col = "red", lty = 2)
+
+fitD <- dbscan(irisScaled, eps = 0.7 , minPts = 5)
+fitD
+#noise points here are the points which do not fit in either cluster
+plot(iris, col = fitD$cluster)
+
+#as the number of dimensions increases, the number of observations needed
+#to distinguish clusters grows exponentially. Therefore it is often recommended 
+#to perform a dimension reduction technique such as principle component analysis
+#first and then use the results of that to perform the clustering analysis
+
+#recommneded to run several clustering algorithms and then decide which 
+#best captures patterns in the data
