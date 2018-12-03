@@ -6,26 +6,30 @@
 #####################################
 
 #If you haven't just continued from the processing script, run:
-#rm(list=ls())
+rm(list=ls())
 
-#setwd("I:/Drakeley Group/Protein microarrays/Experiments/100817 Sanger/Sanger Data Processed")
+#I:/Drakeley Group/Protein microarrays/Experiments/100817 Sanger/Sanger Data Processed
+setwd("/Users/Katie/Desktop/R files from work/100817 Sanger/Sanger Data Processing KG")
+getwd()
 
-# require("gtools")
-# 
-# library(limma)
-# library(contrast)
-# library(beeswarm)
-# library(mixtools)
-# library(gplots)
-# library(ggplot2)
-# library(gcookbook)
-# library(dplyr)
-# 
-# #load(file="SangerAfterProcessing.RData")
-# 
-# #install.packages("reshape2")
-# 
-# library(reshape2)
+require("gtools")
+
+library(limma)
+library(contrast)
+library(beeswarm)
+library(mixtools)
+library(gplots)
+library(ggplot2)
+library(gcookbook)
+library(dplyr)
+
+#load(file="SangerAfterProcessing.RData")
+
+#install.packages("reshape2")
+
+library(reshape2)
+
+load(file="Sanger.2.Update.RData")
 
 ###Seropositivity and Reactivity Thresholds###
 
@@ -313,6 +317,112 @@ par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
 ggplot(melt.Pf, aes(x=reorder(Target, Normalized, FUN=median), y=Normalized)) + geom_boxplot(outlier.size = 0.3) + coord_flip() + xlab("Target") + ylab("Normalized Log2(MFI)") + theme(text = element_text(size=9))
 
 graphics.off()
+
+######### Repeating everything for Pf again below for malarial centre abstract!!!!!!
+#### not changing names of data frames for this
+# do not export the data
+
+##### Repeat everything for Pf without Particular Sources and  without the wheat germ antigens ######
+
+#because we do want MSP1-19 from AA Holder, change the source column for that antigen only
+target2.df$Source[target2.df$Name == "PfMSP1_19"] <- "A.A. Holder MSP1-19" 
+
+#For seropositivity calculations, do once for Pf and once Pv, all antigens, all dilutions
+Pf_no_WG.df <- filter(target2.df, Plasmodium == "Pf", !Expression_Tag=="Wheat Germ", 
+    !Source == "J. Beeson plus; Burnet", !Source == "A.A. Holder; Francis Crick", !Source =="C. Kocken; BPRC",
+    !Source == "A. Jensen; CMP", !Source == "R. Coppel; Monash", !Source == "S. Draper; Jenner", !Source == "B. Arca; La Sapienza")
+
+#only want the antigens at 1 dilution each.
+#For the Sanger antigens Dilution = 0.5 
+#For all other antigens, Dilution = 1
+sub_Pf_no_WG.df <- filter(Pf_no_WG.df, Dilution == "1" | (Source == "J. Rayner; WTSI" & Dilution == "0.5"))
+sub_Pf_no_WG.df <- tibble::column_to_rownames(sub_Pf_no_WG.df, var="Name")
+sub_Pf_no_WG.df <- sub_Pf_no_WG.df[,sapply(sub_Pf_no_WG.df, is.numeric)]
+
+#Make seropositivity matrices for Pf , no wheat germ
+sub_SP_Pf_no_WG.df <- t(apply(sub_Pf_no_WG.df, 1, function(x) ((x > sub_cutoff)+0)))
+
+###Create a threshold for overall target reactivity
+#e.g. To be included in heatmaps and other analyses, perhaps targets should be reacted to by at least 5% of people?
+
+#Selected Pf antigens - 57 out of 111 Pf targets (no WG) are reactive in at least 5% of people
+Pf_target_breadth2 <- rowSums(sub_Pf_no_WG.df, na.rm=TRUE)
+Pf_target_reactive2 <- Pf_target_breadth2 > (ncol(sub_Pf_no_WG.df)/100)*5
+cat(sum(Pf_target_reactive2), "out of", nrow(sub_Pf_no_WG.df), "Pf targets (no WG) are reactive in at least 5% of people")
+
+###Create a threshold for overall person reactivity
+#Similarly, perhaps unreactive individuals should be disincluded? Either way - this is informative.
+
+#For person reactivity, we do not want to count multiple dilutions for each antigen 
+
+#Sub Pf antigens - selected targets - 979 out of 1325 samples are reactive to at least 5% of Pf targets
+Pf_person_breadth2 <- colSums(sub_SP_Pf_no_WG.df, na.rm=TRUE)
+Pf_person_exposed2 <- Pf_person_breadth2 > (nrow(sub_SP_Pf_no_WG.df)/100)*5
+cat(sum(Pf_person_exposed2), "out of", ncol(sub_SP_Pf_no_WG.df), "samples are reactive to at least 5% of Pf targets")
+
+#Pf plot of normalized data for each antigen organized by highest median
+#Only include the data if the person is seropositive and an exposed person
+exposed_SP_Pf.df <- sub_SP_Pf_no_WG.df[Pf_target_reactive2==TRUE, Pf_person_exposed2==TRUE]
+reactive_Pf.df <- sub_Pf_no_WG.df[Pf_target_reactive2==TRUE,Pf_person_exposed2==TRUE]
+
+#Plot the number of seropositive people by antigen, highest to lowest for Pf
+SPpeople <- as.matrix(sort(rowSums(exposed_SP_Pf.df), decreasing = TRUE))
+SPpeople <- as.data.frame(SPpeople)
+SPpeople <- cbind(Target = rownames(SPpeople), SPpeople)
+SPpeople$Target <- as.factor(SPpeople$Target)
+#explicitly set factor levels to the correct order
+SPpeople$Target <- factor(SPpeople$Target, levels = SPpeople$Target[order(-SPpeople$V1)])
+
+png(filename = paste0(study, "_Pf_num_people_MCabs.tif"), width = 8, height = 4.5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(SPpeople, aes(x = Target, y = V1)) + theme_bw() + geom_bar(stat="identity") + ylab("Number of Seropositive Individuals") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 6))
+
+graphics.off()
+
+#Make a new data frame where seropositive values will be the number and otherwise it will be NA
+SP_Pf_data.df <- data.frame(matrix(NA, nrow = nrow(reactive_Pf.df), ncol = ncol(reactive_Pf.df)))
+rownames(SP_Pf_data.df) <- rownames(reactive_Pf.df)
+colnames(SP_Pf_data.df) <- colnames(reactive_Pf.df)
+
+for(b in 1:ncol(reactive_Pf.df)){
+  for(a in 1:nrow(reactive_Pf.df)){
+    if(exposed_SP_Pf.df[[a,b]]==1){
+      SP_Pf_data.df[[a,b]] <- reactive_Pf.df[[a,b]] 
+    }
+  }
+}
+remove(a,b)
+
+#then melt this data.frame with Na.rm = TRUE to organize for ggplot2
+melt.Pf <- melt(as.matrix(SP_Pf_data.df), na.rm = TRUE)
+colnames(melt.Pf) <- c("Target", "Sample", "Normalized")
+
+#negative control data for Pf reactive targets, tag-subtracted data
+neg_samples <-c(grep("Neg", colnames(norm4.matrix)))
+neg_data <- norm_sub4.df[-rmsamp_all, neg_samples]
+Pf_neg_data <- neg_data[Pf_target_reactive2==TRUE,]
+Pf_neg_mean <- as.matrix(rowMeans(Pf_neg_data))
+
+#Add negative control data to the plot?
+
+#Violin and Box Plots of data for reactive Pf antigens, sorted by highest median to lowest
+ggplot(melt.Pf, aes(x=reorder(Target, -Normalized, FUN=median), y=Normalized)) + geom_violin()
+
+png(filename = paste0(study, "_Pf_violin_MCabs.tif"), width = 5, height = 8, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(melt.Pf, aes(x=reorder(Target, Normalized, FUN=median), y=Normalized)) + geom_violin() + coord_flip() + xlab("Target") + ylab("Normalized Log2(MFI)") + theme(text = element_text(size=9))
+
+graphics.off()
+
+png(filename = paste0(study, "_Pf_boxplot_MCabs.tif"), width = 5, height = 8, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+ggplot(melt.Pf, aes(x=reorder(Target, Normalized, FUN=median), y=Normalized)) + geom_boxplot(outlier.size = 0.3) + coord_flip() + xlab("Target") + ylab("Normalized Log2(MFI)") + theme(text = element_text(size=9))
+
+graphics.off()
+
 
 
 #######Same thing for Pv Antigens########
