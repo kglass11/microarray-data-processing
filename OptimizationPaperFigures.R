@@ -188,6 +188,33 @@ ggplot(data = repcor.CP3, aes(x = slide_type, y=repcor)) + geom_jitter(size = 0.
 graphics.off() 
 
 
+
+#calculate how many arrays have correlation coefficients above certain thresholds
+#function to calculate the percent of correlation coefficients above a certain threshold
+repcor.per <- function(threshold, vector){
+  pepper <- (vector > threshold) + 0
+  x <- sum(pepper, na.rm=TRUE)/length(vector)*100
+  return(paste(round(x,1), "% of correlations coefficients are above", threshold))
+}
+
+repcor.per(0.95, repcor)
+repcor.per(0.9, repcor)
+repcor.per(0.8, repcor)
+repcor.per(0.7, repcor)
+repcor.per(0.5, repcor)
+
+#repeat calculations but for CP3 only
+CP3repcor.df <- filter(repcor.meta.df, sample == "CP3")
+CP3repcor <- c(CP3repcor.df$repcor)
+
+repcor.per(0.95, CP3repcor)
+repcor.per(0.9, CP3repcor)
+repcor.per(0.8, CP3repcor)
+repcor.per(0.7, CP3repcor)
+repcor.per(0.5, CP3repcor)
+
+
+
 #################################################
 #### Figure 5 - Repeats Dilution Curves #########
 #################################################
