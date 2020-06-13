@@ -31,12 +31,169 @@ library(dplyr)
 library(reshape2)
 library(NeatMap)
 
+library(corrgram)
+library(corrplot)
+
 #################################################
-######### Figure 5 ##############################
+######### Figure 2 ##############################
 #################################################
+
+#Need to get plot script from Tate
+#This will get moved to supplemental data?
+
+#################################################
+#### Figure 3 - Identify Best Conditions ########
+#################################################
+
+#drop Figure 3B
+#organize top 8 conditions by slide type in alpha order
+
+#################################################
+#### Figure 4 - Replicate Correlations###########
+#################################################
+rm(list=ls())
+
+#copied from OptimizationRepCorrelation.R
+load("RepsCor.RData")
+
+#Correlation replicate 1 with replicate 2 for all conditions (480 conditions) 
+
+#rep1.matrix and rep2.matrix have the data with negative normalized values set to zero
+#trans.norm.rep1 and trans.norm.rep2 have the data without setting negative normalized values to zero
+#trans.norm.meta.rep1 and 2 have the data with sample_id as a variable not rownames and have 
+#slide_type, blocking_buffer, and block_dilution as final 3 columns
+#data is not a ratio of positive to negative, nor has GST been subtracted
+#data includes buffer and ref spots as well, but exclude these when separating by print buffer.
+#We don't want to count those because they are printed in system buffer only, and don't have a specific print buffer
+#Separate data by print buffers for replicate 1 and replicate 2.
+
+#make a target_meta.df with the block 2 antigen names
+target_meta2.df <- target_meta.df
+target_meta2.df$Name <- colnames(trans.norm.rep2)
+
+#merge transposed final data with target metadata again
+target1.df <- merge(target_meta.df, t(trans.norm.rep1), by.y="row.names", by.x = "Name", sort = FALSE)
+target2.df <- merge(target_meta2.df, t(trans.norm.rep2), by.y="row.names", by.x = "Name", sort = FALSE)
+
+#separate data by print buffer in three data frames
+PB1.1 <- filter(target1.df, Print_Buffer == "1")
+PB2.1 <- filter(target1.df, Print_Buffer == "2")
+PB3.1 <- filter(target1.df, Print_Buffer == "3")
+
+PB1.2 <- filter(target2.df, Print_Buffer == "1")
+PB2.2 <- filter(target2.df, Print_Buffer == "2")
+PB3.2 <- filter(target2.df, Print_Buffer == "3")
+
+#replace row names with new rownames that are the same for all print buffers, don't include spaces
+rownames(PB1.1) <- PB1.1$Name
+rownames(PB2.1) <- PB1.1$Name
+rownames(PB3.1) <- PB1.1$Name
+
+rownames(PB1.2) <- PB1.2$Name
+rownames(PB2.2) <- PB1.2$Name
+rownames(PB3.2) <- PB1.2$Name
+
+#Print buffers: 1 = AJ Buffer C		2 = AJ Glycerol buffer		3 = Nexterion Spot
+PB1.1 <- as.data.frame(t(PB1.1[,6:ncol(PB1.1)]))
+PB1.1$print_buffer <- "AJ"
+PB2.1 <- as.data.frame(t(PB2.1[,6:ncol(PB2.1)]))
+PB2.1$print_buffer <- "AJ_Glycerol"
+PB3.1 <- as.data.frame(t(PB3.1[,6:ncol(PB3.1)]))
+PB3.1$print_buffer <- "Nexterion_Spot"
+
+PB1.2 <- as.data.frame(t(PB1.2[,6:ncol(PB1.2)]))
+PB1.2$print_buffer <- "AJ"
+PB2.2 <- as.data.frame(t(PB2.2[,6:ncol(PB2.2)]))
+PB2.2$print_buffer <- "AJ_Glycerol"
+PB3.2 <- as.data.frame(t(PB3.2[,6:ncol(PB3.2)]))
+PB3.2$print_buffer <- "Nexterion_Spot"
+
+#merge these with sample_meta_f to get other columns, then rbind all together
+PB1.1.meta <- merge(sample_meta_f.df, PB1.1, by.x = "sample_id", by.y = "row.names",sort=FALSE)
+PB2.1.meta <- merge(sample_meta_f.df, PB2.1, by.x = "sample_id", by.y = "row.names",sort=FALSE)
+PB3.1.meta <- merge(sample_meta_f.df, PB3.1, by.x = "sample_id", by.y = "row.names",sort=FALSE)
+
+PB1.2.meta <- merge(sample_meta_f.df, PB1.2, by.x = "sample_id", by.y = "row.names",sort=FALSE)
+PB2.2.meta <- merge(sample_meta_f.df, PB2.2, by.x = "sample_id", by.y = "row.names",sort=FALSE)
+PB3.2.meta <- merge(sample_meta_f.df, PB3.2, by.x = "sample_id", by.y = "row.names",sort=FALSE)
+
+Rep1.df <- rbind(PB1.1.meta, PB2.1.meta, PB3.1.meta)
+Rep2.df <- rbind(PB1.2.meta, PB2.2.meta, PB3.2.meta)
+
+#need to change the sample_id to only CP3, PRISM, and Swazi 
+#so that the model knows they are the same sample
+Rep1.df$sample <- "CP3"
+Rep1.df$sample[c(grep("PRISM", Rep1.df$sample_id))] <- "PRISM"
+Rep1.df$sample[c(grep("Swazi", Rep1.df$sample_id))] <- "Swazi"
+Rep1.df$sample[c(grep("Neg", Rep1.df$sample_id))] <- "Neg"
+
+Rep2.df$sample <- "CP3"
+Rep2.df$sample[c(grep("PRISM", Rep2.df$sample_id))] <- "PRISM"
+Rep2.df$sample[c(grep("Swazi", Rep2.df$sample_id))] <- "Swazi"
+Rep2.df$sample[c(grep("Neg", Rep2.df$sample_id))] <- "Neg"
+
+#the names of the columns have spaces. So they cannot be used in lmer and other functions
+newnames <- make.names(colnames(Rep1.df))
+colnames(Rep1.df) <- newnames
+
+newnames <- make.names(colnames(Rep2.df))
+colnames(Rep2.df) <- newnames
+
+#calculate pearson's correlation coefficients for replicate 1 vs replicate 2 row-wise
+#there are 30 rows for which all columns have NA, so correlation matrix also has NA for those conditions
+repcor <- c(nrow(Rep1.df))
+
+for(i in 1:nrow(Rep1.df)){
+  repcor[i] <- cor(x = c(as.matrix(Rep1.df[i,11:46])), y = c(as.matrix(Rep2.df[i,11:46])), use = "everything")
+}
+remove(i)
+
+#add correlation coefficients to the metadata, but have correlation coeffs for Neg data as well
+repcor.df <- as.data.frame(repcor)
+repcor.df$sample_id <- Rep1.df$sample_id
+repcor.meta.df <- merge(sample_meta_f.df, repcor.df, sort = TRUE)
+
+#add print buffer and sample - *** need to make sure these are the right print buffer and sample!!
+sortRep1 <- Rep1.df[order(Rep1.df$sample_id),]
+repcor.meta.df$print_buffer <- sortRep1$print_buffer
+repcor.meta.df$sample <- sortRep1$sample
+
+#set factor order for sample
+repcor.meta.df$sample <- factor(repcor.meta.df$sample, levels = as.character(c("CP3", "PRISM", "Swazi", "Neg")))
+
+#CP3alone4 has the 8 common Top 10% conditions
+rep8 <- merge(CP3alone4, repcor.meta.df)
+rep8melt <- melt(rep8)
+rep8sub <- filter(rep8melt, variable == "repcor")
+
+rep8sub$rowid <- factor(rep8sub$rowid, levels = rev(unique(Top8rowidorder)))
+
+#Updated Figure 4A. Plot correlation coefficients vs. slide type, CP3 ONLY + points for Top 8 Conditions
+repcor.CP3 <- filter(repcor.meta.df, sample == "CP3")
+rep8CP3 <- filter(rep8sub, sample == "CP3")
+
+#set the seed so that the black dots will be in the same spot every time
+#seed 9 is ok but can look for a better one later if we want to
+set.seed(9)
+
+png(filename = paste0("Fig4A.CP3repcor.tif"), width = 7.5, height = 3.5, units = "in", res = 1200)
+
+ggplot(data = repcor.CP3, aes(x = slide_type, y=repcor)) + geom_jitter(size = 0.6, height = 0, width = 0.33, aes(color = slide_type)) + 
+  geom_jitter(data = rep8CP3, aes(x=slide_type, y = value), size = 0.6, width = 0.45, height = 0, color = "black") +
+  theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 9)) +
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) + 
+  theme(legend.position = "none") +
+  labs(x = "Slide Type", y = "Pearson's Correlation Coefficient")
+
+graphics.off() 
+
+
+#################################################
+#### Figure 5 - Repeats Dilution Curves #########
+#################################################
+rm(list=ls())
 
 #copied from optimization analysis repeats script (optimizationanalysisREPEATS.R)
-
 load("OptRepeats_AfterProcessing.RData")
 
 #Data processing for figure 5
