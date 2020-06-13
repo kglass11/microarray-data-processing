@@ -187,7 +187,23 @@ ggplot(data = repcor.CP3, aes(x = slide_type, y=repcor)) + geom_jitter(size = 0.
 
 graphics.off() 
 
+#Figure 4B
+#CP3 "Best" conditions for 4 antigens only - correlogram
+#data frame hello has all the right data, but may need to transpose and subset
 
+hellocor <- as.data.frame(t(hello[,13:48]))
+colnames(hellocor) <- hello$rowid
+
+#reorder the columns in hellocor to match Top8rowidorder
+corOrd <- hellocor[,Top8rowidorder]
+
+#plot with corrplot package
+png(filename = paste0("Fig4B.Common8.CorrelogramV2.tif"), width = 5, height = 5, units = "in", res = 1200)
+par(mfrow=c(1,1), oma=c(3,1,1,1),mar=c(4.1,4.1,3.1,2.1))
+
+corrplot.mixed(cor(corOrd, use = "complete.obs"), tl.col="black")
+
+graphics.off()
 
 #calculate how many arrays have correlation coefficients above certain thresholds
 #function to calculate the percent of correlation coefficients above a certain threshold
