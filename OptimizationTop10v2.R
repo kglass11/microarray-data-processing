@@ -1,5 +1,7 @@
 #continuing on from optimizationanalysis.R
 
+load("OptimizationLMMready.RData")
+
 #Updated 8/5/18
 #This is an updated version which only has the analysis for the positive/negative ratio method
 
