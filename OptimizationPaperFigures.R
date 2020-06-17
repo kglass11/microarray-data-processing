@@ -69,14 +69,6 @@ graphics.off()
 #figure 3C - original script from "OptimizationTop10v2.R"
 #Plot CP3 data for all antigens for the 8 common conditions ("best" conditions)
 
-#merge the conditions with the data to plot
-hello <- merge(CP3alone4, CP3all, sort = TRUE)
-
-#melt and subset data for the plot
-hellomelt <- melt(hello, variable.name = "Antigen")
-hellosub <- filter(hellomelt, Antigen == "X37_1.EPF1v2.100ug.ml_1" | Antigen == "X25_1.Hyp2.100ug.ml_1"
-                   | Antigen == "X19_1.PfMSP1.19.100ug.ml_1" | Antigen == "X13_1.PfAMA1.100ug.ml_1")
-
 #vertical plot of CP3 for "best" 8 conditions - organized by highest to lowest minimum value
 png(filename = paste0("V.CP3.Common8.tif"), width = 4.2, height = 2.7, units = "in", res = 1200)
 
