@@ -48,10 +48,23 @@ library(corrplot)
 #drop Figure 3B
 #organize top 8 conditions by slide type in alpha order
 
-load("OptimizationLMMready.RData") #this file is generated 
-#from the script "optimizationanalysis.R" prior to running the LMM models
+load("PostOptimizationTop10v2.RData") 
 #the script which has the original plots for figure 3 is "OptimizationTop10v2.R"
-#which just says it continues on from the optimizationanalysis.R script.
+#which just says it continues on from the optimizationanalysis.R script
+#I saved a new .RData file (loading here) after running optimizationanalysis.R up to the LMM models 
+#and then running OptimizationTop10v2.R which has additional data analysis 
+#and the original plots for figure 3.
+
+#Figure 3A - original script from "OptimizationTop10v2.R"
+png(filename = paste0("CP3.noGST.Dilutions.tif"), width = 7, height = 3.5, units = "in", res = 1200)
+
+ggplot(CP3noGST, aes(x = as.factor(Antigen), y = as.numeric(value), fill = as.factor(Concentration))) + geom_boxplot(outlier.size = 0.3) +
+  theme_bw() + labs(y = "Normalized Log2(Positive/Negative)", x= "Antigen") + 
+  theme(panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+  theme(axis.text.x = element_text(color = "black")) + ylim(0,10) +
+  scale_fill_hue(name = "Concentration (?g/mL)")
+
+graphics.off()
 
 #figure 3C - original script from "OptimizationTop10v2.R"
 #Plot CP3 data for all antigens for the 8 common conditions ("best" conditions)
