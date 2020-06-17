@@ -76,6 +76,9 @@ ggplot(hellosub, aes(x = reorder(rowid, value, min), y = value, color = Antigen)
 
 graphics.off()
 
+#Need to save the factor order for these row IDs so that can use the same factor order for all plots of top 8
+#not sure how to do the factor order outside the plot...reorder function was not working
+Top8rowidorder <- c("318", "98", "137", "142", "102", "432", "478", "112")
 
 
 #################################################
