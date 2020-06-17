@@ -53,6 +53,29 @@ load("OptimizationLMMready.RData") #this file is generated
 #the script which has the original plots for figure 3 is "OptimizationTop10v2.R"
 #which just says it continues on from the optimizationanalysis.R script.
 
+#figure 3C - original script from "OptimizationTop10v2.R"
+#Plot CP3 data for all antigens for the 8 common conditions ("best" conditions)
+
+#merge the conditions with the data to plot
+hello <- merge(CP3alone4, CP3all, sort = TRUE)
+
+#melt and subset data for the plot
+hellomelt <- melt(hello, variable.name = "Antigen")
+hellosub <- filter(hellomelt, Antigen == "X37_1.EPF1v2.100ug.ml_1" | Antigen == "X25_1.Hyp2.100ug.ml_1"
+                   | Antigen == "X19_1.PfMSP1.19.100ug.ml_1" | Antigen == "X13_1.PfAMA1.100ug.ml_1")
+
+#vertical plot of CP3 for "best" 8 conditions - organized by highest to lowest minimum value
+png(filename = paste0("V.CP3.Common8.tif"), width = 4.2, height = 2.7, units = "in", res = 1200)
+
+ggplot(hellosub, aes(x = reorder(rowid, value, min), y = value, color = Antigen)) + theme_bw() + 
+  geom_point(shape = 18, size = 2) + theme(axis.text.y = element_text(size = 10)) +
+  scale_color_hue(labels = c("AMA1", "MSP1-19", "Hyp2", "EPF1v2")) +
+  labs(x = "Row ID", y = "Normalized Log2(Positive/Negative)") +
+  theme(axis.text.x = element_text(color = "black"), panel.border = element_blank(), axis.line = element_line(), panel.grid = element_blank()) +
+  ylim(0,9)  + coord_flip()
+
+graphics.off()
+
 
 
 #################################################

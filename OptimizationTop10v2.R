@@ -458,7 +458,7 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   All.PRISM <- merge(PRISMalone4, four) #0 conditions
   write.csv(All.CP3, file = "CP3andGM.ALLantigens.csv")
   
-#Plot CP3 data for all antigens for the 7 common conditions ("best" conditions)
+#Plot CP3 data for all antigens for the 8 common conditions ("best" conditions)
   
   #merge the conditions with the data to plot
   hello <- merge(CP3alone4, CP3all, sort = TRUE)
