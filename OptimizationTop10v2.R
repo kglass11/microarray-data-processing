@@ -587,5 +587,6 @@ conditions <- CP3all[,c(1,9,10,11,48)]
   
   graphics.off()
   
+save.image(file = "PostOptimizationTop10v2.RData")  
   
   
